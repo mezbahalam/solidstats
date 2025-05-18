@@ -17,7 +17,7 @@ module Solidstats
       if File.exist?(AUDIT_CACHE_FILE)
         cached_data = JSON.parse(File.read(AUDIT_CACHE_FILE))
         last_run_time = Time.parse(cached_data["timestamp"])
-        
+
         # Use cached data if it's less than AUDIT_CACHE_HOURS old
         if Time.now - last_run_time < AUDIT_CACHE_HOURS.hours
           return cached_data["output"]
@@ -34,13 +34,13 @@ module Solidstats
         "output" => audit_output,
         "timestamp" => Time.now.iso8601
       }
-      
+
       # Ensure the tmp directory exists
       FileUtils.mkdir_p(File.dirname(AUDIT_CACHE_FILE))
-      
+
       # Write the cache file
       File.write(AUDIT_CACHE_FILE, JSON.generate(cache_data))
-      
+
       audit_output
     end
 

@@ -5,7 +5,7 @@ Gem::Specification.new do |spec|
   spec.version     = Solidstats::VERSION
   spec.authors     = [ "MezbahAlam" ]
   spec.email       = [ "mezbah@infolily.com" ]
-  spec.homepage    = "solidstats.infolily.com"
+  spec.homepage    = "https://solidstats.infolily.com"
   spec.summary     = "Development dashboard for Rails apps"
   spec.description = "View local project health: secuiry, lints, performance, and more."
   spec.license     = "MIT"
@@ -15,5 +15,6 @@ Gem::Specification.new do |spec|
     Dir["{app,config,db,lib}/**/*", "MIT-LICENSE", "Rakefile", "README.md"]
   end
 
-  spec.add_dependency "rails", ">= 8.0.2"
+  spec.add_dependency "rails", ">= 6.1"
+  spec.add_dependency "bundler-audit"
 end
