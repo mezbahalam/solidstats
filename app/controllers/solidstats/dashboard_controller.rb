@@ -25,8 +25,10 @@ module Solidstats
       end
 
       # Cache expired or doesn't exist, run the audit
-      audit_output = `bundle audit check --update`
-      
+      raw_output = `bundle audit check --update --format json`
+      json_part = raw_output[/\{.*\}/m] # extract JSON starting from first '{'
+      audit_output = JSON.parse(json_part) rescue { error: "Failed to parse JSON" }
+
       # Save to cache file with timestamp
       cache_data = {
         "output" => audit_output,
