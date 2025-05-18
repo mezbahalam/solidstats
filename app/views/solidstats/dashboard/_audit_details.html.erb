@@ -104,8 +104,11 @@
     </div>
 
     <!-- All vulnerability details at the end -->
-    <div class="vulnerabilities-details-section">
-      <h3>Vulnerability Details</h3>
+    <div class="vulnerabilities-details-section hidden">
+      <h3>
+        <span>Vulnerability Details</span>
+        <button class="toggle-details-btn" aria-expanded="false">Show Details</button>
+      </h3>
       <%# TODO: Render Markdown in .erb using Redcarpet with sanitize for safe HTML output %>
       <div class="md-container">
         <% results.each_with_index do |result, index| %>
@@ -273,10 +276,33 @@
     padding-top: 1.5rem;
   }
   
+  .vulnerabilities-details-section.hidden .md-container {
+    display: none;
+  }
+  
   .vulnerabilities-details-section h3 {
-    margin-bottom: 1.5rem;
-    font-size: 1.2rem;
-    font-weight: 600;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .toggle-details-btn {
+    background: #f1f1f1;
+    border: none;
+    padding: 0.4rem 0.8rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  
+  .toggle-details-btn:hover {
+    background: #e2e6ea;
+  }
+  
+  .toggle-details-btn[aria-expanded="true"] {
+    background: #007bff;
+    color: white;
   }
   
   .vulnerability-detail {
@@ -348,6 +374,7 @@
     border-radius: 6px;
     padding: 0;
     overflow: hidden;
+    transition: all 0.3s ease;
   }
   
   /* Each vulnerability as a markdown entry */
@@ -543,15 +570,55 @@
       });
     });
     
-    // View details link functionality
+    // Toggle details section functionality
+    const toggleBtn = document.querySelector('.toggle-details-btn');
+    if (toggleBtn) {
+      toggleBtn.addEventListener('click', function() {
+        const detailsSection = document.querySelector('.vulnerabilities-details-section');
+        const isHidden = detailsSection.classList.contains('hidden');
+        
+        if (isHidden) {
+          // Show the details
+          detailsSection.classList.remove('hidden');
+          this.textContent = 'Hide Details';
+          this.setAttribute('aria-expanded', 'true');
+          
+          // Scroll to the details section
+          detailsSection.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+          });
+        } else {
+          // Hide the details
+          detailsSection.classList.add('hidden');
+          this.textContent = 'Show Details';
+          this.setAttribute('aria-expanded', 'false');
+        }
+      });
+    }
+    
+    // View details link functionality - simplified to avoid duplication
     document.querySelectorAll('.view-details-link').forEach(function(link) {
       link.addEventListener('click', function(e) {
         e.preventDefault();
         const target = this.getAttribute('href');
-        document.querySelector(target).scrollIntoView({
-          behavior: 'smooth',
-          block: 'start'
-        });
+        const detailsSection = document.querySelector('.vulnerabilities-details-section');
+        
+        // Show the details section if it's hidden
+        if (detailsSection.classList.contains('hidden')) {
+          detailsSection.classList.remove('hidden');
+          const toggleBtn = document.querySelector('.toggle-details-btn');
+          toggleBtn.textContent = 'Hide Details';
+          toggleBtn.setAttribute('aria-expanded', 'true');
+        }
+        
+        // Scroll to the specific vulnerability
+        setTimeout(() => {
+          document.querySelector(target).scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+          });
+        }, 100);
       });
     });
     
@@ -578,38 +645,17 @@
             alert('All solutions copied to clipboard!');
           });
           
-          // Reset to showing all
-          document.querySelectorAll('.vulnerability-row').forEach(row => {
-            row.style.display = '';
-          });
-          
-          // Show all details too
-          document.querySelectorAll('.vulnerability-detail').forEach(detail => {
-            detail.style.display = '';
-          });
-          
           return;
         }
         
         // Filter the vulnerability rows
         document.querySelectorAll('.vulnerability-row').forEach(function(row) {
           const isHigh = row.classList.contains('high-severity');
-          const rowIndex = row.getAttribute('data-index');
           
           if (filter === 'all') {
             row.style.display = '';
           } else if (filter === 'high') {
             row.style.display = isHigh ? '' : 'none';
-          }
-          
-          // Also filter the corresponding details
-          const detailElement = document.getElementById(`vulnerability-${rowIndex}`);
-          if (detailElement) {
-            if (filter === 'all') {
-              detailElement.style.display = '';
-            } else if (filter === 'high') {
-              detailElement.style.display = isHigh ? '' : 'none';
-            }
           }
         });
       });
