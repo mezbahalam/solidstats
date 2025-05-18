@@ -106,38 +106,62 @@
     <!-- All vulnerability details at the end -->
     <div class="vulnerabilities-details-section">
       <h3>Vulnerability Details</h3>
-      <% results.each_with_index do |result, index| %>
-        <% 
-          gem = result.dig("gem") || {}
-          advisory = result.dig("advisory") || {}
-          criticality = advisory["criticality"] || "Unknown"
-          is_high = %w[High Critical].include?(criticality)
-        %>
-        <% if advisory["description"].present? %>
-          <div id="vulnerability-<%= index %>" class="vulnerability-detail <%= is_high ? 'high-severity' : '' %>">
-            <h4 class="vulnerability-title">
-              <%= gem["name"] %> <%= gem["version"] %> - <%= advisory["title"] %>
-            </h4>
-            <div class="vulnerability-meta">
-              <span class="severity <%= criticality.to_s.downcase %>"><%= criticality %></span>
-              <% if advisory["cve"].present? %>
-                <span class="cve">CVE: <%= advisory["cve"] %></span>
-              <% end %>
-              <% if advisory["date"].present? %>
-                <span class="date">Published: <%= advisory["date"] %></span>
-              <% end %>
-            </div>
-            <div class="description">
-              <%= simple_format(advisory["description"]) %>
-            </div>
-            <% if advisory["url"].present? %>
-              <div class="advisory-link">
-                <a href="<%= advisory["url"] %>" target="_blank" rel="noopener">More information</a>
+      <%# TODO: Render Markdown in .erb using Redcarpet with sanitize for safe HTML output %>
+      <div class="md-container">
+        <% results.each_with_index do |result, index| %>
+          <% 
+            gem = result.dig("gem") || {}
+            advisory = result.dig("advisory") || {}
+            criticality = advisory["criticality"] || "Unknown"
+            is_high = %w[High Critical].include?(criticality)
+          %>
+          <% if advisory["description"].present? %>
+            <div id="vulnerability-<%= index %>" class="md-entry <%= is_high ? 'high-severity' : '' %>">
+              <h2 class="md-heading">
+                <%= gem["name"] %> <%= gem["version"] %> - <%= advisory["title"] %>
+              </h2>
+              
+              <div class="md-metadata">
+                <% if advisory["cve"].present? %>
+                  <div class="md-tag cve">CVE-<%= advisory["cve"] %></div>
+                <% elsif advisory["ghsa"].present? %>
+                  <div class="md-tag ghsa">GHSA-<%= advisory["ghsa"] %></div>
+                <% end %>
+                <div class="md-tag severity <%= criticality.to_s.downcase %>"><%= criticality %></div>
+                <% if advisory["date"].present? %>
+                  <div class="md-date"><%= advisory["date"] %></div>
+                <% end %>
               </div>
-            <% end %>
-          </div>
+              
+              <div class="md-divider"></div>
+              
+              <div class="md-content">
+                <%= simple_format(advisory["description"]) %>
+              </div>
+              
+              <% if advisory["patched_versions"].present? %>
+                <div class="md-code-block">
+                  <div class="md-code-header">Patched Versions</div>
+                  <pre class="md-code"><%= advisory["patched_versions"].join(", ") %></pre>
+                </div>
+              <% end %>
+              
+              <% if advisory["url"].present? %>
+                <div class="md-link">
+                  <span class="md-link-icon">🔗</span>
+                  <a href="<%= advisory["url"] %>" target="_blank" rel="noopener">More information</a>
+                </div>
+              <% end %>
+              
+              <div class="md-back">
+                <a href="#" class="back-to-top" onclick="window.scrollTo({top: document.querySelector('.vulnerabilities-table').offsetTop - 20, behavior: 'smooth'}); return false;">
+                  ↑ Back to vulnerabilities table
+                </a>
+              </div>
+            </div>
+          <% end %>
         <% end %>
-      <% end %>
+      </div>
     </div>
   <% end %>
 </div>
@@ -313,6 +337,189 @@
   
   .view-details-link:hover {
     text-decoration: underline;
+  }
+  
+  /* Markdown-style container */
+  .md-container {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+    color: #24292e;
+    background-color: #f6f8fa;
+    border: 1px solid #e1e4e8;
+    border-radius: 6px;
+    padding: 0;
+    overflow: hidden;
+  }
+  
+  /* Each vulnerability as a markdown entry */
+  .md-entry {
+    border-bottom: 1px solid #e1e4e8;
+    padding: 24px;
+    background-color: #ffffff;
+  }
+  
+  .md-entry:last-child {
+    border-bottom: none;
+  }
+  
+  .md-entry.high-severity {
+    border-left: 4px solid #d73a49;
+  }
+  
+  /* Markdown heading style */
+  .md-heading {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 0 0 16px 0;
+    color: #24292e;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  }
+  
+  /* Metadata tags */
+  .md-metadata {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  
+  .md-tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+    background-color: #e1e4e8;
+  }
+  
+  .md-tag.cve {
+    background-color: #0366d6;
+    color: white;
+  }
+  
+  .md-tag.ghsa {
+    background-color: #6f42c1;
+    color: white;
+  }
+  
+  .md-tag.severity.high, .md-tag.severity.critical {
+    background-color: #d73a49;
+    color: white;
+  }
+  
+  .md-tag.severity.medium {
+    background-color: #f6a33e;
+    color: white;
+  }
+  
+  .md-tag.severity.low {
+    background-color: #1b7c83;
+    color: white;
+  }
+  
+  .md-tag.severity.unknown {
+    background-color: #6a737d;
+    color: white;
+  }
+  
+  .md-date {
+    font-size: 12px;
+    color: #6a737d;
+  }
+  
+  /* Markdown divider */
+  .md-divider {
+    height: 1px;
+    background-color: #e1e4e8;
+    margin: 16px 0;
+  }
+  
+  /* Markdown content */
+  .md-content {
+    font-size: 14px;
+    line-height: 1.6;
+    color: #24292e;
+    margin-bottom: 16px;
+  }
+  
+  .md-content p {
+    margin-bottom: 16px;
+  }
+  
+  .md-content p:last-child {
+    margin-bottom: 0;
+  }
+  
+  /* Code block style */
+  .md-code-block {
+    margin: 16px 0;
+    background-color: #f6f8fa;
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  
+  .md-code-header {
+    padding: 8px 16px;
+    background-color: #f1f8ff;
+    border-bottom: 1px solid #d0d7de;
+    color: #57606a;
+    font-size: 12px;
+    font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+  }
+  
+  .md-code {
+    margin: 0;
+    padding: 16px;
+    overflow-x: auto;
+    font-size: 13px;
+    line-height: 1.45;
+    color: #24292e;
+    font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+  }
+  
+  /* Link style */
+  .md-link {
+    display: flex;
+    align-items: center;
+    margin-top: 16px;
+  }
+  
+  .md-link-icon {
+    margin-right: 4px;
+    font-size: 14px;
+  }
+  
+  .md-link a {
+    color: #0366d6;
+    text-decoration: none;
+    font-size: 14px;
+  }
+  
+  .md-link a:hover {
+    text-decoration: underline;
+  }
+  
+  /* Back to top link */
+  .md-back {
+    margin-top: 24px;
+    font-size: 14px;
+    text-align: right;
+  }
+  
+  .back-to-top {
+    color: #586069;
+    text-decoration: none;
+  }
+  
+  .back-to-top:hover {
+    color: #0366d6;
+    text-decoration: underline;
+  }
+  
+  .vulnerabilities-details-section h3 {
+    margin-bottom: 16px;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #24292e;
   }
 </style>
 
