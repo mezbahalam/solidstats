@@ -1,0 +1,10 @@
+<div class="stat-card <%= @audit_output.include?('No vulnerabilities found') ? 'status-ok' : 'status-warning' %>">
+  <h2><span class="icon">🔐</span> Security Audit</h2>
+  <div class="card-content">
+    <%= render 'solidstats/dashboard/audit_badge' %>
+    <% audit_data = JSON.parse(File.read(Solidstats::DashboardController::AUDIT_CACHE_FILE)) rescue {} %>
+    <p class="timestamp">Last scan: <%= audit_data["timestamp"] ? Time.parse(audit_data["timestamp"]).strftime("%B %d, %Y at %H:%M") : "Unknown" %></p>
+    <a href="#" class="toggle-details" data-target="audit-details">Show Details</a>
+  </div>
+  <%= render 'solidstats/dashboard/audit_details' %>
+</div>

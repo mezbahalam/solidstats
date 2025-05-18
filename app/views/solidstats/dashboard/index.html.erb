@@ -1,18 +1,247 @@
-<h1>🚥 Solidstats Dashboard</h1>
+<div class="solidstats-dashboard">
+  <header class="dashboard-header">
+    <h1><span class="icon">🚥</span> Solidstats Dashboard</h1>
+    <p class="dashboard-last-updated">Last updated: <%= Time.now.strftime("%B %d, %Y at %H:%M") %></p>
+  </header>
 
-<section>
-  <h2>🔐 Bundler Audit</h2>
-  <pre><%= @audit_output %></pre>
-</section>
+  <div class="stats-cards">
+    <%= render 'solidstats/dashboard/security_audit' %>
 
-<section>
-  <h2>🧹 Rubocop Offenses: <%= @rubocop_output["summary"]["offense_count"] %></h2>
-</section>
+    <div class="stat-card">
+      <h2><span class="icon">🧹</span> Code Quality</h2>
+      <div class="card-content">
+        <div class="metric">
+          <span class="metric-label">Rubocop Offenses:</span>
+          <span class="metric-value"><%#= @rubocop_output["summary"]["offense_count"] || "N/A" %></span>
+        </div>
+      </div>
+    </div>
 
-<section>
-  <h2>📝 TODO / FIXME Comments: <%= @todo_count %></h2>
-</section>
+    <div class="stat-card">
+      <h2><span class="icon">📝</span> Code Health</h2>
+      <div class="card-content">
+        <div class="metric">
+          <span class="metric-label">TODO/FIXME Comments:</span>
+          <span class="metric-value"><%= @todo_count %></span>
+        </div>
+      </div>
+    </div>
 
-<section>
-  <h2>🧪 Test Coverage: <%= @coverage %> %</h2>
-</section>
+    <div class="stat-card <%= @coverage.to_f > 80 ? 'status-ok' : (@coverage.to_f > 60 ? 'status-warning' : 'status-danger') %>">
+      <h2><span class="icon">🧪</span> Test Coverage</h2>
+      <div class="card-content">
+        <div class="progress-container">
+          <div class="progress-bar" style="width: <%= @coverage %>%"></div>
+        </div>
+        <div class="metric">
+          <span class="metric-value"><%= @coverage %>%</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="dashboard-actions">
+    <a href="#" class="action-button" onclick="refreshAudit(); return false;">Refresh Security Audit</a>
+    <a href="#" class="action-button" onclick="exportReport(); return false;">Export Report</a>
+  </div>
+</div>
+
+<style>
+  .solidstats-dashboard {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+    color: #333;
+  }
+
+  .dashboard-header {
+    margin-bottom: 2rem;
+    border-bottom: 1px solid #eaeaea;
+    padding-bottom: 1rem;
+  }
+
+  .dashboard-header h1 {
+    font-size: 2rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
+
+  .dashboard-last-updated {
+    color: #888;
+    font-size: 0.9rem;
+  }
+
+  .stats-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .stat-card {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+  }
+
+  .stat-card h2 {
+    font-size: 1.2rem;
+    padding: 1rem;
+    margin: 0;
+    background: #f8f9fa;
+    border-bottom: 1px solid #eaeaea;
+  }
+
+  .card-content {
+    padding: 1.5rem;
+  }
+
+  .icon {
+    margin-right: 0.5rem;
+  }
+
+  .status-badge {
+    display: inline-block;
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    font-weight: 500;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+  }
+
+  .status-badge.success {
+    background: #e3f9e5;
+    color: #1b8922;
+  }
+
+  .status-badge.warning {
+    background: #fff8e6;
+    color: #b25900;
+  }
+
+  .status-ok {
+    border-top: 4px solid #1b8922;
+  }
+
+  .status-warning {
+    border-top: 4px solid #f0ad4e;
+  }
+
+  .status-danger {
+    border-top: 4px solid #d9534f;
+  }
+
+  .metric {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+  }
+
+  .metric-value {
+    font-weight: 600;
+    font-size: 1.2rem;
+  }
+
+  .timestamp {
+    color: #888;
+    font-size: 0.85rem;
+    margin-bottom: 1rem;
+  }
+
+  .toggle-details {
+    display: inline-block;
+    color: #007bff;
+    text-decoration: none;
+    font-size: 0.9rem;
+  }
+
+  .details-panel {
+    padding: 1rem;
+    background: #f8f9fa;
+    border-top: 1px solid #eaeaea;
+    max-height: 300px;
+    overflow-y: auto;
+  }
+
+  .details-panel pre {
+    margin: 0;
+    white-space: pre-wrap;
+    font-size: 0.85rem;
+  }
+
+  .hidden {
+    display: none;
+  }
+
+  .progress-container {
+    width: 100%;
+    background: #eee;
+    border-radius: 10px;
+    height: 12px;
+    margin-bottom: 0.8rem;
+    overflow: hidden;
+  }
+
+  .progress-bar {
+    height: 100%;
+    background: linear-gradient(to right, #5cb85c, #2b912b);
+    border-radius: 10px;
+  }
+
+  .dashboard-actions {
+    margin-top: 2rem;
+    display: flex;
+    gap: 1rem;
+  }
+
+  .action-button {
+    background: #007bff;
+    color: white;
+    border: none;
+    padding: 0.8rem 1.5rem;
+    border-radius: 5px;
+    cursor: pointer;
+    text-decoration: none;
+    font-weight: 500;
+    transition: background 0.2s;
+  }
+
+  .action-button:hover {
+    background: #0069d9;
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.toggle-details').forEach(function(element) {
+      element.addEventListener('click', function(e) {
+        e.preventDefault();
+        const target = document.getElementById(this.dataset.target);
+        target.classList.toggle('hidden');
+        this.textContent = target.classList.contains('hidden') ? 'Show Details' : 'Hide Details';
+      });
+    });
+  });
+
+  function refreshAudit() {
+    // Here you would add code to trigger a refresh of the audit data
+    // This could be an AJAX call to a controller endpoint
+    alert('Refreshing security audit data...');
+    // After implementation: window.location.reload();
+  }
+
+  function exportReport() {
+    // Here you would add code to generate a downloadable report
+    alert('Exporting report...');
+    // Implementation would depend on your export format (PDF, CSV, etc.)
+  }
+</script>
