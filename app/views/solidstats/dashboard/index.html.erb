@@ -11,8 +11,7 @@
       <h2><span class="icon">🧹</span> Code Quality</h2>
       <div class="card-content">
         <div class="metric">
-          <span class="metric-label">Rubocop Offenses:</span>
-          <span class="metric-value"><%#= @rubocop_output["summary"]["offense_count"] || "N/A" %></span>
+          <!-- Your code quality metrics -->
         </div>
       </div>
     </div>
@@ -20,10 +19,7 @@
     <div class="stat-card">
       <h2><span class="icon">📝</span> Code Health</h2>
       <div class="card-content">
-        <div class="metric">
-          <span class="metric-label">TODO/FIXME Comments:</span>
-          <span class="metric-value"><%= @todo_count %></span>
-        </div>
+        <!-- Your code health metrics -->
       </div>
     </div>
 
@@ -39,7 +35,7 @@
       </div>
     </div>
   </div>
-
+  
   <div class="dashboard-actions">
     <a href="#" class="action-button" onclick="refreshAudit(); return false;">Refresh Security Audit</a>
     <a href="#" class="action-button" onclick="exportReport(); return false;">Export Report</a>
@@ -47,201 +43,303 @@
 </div>
 
 <style>
+  /* Base styles for dashboard */
   .solidstats-dashboard {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #333;
     max-width: 1200px;
     margin: 0 auto;
-    padding: 2rem;
-    color: #333;
+    padding: 20px;
   }
-
+  
+  /* Header styles */
   .dashboard-header {
     margin-bottom: 2rem;
-    border-bottom: 1px solid #eaeaea;
-    padding-bottom: 1rem;
   }
-
+  
   .dashboard-header h1 {
-    font-size: 2rem;
+    font-size: 1.8rem;
     font-weight: 600;
-    margin-bottom: 0.5rem;
+    margin: 0 0 0.5rem 0;
   }
-
+  
   .dashboard-last-updated {
-    color: #888;
+    color: #666;
+    margin: 0;
     font-size: 0.9rem;
   }
-
+  
+  /* Card grid layout */
   .stats-cards {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 1.5rem;
     margin-bottom: 2rem;
   }
-
+  
+  /* Fix for audit card to span full width when details are shown */
+  .audit-card {
+    position: relative;
+    transition: all 0.3s ease;
+  }
+  
+  .audit-card.expanded {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+  
+  /* Card styles */
   .stat-card {
-    background: white;
-    border-radius: 10px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-    overflow: hidden;
-    transition: transform 0.2s, box-shadow 0.2s;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    padding: 1.5rem;
+    overflow: visible;
   }
-
-  .stat-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 6px 15px rgba(0,0,0,0.1);
-  }
-
+  
   .stat-card h2 {
     font-size: 1.2rem;
-    padding: 1rem;
-    margin: 0;
-    background: #f8f9fa;
-    border-bottom: 1px solid #eaeaea;
+    font-weight: 600;
+    margin: 0 0 1rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
   }
-
-  .card-content {
-    padding: 1.5rem;
+  
+  .stat-card .icon {
+    font-size: 1.4rem;
   }
-
-  .icon {
-    margin-right: 0.5rem;
-  }
-
-  .status-badge {
-    display: inline-block;
-    padding: 0.3rem 0.8rem;
-    border-radius: 20px;
-    font-weight: 500;
-    font-size: 0.9rem;
-    margin-bottom: 1rem;
-  }
-
-  .status-badge.success {
-    background: #e3f9e5;
-    color: #1b8922;
-  }
-
-  .status-badge.warning {
-    background: #fff8e6;
-    color: #b25900;
-  }
-
-  .status-ok {
-    border-top: 4px solid #1b8922;
-  }
-
-  .status-warning {
-    border-top: 4px solid #f0ad4e;
-  }
-
-  .status-danger {
-    border-top: 4px solid #d9534f;
-  }
-
+  
+  /* Metrics styling */
   .metric {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.75rem;
   }
-
+  
+  .metric-label {
+    color: #666;
+    font-size: 0.9rem;
+  }
+  
   .metric-value {
     font-weight: 600;
-    font-size: 1.2rem;
+    font-size: 1.1rem;
   }
-
-  .timestamp {
-    color: #888;
+  
+  /* Status badges */
+  .status-badge {
+    display: inline-block;
+    padding: 0.35rem 0.75rem;
+    border-radius: 20px;
     font-size: 0.85rem;
+    font-weight: 500;
     margin-bottom: 1rem;
   }
-
+  
+  .status-badge.success {
+    background-color: #d4edda;
+    color: #155724;
+  }
+  
+  .status-badge.warning {
+    background-color: #fff3cd;
+    color: #856404;
+  }
+  
+  .status-badge.danger {
+    background-color: #f8d7da;
+    color: #721c24;
+  }
+  
+  /* Progress bar */
+  .progress-container {
+    width: 100%;
+    height: 8px;
+    background-color: #e9ecef;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 0.75rem;
+  }
+  
+  .progress-bar {
+    height: 100%;
+    background-color: #28a745;
+    border-radius: 4px;
+  }
+  
+  /* Status contextual colors */
+  .status-ok .progress-bar {
+    background-color: #28a745;
+  }
+  
+  .status-warning .progress-bar {
+    background-color: #ffc107;
+  }
+  
+  .status-danger .progress-bar {
+    background-color: #dc3545;
+  }
+  
+  /* Details panel styling */
+  .details-panel {
+    background: #f9f9f9;
+    border-top: 1px solid #eaeaea;
+    padding: 1.5rem;
+    margin-top: 1.5rem;
+    border-radius: 0 0 8px 8px;
+    overflow: visible;
+  }
+  
+  .details-panel.hidden {
+    display: none;
+  }
+  
+  .details-panel:not(.hidden) {
+    display: block;
+  }
+  
+  /* Toggle details button */
   .toggle-details {
     display: inline-block;
     color: #007bff;
+    cursor: pointer;
+    font-size: 0.9rem;
     text-decoration: none;
+  }
+  
+  .toggle-details:hover {
+    text-decoration: underline;
+  }
+  
+  /* Table styling for vulnerability list */
+  .vulnerabilities-table {
+    overflow-x: auto;
+    margin-top: 1rem;
+  }
+  
+  .table {
+    width: 100%;
+    border-collapse: collapse;
     font-size: 0.9rem;
   }
-
-  .details-panel {
-    padding: 1rem;
-    background: #f8f9fa;
-    border-top: 1px solid #eaeaea;
-    max-height: 300px;
-    overflow-y: auto;
+  
+  .table th {
+    text-align: left;
+    padding: 0.75rem;
+    background-color: #f8f9fa;
+    border-bottom: 2px solid #dee2e6;
   }
-
-  .details-panel pre {
-    margin: 0;
-    white-space: pre-wrap;
-    font-size: 0.85rem;
+  
+  .table td {
+    padding: 0.75rem;
+    border-bottom: 1px solid #dee2e6;
+    vertical-align: middle;
   }
-
-  .hidden {
-    display: none;
+  
+  /* Severity indicators */
+  .severity {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 500;
   }
-
-  .progress-container {
-    width: 100%;
-    background: #eee;
-    border-radius: 10px;
-    height: 12px;
-    margin-bottom: 0.8rem;
-    overflow: hidden;
+  
+  .severity.high, .severity.critical {
+    background-color: #f8d7da;
+    color: #721c24;
   }
-
-  .progress-bar {
-    height: 100%;
-    background: linear-gradient(to right, #5cb85c, #2b912b);
-    border-radius: 10px;
+  
+  .severity.medium {
+    background-color: #fff3cd;
+    color: #856404;
   }
-
+  
+  .severity.low {
+    background-color: #d1ecf1;
+    color: #0c5460;
+  }
+  
+  .severity.unknown {
+    background-color: #e9ecef;
+    color: #495057;
+  }
+  
+  /* Dashboard actions */
   .dashboard-actions {
-    margin-top: 2rem;
     display: flex;
     gap: 1rem;
+    margin-top: 2rem;
   }
-
+  
   .action-button {
-    background: #007bff;
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    background-color: #007bff;
     color: white;
-    border: none;
-    padding: 0.8rem 1.5rem;
-    border-radius: 5px;
-    cursor: pointer;
     text-decoration: none;
-    font-weight: 500;
-    transition: background 0.2s;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
   }
-
+  
   .action-button:hover {
-    background: #0069d9;
+    background-color: #0069d9;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .stats-cards {
+      grid-template-columns: 1fr;
+    }
+    
+    .dashboard-actions {
+      flex-direction: column;
+    }
+    
+    .action-button {
+      width: 100%;
+      text-align: center;
+    }
   }
 </style>
 
 <script>
   document.addEventListener('DOMContentLoaded', function() {
-    document.querySelectorAll('.toggle-details').forEach(function(element) {
-      element.addEventListener('click', function(e) {
+    // Toggle details panels
+    document.querySelectorAll('.toggle-details').forEach(function(toggle) {
+      toggle.addEventListener('click', function(e) {
         e.preventDefault();
-        const target = document.getElementById(this.dataset.target);
-        target.classList.toggle('hidden');
-        this.textContent = target.classList.contains('hidden') ? 'Show Details' : 'Hide Details';
+        const targetId = this.getAttribute('data-target');
+        const panel = document.getElementById(targetId);
+        const card = this.closest('.stat-card');
+        
+        panel.classList.toggle('hidden');
+        card.classList.toggle('expanded');
+        
+        this.textContent = panel.classList.contains('hidden') ? 'Show Details' : 'Hide Details';
+        
+        // If showing details, scroll to it for better visibility
+        if (!panel.classList.contains('hidden')) {
+          setTimeout(() => {
+            panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }, 100);
+        }
       });
     });
   });
 
   function refreshAudit() {
-    // Here you would add code to trigger a refresh of the audit data
-    // This could be an AJAX call to a controller endpoint
-    alert('Refreshing security audit data...');
-    // After implementation: window.location.reload();
+    // Implement refresh functionality
+    alert('Refreshing audit data...');
+    location.reload();
   }
 
   function exportReport() {
-    // Here you would add code to generate a downloadable report
+    // Implement export functionality
     alert('Exporting report...');
-    // Implementation would depend on your export format (PDF, CSV, etc.)
   }
 </script>

@@ -2,25 +2,31 @@
   <div class="audit-summary">
     <div class="audit-summary-header">
       <h3>Security Audit Summary</h3>
-      <span class="audit-date">Last updated: <%= Time.now.strftime("%B %d, %Y at %H:%M") %></span>
+      <% created_at = @audit_output.dig("created_at") %>
+      <span class="audit-date">Last updated: <%= created_at ? DateTime.parse(created_at).strftime("%B %d, %Y at %H:%M") : Time.now.strftime("%B %d, %Y at %H:%M") %></span>
     </div>
     <div class="audit-stats">
       <div class="audit-stat">
-        <span class="stat-value"><%= @audit_output.scan(/CVE-\d+-\d+/).uniq.size %></span>
+        <% results = @audit_output.dig("results") || [] %>
+        <% cve_count = results.map { |r| r.dig("advisory", "cve") }.compact.uniq.size %>
+        <span class="stat-value"><%= cve_count %></span>
         <span class="stat-label">CVEs</span>
       </div>
       <div class="audit-stat">
-        <span class="stat-value"><%= @audit_output.scan(/Name: ([^\n]+)/).uniq.size %></span>
+        <% gem_count = results.map { |r| r.dig("gem", "name") }.uniq.size %>
+        <span class="stat-value"><%= gem_count %></span>
         <span class="stat-label">Affected Gems</span>
       </div>
       <div class="audit-stat">
-        <span class="stat-value"><%= @audit_output.scan(/Criticality: (High|Critical)/).size %></span>
+        <% high_severity = results.count { |r| %w[High Critical].include?(r.dig("advisory", "criticality")) } %>
+        <span class="stat-value"><%= high_severity %></span>
         <span class="stat-label">High Severity</span>
       </div>
     </div>
   </div>
   
-  <% if @audit_output.include?('No vulnerabilities found') %>
+  <% results = @audit_output.dig("results") || [] %>
+  <% if results.empty? %>
     <div class="no-vulnerabilities">
       <p>✅ No vulnerabilities found in your dependencies.</p>
     </div>
@@ -31,110 +37,167 @@
       <button class="filter-btn" data-filter="copy-solutions">Copy All Solutions</button>
     </div>
 
-    <div class="vulnerabilities-list">
-      <% @audit_output.scan(/Name: (.*?)(?=Name: |\z)/m).each do |vulnerability_block| %>
-        <% vulnerability = vulnerability_block[0] %>
-        <% 
-          gem_name = vulnerability.match(/Name: ([^\n]+)/)&.captures&.first
-          version = vulnerability.match(/Version: ([^\n]+)/)&.captures&.first
-          cve = vulnerability.match(/CVE: ([^\n]+)/)&.captures&.first
-          criticality = vulnerability.match(/Criticality: ([^\n]+)/)&.captures&.first
-          title = vulnerability.match(/Title: ([^\n]+)/)&.captures&.first
-          solution = vulnerability.match(/Solution: ([^\n]+)/)&.captures&.first
-          is_high = criticality == "High" || criticality == "Critical"
-        %>
+    <!-- Table of vulnerabilities first -->
+    <div class="vulnerabilities-table">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Gem</th>
+            <th>Version</th>
+            <th>Criticality</th>
+            <th>CVE</th>
+            <th>Title</th>
+            <th>Solution</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% results.each_with_index do |result, index| %>
+            <% 
+              gem = result.dig("gem") || {}
+              advisory = result.dig("advisory") || {}
+              criticality = advisory["criticality"] || "Unknown"
+              is_high = %w[High Critical].include?(criticality)
+            %>
+            <tr class="vulnerability-row <%= is_high ? 'high-severity' : '' %>" data-index="<%= index %>">
+              <td><%= gem["name"] %></td>
+              <td><span class="version"><%= gem["version"] %></span></td>
+              <td>
+                <span class="severity <%= criticality.to_s.downcase %>">
+                  <%= criticality %>
+                </span>
+              </td>
+              <td>
+                <% if advisory["cve"].present? %>
+                  <a href="https://nvd.nist.gov/vuln/detail/CVE-<%= advisory["cve"] %>" target="_blank">
+                    CVE-<%= advisory["cve"] %>
+                  </a>
+                <% elsif advisory["ghsa"].present? %>
+                  <a href="https://github.com/advisories/<%= advisory["ghsa"] %>" target="_blank">
+                    GHSA-<%= advisory["ghsa"] %>
+                  </a>
+                <% else %>
+                  N/A
+                <% end %>
+              </td>
+              <td>
+                <%= advisory["title"] %>
+                <% if advisory["description"].present? %>
+                  <a href="#vulnerability-<%= index %>" class="view-details-link">View details</a>
+                <% end %>
+              </td>
+              <td>
+                <div class="solution">
+                  <% if advisory["patched_versions"].present? %>
+                    <button class="copy-btn" data-solution="<%= "#{gem["name"]}, #{advisory["patched_versions"].join(", ")}" %>">
+                      <span class="copy-icon">📋</span> Copy
+                    </button>
+                    <code><%= advisory["patched_versions"].join(", ") %></code>
+                  <% else %>
+                    <span class="no-patch">No patch available</span>
+                  <% end %>
+                </div>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
 
-        <div class="vulnerability-card <%= is_high ? 'high-severity' : '' %>">
-          <div class="vulnerability-header">
-            <h4><%= gem_name %> <span class="version"><%= version %></span></h4>
-            <span class="severity <%= criticality&.downcase %>"><%= criticality %></span>
-          </div>
-          <div class="vulnerability-body">
-            <p class="title"><%= title %></p>
-            <% if cve %>
-              <p class="cve"><span>CVE:</span> <%= cve %></p>
-            <% end %>
-            <div class="solution">
-              <div class="solution-header">
-                <h5>Solution:</h5>
-                <button class="copy-btn" data-solution="<%= gem_name %>@<%= solution %>">
-                  <span class="copy-icon">📋</span> Copy
-                </button>
-              </div>
-              <code><%= gem_name %>@<%= solution %></code>
+    <!-- All vulnerability details at the end -->
+    <div class="vulnerabilities-details-section">
+      <h3>Vulnerability Details</h3>
+      <% results.each_with_index do |result, index| %>
+        <% 
+          gem = result.dig("gem") || {}
+          advisory = result.dig("advisory") || {}
+          criticality = advisory["criticality"] || "Unknown"
+          is_high = %w[High Critical].include?(criticality)
+        %>
+        <% if advisory["description"].present? %>
+          <div id="vulnerability-<%= index %>" class="vulnerability-detail <%= is_high ? 'high-severity' : '' %>">
+            <h4 class="vulnerability-title">
+              <%= gem["name"] %> <%= gem["version"] %> - <%= advisory["title"] %>
+            </h4>
+            <div class="vulnerability-meta">
+              <span class="severity <%= criticality.to_s.downcase %>"><%= criticality %></span>
+              <% if advisory["cve"].present? %>
+                <span class="cve">CVE: <%= advisory["cve"] %></span>
+              <% end %>
+              <% if advisory["date"].present? %>
+                <span class="date">Published: <%= advisory["date"] %></span>
+              <% end %>
             </div>
+            <div class="description">
+              <%= simple_format(advisory["description"]) %>
+            </div>
+            <% if advisory["url"].present? %>
+              <div class="advisory-link">
+                <a href="<%= advisory["url"] %>" target="_blank" rel="noopener">More information</a>
+              </div>
+            <% end %>
           </div>
-        </div>
+        <% end %>
       <% end %>
     </div>
   <% end %>
 </div>
 
 <style>
-  /* Additional CSS for audit details */
+  /* Audit details specific styles */
   .audit-summary {
-    background: #f8f9fa;
-    border-radius: 8px;
-    margin-bottom: 1.5rem;
-    padding: 1rem;
+    margin-bottom: 2rem;
   }
   
   .audit-summary-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    border-bottom: 1px solid #dee2e6;
+    padding-bottom: 1rem;
     margin-bottom: 1rem;
   }
   
   .audit-summary-header h3 {
     margin: 0;
-  }
-  
-  .audit-date {
-    color: #666;
-    font-size: 0.85rem;
+    font-size: 1.2rem;
+    font-weight: 600;
   }
   
   .audit-stats {
     display: flex;
-    justify-content: space-around;
-    text-align: center;
+    gap: 2rem;
+    margin-bottom: 1rem;
   }
   
   .audit-stat {
-    display: flex;
-    flex-direction: column;
+    text-align: center;
   }
   
-  .stat-value {
+  .audit-stat .stat-value {
+    display: block;
     font-size: 1.8rem;
-    font-weight: 600;
+    font-weight: 700;
     color: #333;
   }
   
-  .stat-label {
+  .audit-stat .stat-label {
     font-size: 0.9rem;
     color: #666;
   }
   
   .audit-filters {
-    margin-bottom: 1rem;
     display: flex;
     gap: 0.5rem;
+    margin-bottom: 1rem;
   }
   
   .filter-btn {
-    background: #e9ecef;
+    background: #f1f1f1;
     border: none;
+    padding: 0.4rem 0.8rem;
     border-radius: 4px;
-    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
     cursor: pointer;
-    font-size: 0.9rem;
-    transition: all 0.2s;
-  }
-  
-  .filter-btn:hover {
-    background: #dee2e6;
   }
   
   .filter-btn.active {
@@ -142,107 +205,26 @@
     color: white;
   }
   
-  .vulnerabilities-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-    gap: 1rem;
-  }
-  
-  .vulnerability-card {
-    border: 1px solid #dee2e6;
-    border-radius: 8px;
-    overflow: hidden;
-  }
-  
-  .vulnerability-card.high-severity {
-    border-left: 4px solid #dc3545;
-  }
-  
-  .vulnerability-header {
-    background: #f8f9fa;
-    padding: 0.75rem 1rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  
-  .vulnerability-header h4 {
-    margin: 0;
-    font-size: 1.1rem;
-  }
-  
-  .version {
-    color: #6c757d;
-    font-size: 0.9rem;
-    font-weight: normal;
-    margin-left: 0.5rem;
-  }
-  
-  .severity {
-    font-size: 0.8rem;
-    padding: 0.2rem 0.5rem;
-    border-radius: 4px;
-    text-transform: uppercase;
-    font-weight: 600;
-  }
-  
-  .severity.high, .severity.critical {
-    background: #f8d7da;
-    color: #721c24;
-  }
-  
-  .severity.medium {
-    background: #fff3cd;
-    color: #856404;
-  }
-  
-  .severity.low, .severity.unknown {
-    background: #e2e3e5;
-    color: #383d41;
-  }
-  
-  .vulnerability-body {
-    padding: 1rem;
-  }
-  
-  .title {
-    font-weight: 500;
-    margin-bottom: 0.8rem;
-  }
-  
-  .cve span {
-    font-weight: 600;
+  .vulnerability-row.high-severity {
+    background-color: #fff8f8;
   }
   
   .solution {
-    margin-top: 1rem;
-    background: #f8f9fa;
-    padding: 0.8rem;
-    border-radius: 4px;
-  }
-  
-  .solution-header {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    margin-bottom: 0.5rem;
-  }
-  
-  .solution-header h5 {
-    margin: 0;
+    gap: 0.5rem;
   }
   
   .copy-btn {
     background: #e9ecef;
     border: none;
     border-radius: 4px;
-    padding: 0.3rem 0.6rem;
+    padding: 0.3rem 0.5rem;
     font-size: 0.8rem;
     cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 0.3rem;
-    transition: all 0.2s;
+    gap: 0.25rem;
   }
   
   .copy-btn:hover {
@@ -250,28 +232,87 @@
   }
   
   .copy-btn.copied {
-    background: #28a745;
-    color: white;
-  }
-  
-  .copy-icon {
-    font-size: 0.9rem;
-  }
-  
-  .solution code {
-    display: block;
-    font-family: monospace;
-    background: #fff;
-    padding: 0.5rem;
-    border-radius: 4px;
-    border: 1px solid #dee2e6;
+    background: #d4edda;
+    color: #155724;
   }
   
   .no-vulnerabilities {
-    padding: 2rem;
     text-align: center;
-    background: #e3f9e5;
+    padding: 2rem;
+    color: #155724;
+  }
+  
+  /* Styling for details section */
+  .vulnerabilities-details-section {
+    margin-top: 3rem;
+    border-top: 1px solid #dee2e6;
+    padding-top: 1.5rem;
+  }
+  
+  .vulnerabilities-details-section h3 {
+    margin-bottom: 1.5rem;
+    font-size: 1.2rem;
+    font-weight: 600;
+  }
+  
+  .vulnerability-detail {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
     border-radius: 8px;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+  }
+  
+  .vulnerability-detail.high-severity {
+    border-left: 4px solid #dc3545;
+  }
+  
+  .vulnerability-title {
+    margin-top: 0;
+    margin-bottom: 0.75rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+  }
+  
+  .vulnerability-meta {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    font-size: 0.85rem;
+  }
+  
+  .cve, .date {
+    color: #666;
+  }
+  
+  .description {
+    font-size: 0.9rem;
+    line-height: 1.5;
+    white-space: pre-line;
+  }
+  
+  .advisory-link {
+    margin-top: 1rem;
+  }
+  
+  .advisory-link a {
+    color: #007bff;
+    text-decoration: none;
+  }
+  
+  .advisory-link a:hover {
+    text-decoration: underline;
+  }
+  
+  .view-details-link {
+    margin-left: 0.5rem;
+    font-size: 0.85rem;
+    color: #007bff;
+    text-decoration: none;
+  }
+  
+  .view-details-link:hover {
+    text-decoration: underline;
   }
 </style>
 
@@ -295,6 +336,18 @@
       });
     });
     
+    // View details link functionality
+    document.querySelectorAll('.view-details-link').forEach(function(link) {
+      link.addEventListener('click', function(e) {
+        e.preventDefault();
+        const target = this.getAttribute('href');
+        document.querySelector(target).scrollIntoView({
+          behavior: 'smooth',
+          block: 'start'
+        });
+      });
+    });
+    
     // Filter functionality
     document.querySelectorAll('.filter-btn').forEach(function(button) {
       button.addEventListener('click', function() {
@@ -307,8 +360,10 @@
         // Handle special case for copy-solutions
         if (filter === 'copy-solutions') {
           const solutions = [];
-          document.querySelectorAll('.vulnerability-card .solution code').forEach(function(code) {
-            solutions.push(code.textContent);
+          document.querySelectorAll('.vulnerability-row').forEach(function(row) {
+            const gem = row.cells[0].textContent.trim();
+            const solution = row.querySelector('.solution code')?.textContent.trim() || "No patch available";
+            solutions.push(`${gem}: ${solution}`);
           });
           
           // Copy all solutions to clipboard
@@ -317,18 +372,37 @@
           });
           
           // Reset to showing all
-          document.querySelectorAll('.vulnerability-card').forEach(card => {
-            card.style.display = 'block';
+          document.querySelectorAll('.vulnerability-row').forEach(row => {
+            row.style.display = '';
           });
+          
+          // Show all details too
+          document.querySelectorAll('.vulnerability-detail').forEach(detail => {
+            detail.style.display = '';
+          });
+          
           return;
         }
         
-        // Filter the cards
-        document.querySelectorAll('.vulnerability-card').forEach(function(card) {
+        // Filter the vulnerability rows
+        document.querySelectorAll('.vulnerability-row').forEach(function(row) {
+          const isHigh = row.classList.contains('high-severity');
+          const rowIndex = row.getAttribute('data-index');
+          
           if (filter === 'all') {
-            card.style.display = 'block';
+            row.style.display = '';
           } else if (filter === 'high') {
-            card.style.display = card.classList.contains('high-severity') ? 'block' : 'none';
+            row.style.display = isHigh ? '' : 'none';
+          }
+          
+          // Also filter the corresponding details
+          const detailElement = document.getElementById(`vulnerability-${rowIndex}`);
+          if (detailElement) {
+            if (filter === 'all') {
+              detailElement.style.display = '';
+            } else if (filter === 'high') {
+              detailElement.style.display = isHigh ? '' : 'none';
+            }
           }
         });
       });
