@@ -1,0 +1,18 @@
+<h1>🚥 Solidstats Dashboard</h1>
+
+<section>
+  <h2>🔐 Bundler Audit</h2>
+  <pre><%= @audit_output %></pre>
+</section>
+
+<section>
+  <h2>🧹 Rubocop Offenses: <%= @rubocop_output["summary"]["offense_count"] %></h2>
+</section>
+
+<section>
+  <h2>📝 TODO / FIXME Comments: <%= @todo_count %></h2>
+</section>
+
+<section>
+  <h2>🧪 Test Coverage: <%= @coverage %> %</h2>
+</section>
