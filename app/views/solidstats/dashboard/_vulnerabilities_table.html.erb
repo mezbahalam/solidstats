@@ -1,0 +1,64 @@
+<div class="vulnerabilities-table">
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Gem</th>
+        <th>Version</th>
+        <th>Criticality</th>
+        <th>CVE</th>
+        <th>Title</th>
+        <th>Solution</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% results.each_with_index do |result, index| %>
+        <% 
+          gem = result.dig("gem") || {}
+          advisory = result.dig("advisory") || {}
+          criticality = advisory["criticality"] || "Unknown"
+          is_high = %w[high critical].include?(criticality.downcase)
+        %>
+        <tr class="vulnerability-row <%= is_high ? 'high-severity' : '' %>" data-index="<%= index %>">
+          <td><%= gem["name"] %></td>
+          <td><span class="version"><%= gem["version"] %></span></td>
+          <td>
+            <span class="severity <%= criticality.to_s.downcase %>">
+              <%= criticality %>
+            </span>
+          </td>
+          <td>
+            <% if advisory["cve"].present? %>
+              <a href="https://nvd.nist.gov/vuln/detail/CVE-<%= advisory["cve"] %>" target="_blank">
+                CVE-<%= advisory["cve"] %>
+              </a>
+            <% elsif advisory["ghsa"].present? %>
+              <a href="https://github.com/advisories/<%= advisory["ghsa"] %>" target="_blank">
+                GHSA-<%= advisory["ghsa"] %>
+              </a>
+            <% else %>
+              N/A
+            <% end %>
+          </td>
+          <td>
+            <%= advisory["title"] %>
+            <% if advisory["description"].present? %>
+              <a href="#vulnerability-<%= index %>" class="view-details-link">View details</a>
+            <% end %>
+          </td>
+          <td>
+            <div class="solution">
+              <% if advisory["patched_versions"].present? %>
+                <button class="copy-btn" data-solution="<%= "#{gem["name"]}, #{advisory["patched_versions"].join(", ")}" %>">
+                  <span class="copy-icon">📋</span> Copy
+                </button>
+                <code><%= advisory["patched_versions"].join(", ") %></code>
+              <% else %>
+                <span class="no-patch">No patch available</span>
+              <% end %>
+            </div>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>
