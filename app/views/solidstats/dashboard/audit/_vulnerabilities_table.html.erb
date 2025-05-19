@@ -1,3 +1,4 @@
+<%# filepath: /Users/mezbah/microstartup/infolily_organizer/gems/solidstats/app/views/solidstats/audit/_vulnerabilities_table.html.erb %>
 <div class="vulnerabilities-table">
   <table class="table">
     <thead>
@@ -11,6 +12,7 @@
       </tr>
     </thead>
     <tbody>
+      <% results = @audit_output.dig("results") || [] %>
       <% results.each_with_index do |result, index| %>
         <% 
           gem = result.dig("gem") || {}
