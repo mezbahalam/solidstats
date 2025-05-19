@@ -1,67 +1,177 @@
-<!-- filepath: /Users/mezbah/microstartup/infolily_organizer/gems/solidstats/app/views/solidstats/dashboard/_todos.html.erb -->
-<div class="card mb-4">
-  <div class="card-header d-flex justify-content-between align-items-center">
-    <h5 class="mb-0">
-      TODO Items
-      <span class="badge bg-warning text-dark"><%= @todo_count %></span>
-    </h5>
-    <button class="btn btn-sm btn-outline-primary" id="toggleTodoList">
-      <span id="toggleTodoText">Show</span> All
-    </button>
+<div class="stat-card todo-card">
+  <h2><span class="icon">📝</span> TODO Items</h2>
+  <div class="card-content">
+    <% if @todo_items.nil? %>
+      <div class="status-badge danger">Error loading TODO data</div>
+    <% elsif @todo_items.empty? %>
+      <div class="status-badge success">All Clear</div>
+    <% else %>
+      <div class="status-badge warning"><%= @todo_stats&.dig(:total) || 0 %> <%= "Item".pluralize(@todo_stats&.dig(:total) || 0) %> Found</div>
+      
+      <%# Debug information - remove in production %>
+      <% if Rails.env.development? %>
+        <div class="debug-info small text-muted mt-2">
+          <details>
+            <summary>Debug Info</summary>
+            <pre>Todo Stats: <%= @todo_stats.inspect %></pre>
+            <pre>Todo Items: <%= @todo_items.inspect %></pre>
+          </details>
+        </div>
+      <% end %>
+    <% end %>
+    
+    <% if @todo_items.present? && @todo_stats.present? %>
+      <div class="metrics-group">
+        <div class="metric">
+          <span class="metric-label">TODO:</span>
+          <span class="metric-value"><%= @todo_stats&.dig(:by_type, "TODO") || 0 %></span>
+        </div>
+        <div class="metric">
+          <span class="metric-label">FIXME:</span>
+          <span class="metric-value text-danger"><%= @todo_stats&.dig(:by_type, "FIXME") || 0 %></span>
+        </div>
+        <div class="metric">
+          <span class="metric-label">HACK:</span>
+          <span class="metric-value text-warning"><%= @todo_stats&.dig(:by_type, "HACK") || 0 %></span>
+        </div>
+      </div>
+      
+      <a href="#" class="toggle-details" data-target="todo-details">Show Details</a>
+    <% end %>
   </div>
   
-  <div class="card-body">
-    <div class="d-flex justify-content-between mb-3">
-      <div>
-        <span class="badge bg-warning me-2">TODO: <%= @todo_items.count { |item| item[:type] == "TODO" } %></span>
-        <span class="badge bg-danger me-2">FIXME: <%= @todo_items.count { |item| item[:type] == "FIXME" } %></span>
-        <span class="badge bg-info">HACK: <%= @todo_items.count { |item| item[:type] == "HACK" } %></span>
+  <% if @todo_items.present? && @todo_stats.present? %>
+    <div id="todo-details" class="details-panel hidden">
+      <h3 class="details-section-title">Files with Most TODOs</h3>
+      <div class="table-responsive mb-4">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>File</th>
+              <th class="text-end">Count</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% 
+              # If hotspots has nil keys, reconstruct it from @todo_items
+              hotspots = @todo_stats[:hotspots]
+              if hotspots.is_a?(Hash) && hotspots.keys.any?(&:nil?)
+                # Rebuild hotspots from todo_items
+                hotspots = {}
+                @todo_items.each do |item|
+                  item_hash = item.respond_to?(:symbolize_keys) ? item.symbolize_keys : item
+                  file = item_hash[:file] || item["file"]
+                  next unless file.present?
+                  hotspots[file] ||= 0
+                  hotspots[file] += 1
+                end
+              end
+            %>
+            
+            <% if hotspots.present? %>
+              <% hotspots.each do |file, count| %>
+                <tr>
+                  <td><code><%= file.nil? ? "Unknown File" : file.to_s %></code></td>
+                  <td class="text-end"><%= count.to_i %></td>
+                </tr>
+              <% end %>
+            <% else %>
+              <tr>
+                <td colspan="2">No hotspot data available</td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 class="details-section-title">All TODO Items</h3>
+      <div class="accordion" id="todoAccordion">
+        <% @todo_items.each_with_index do |item, index| %>
+          <% 
+            # Convert item to a hash with symbol keys if it's a hash with string keys
+            item = item.symbolize_keys if item.respond_to?(:symbolize_keys)
+          %>
+          <div class="accordion-item">
+            <h4 class="accordion-header">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#todo-<%= index %>">
+                <span class="badge <%= item[:type] == 'FIXME' ? 'bg-danger' : (item[:type] == 'HACK' ? 'bg-warning' : 'bg-primary') %> me-2"><%= item[:type] || "TODO" %></span>
+                <%= File.basename(item[:file].to_s) %>:<%= item[:line] || '?' %>
+              </button>
+            </h4>
+            <div id="todo-<%= index %>" class="accordion-collapse collapse" data-bs-parent="#todoAccordion">
+              <div class="accordion-body">
+                <p><code class="d-block"><%= item[:content].to_s %></code></p>
+                <small class="text-muted">File: <%= item[:file].to_s %></small>
+              </div>
+            </div>
+          </div>
+        <% end %>
       </div>
     </div>
-
-    <div id="todoListContainer" style="display: none;">
-      <table class="table table-sm table-hover">
-        <thead>
-          <tr>
-            <th>Type</th>
-            <th>File</th>
-            <th>Line</th>
-            <th>Content</th>
-          </tr>
-        </thead>
-        <tbody>
-          <% @todo_items.each do |item| %>
-            <tr>
-              <td>
-                <span class="badge <%= item[:type] == 'FIXME' ? 'bg-danger' : (item[:type] == 'HACK' ? 'bg-info' : 'bg-warning') %>">
-                  <%= item[:type] %>
-                </span>
-              </td>
-              <td><%= item[:file] %></td>
-              <td><%= item[:line] %></td>
-              <td><%= item[:content] %></td>
-            </tr>
-          <% end %>
-        </tbody>
-      </table>
-    </div>
-  </div>
+  <% end %>
 </div>
 
-<script>
-  document.addEventListener('DOMContentLoaded', function() {
-    const toggleBtn = document.getElementById('toggleTodoList');
-    const container = document.getElementById('todoListContainer');
-    const toggleText = document.getElementById('toggleTodoText');
-    
-    toggleBtn.addEventListener('click', function() {
-      if (container.style.display === 'none') {
-        container.style.display = 'block';
-        toggleText.textContent = 'Hide';
-      } else {
-        container.style.display = 'none';
-        toggleText.textContent = 'Show';
-      }
-    });
-  });
-</script>
+<style>
+  /* Additional styles for todo card */
+  .todo-card.expanded {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+  
+  .details-section-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 1.5rem 0 1rem 0;
+  }
+  
+  .details-section-title:first-child {
+    margin-top: 0;
+  }
+  
+  /* Fix for accordion within the card */
+  .todo-card .accordion {
+    margin-top: 1rem;
+  }
+  
+  .todo-card .accordion-item {
+    border: 1px solid rgba(0, 0, 0, 0.125);
+    margin-bottom: 0.5rem;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  
+  .todo-card .accordion-button {
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+    background-color: #f8f9fa;
+  }
+  
+  .todo-card .accordion-button:not(.collapsed) {
+    background-color: #e7f1ff;
+  }
+  
+  .todo-card .accordion-body {
+    padding: 1rem;
+    background-color: #fff;
+  }
+  
+  .todo-card code {
+    font-family: SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.85rem;
+    padding: 0.2rem 0.4rem;
+    background: #f6f8fa;
+    border-radius: 3px;
+    color: #24292e;
+  }
+  
+  .todo-card code.d-block {
+    display: block;
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+    white-space: pre-wrap;
+    word-break: break-word;
+    background: #f6f8fa;
+    border-radius: 4px;
+    border: 1px solid #e1e4e8;
+  }
+</style>
