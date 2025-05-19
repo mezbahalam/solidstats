@@ -59,7 +59,8 @@ module Solidstats
       end
 
       todos = []
-      raw_output = `grep -r -n -E "TODO|FIXME|HACK" app lib`.split("\n")
+      # Updated grep pattern to match only all-uppercase or all-lowercase variants
+      raw_output = `grep -r -n -E "(TODO|FIXME|HACK|todo|fixme|hack)" app lib`.split("\n")
       
       raw_output.each do |line|
         if line =~ /^(.+):(\d+):(.+)$/
@@ -67,12 +68,19 @@ module Solidstats
           line_num = $2
           content = $3
           
-          todos << {
-            file: file,
-            line: line_num.to_i,
-            content: content.strip,
-            type: content.match(/TODO|FIXME|HACK/).to_s
-          }
+          # Match only exact lowercase or uppercase variants
+          type_match = content.match(/(TODO|FIXME|HACK|todo|fixme|hack)/)
+          if type_match
+            # Convert to uppercase for consistency
+            type = type_match.to_s.upcase
+            
+            todos << {
+              file: file,
+              line: line_num.to_i,
+              content: content.strip,
+              type: type
+            }
+          end
         end
       end
       
