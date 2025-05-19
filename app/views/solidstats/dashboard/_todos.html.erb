@@ -1,0 +1,67 @@
+<!-- filepath: /Users/mezbah/microstartup/infolily_organizer/gems/solidstats/app/views/solidstats/dashboard/_todos.html.erb -->
+<div class="card mb-4">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <h5 class="mb-0">
+      TODO Items
+      <span class="badge bg-warning text-dark"><%= @todo_count %></span>
+    </h5>
+    <button class="btn btn-sm btn-outline-primary" id="toggleTodoList">
+      <span id="toggleTodoText">Show</span> All
+    </button>
+  </div>
+  
+  <div class="card-body">
+    <div class="d-flex justify-content-between mb-3">
+      <div>
+        <span class="badge bg-warning me-2">TODO: <%= @todo_items.count { |item| item[:type] == "TODO" } %></span>
+        <span class="badge bg-danger me-2">FIXME: <%= @todo_items.count { |item| item[:type] == "FIXME" } %></span>
+        <span class="badge bg-info">HACK: <%= @todo_items.count { |item| item[:type] == "HACK" } %></span>
+      </div>
+    </div>
+
+    <div id="todoListContainer" style="display: none;">
+      <table class="table table-sm table-hover">
+        <thead>
+          <tr>
+            <th>Type</th>
+            <th>File</th>
+            <th>Line</th>
+            <th>Content</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @todo_items.each do |item| %>
+            <tr>
+              <td>
+                <span class="badge <%= item[:type] == 'FIXME' ? 'bg-danger' : (item[:type] == 'HACK' ? 'bg-info' : 'bg-warning') %>">
+                  <%= item[:type] %>
+                </span>
+              </td>
+              <td><%= item[:file] %></td>
+              <td><%= item[:line] %></td>
+              <td><%= item[:content] %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const toggleBtn = document.getElementById('toggleTodoList');
+    const container = document.getElementById('todoListContainer');
+    const toggleText = document.getElementById('toggleTodoText');
+    
+    toggleBtn.addEventListener('click', function() {
+      if (container.style.display === 'none') {
+        container.style.display = 'block';
+        toggleText.textContent = 'Hide';
+      } else {
+        container.style.display = 'none';
+        toggleText.textContent = 'Show';
+      }
+    });
+  });
+</script>

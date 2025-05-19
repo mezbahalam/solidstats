@@ -6,7 +6,7 @@ module Solidstats
     def index
       @audit_output = fetch_audit_output
       @rubocop_output = "JSON.parse(`rubocop --format json`)"
-      @todo_count = `grep -r -E \"TODO|FIXME|HACK\" app lib | wc -l`.to_i
+      @todo_items = fetch_todo_items
       @coverage = "read_coverage_percent"
     end
 
@@ -42,6 +42,28 @@ module Solidstats
       File.write(AUDIT_CACHE_FILE, JSON.generate(cache_data))
 
       audit_output
+    end
+
+    def fetch_todo_items
+      todos = []
+      raw_output = `grep -r -n -E "TODO|FIXME|HACK" app lib`.split("\n")
+      
+      raw_output.each do |line|
+        if line =~ /^(.+):(\d+):(.+)$/
+          file = $1
+          line_num = $2
+          content = $3
+          
+          todos << {
+            file: file,
+            line: line_num.to_i,
+            content: content.strip,
+            type: content.match(/TODO|FIXME|HACK/).to_s
+          }
+        end
+      end
+      
+      todos
     end
 
     def read_coverage_percent
