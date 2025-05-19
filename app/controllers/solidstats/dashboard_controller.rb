@@ -1,7 +1,7 @@
 module Solidstats
   class DashboardController < ApplicationController
     AUDIT_CACHE_FILE = Rails.root.join("tmp", "solidstats_audit.json")
-    TODO_CACHE_FILE = Rails.root.join("tmp", "solidstats_todos.json") 
+    TODO_CACHE_FILE = Rails.root.join("tmp", "solidstats_todos.json")
     AUDIT_CACHE_HOURS = 12 # Configure how many hours before refreshing
     
     def index
@@ -121,8 +121,8 @@ module Solidstats
       
       # Find files with most TODOs (top 5)
       stats[:hotspots] = stats[:by_file].sort_by { |_, count| -count }
-                                        .first(5)
-                                        .to_h
+                                       .first(5)
+                                       .to_h
       
       stats
     end

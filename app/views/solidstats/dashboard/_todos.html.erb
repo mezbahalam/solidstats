@@ -47,7 +47,7 @@
             </tr>
           </thead>
           <tbody>
-            <% 
+            <%
               # If hotspots has nil keys, reconstruct it from @todo_items
               hotspots = @todo_stats[:hotspots]
               if hotspots.is_a?(Hash) && hotspots.keys.any?(&:nil?)
@@ -82,7 +82,7 @@
       <h3 class="details-section-title">All TODO Items</h3>
       <div class="accordion" id="todoAccordion">
         <% @todo_items.each_with_index do |item, index| %>
-          <% 
+          <%
             # Convert item to a hash with symbol keys if it's a hash with string keys
             item = item.symbolize_keys if item.respond_to?(:symbolize_keys)
           %>
