@@ -18,7 +18,7 @@
         <span class="stat-label">Affected Gems</span>
       </div>
       <div class="audit-stat">
-        <% high_severity = results.count { |r| %w[High Critical].include?(r.dig("advisory", "criticality")) } %>
+        <% high_severity = results.count { |r| %w[high critical].include?(r.dig("advisory", "criticality").to_s.downcase) } %>
         <span class="stat-value"><%= high_severity %></span>
         <span class="stat-label">High Severity</span>
       </div>
@@ -56,7 +56,7 @@
               gem = result.dig("gem") || {}
               advisory = result.dig("advisory") || {}
               criticality = advisory["criticality"] || "Unknown"
-              is_high = %w[High Critical].include?(criticality)
+              is_high = %w[high critical].include?(criticality.downcase)
             %>
             <tr class="vulnerability-row <%= is_high ? 'high-severity' : '' %>" data-index="<%= index %>">
               <td><%= gem["name"] %></td>
@@ -116,7 +116,7 @@
             gem = result.dig("gem") || {}
             advisory = result.dig("advisory") || {}
             criticality = advisory["criticality"] || "Unknown"
-            is_high = %w[High Critical].include?(criticality)
+            is_high = %w[high critical].include?(criticality.to_s.downcase)
           %>
           <% if advisory["description"].present? %>
             <div id="vulnerability-<%= index %>" class="md-entry <%= is_high ? 'high-severity' : '' %>">

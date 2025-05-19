@@ -16,7 +16,7 @@
       </div>
       <div class="metric">
         <span class="metric-label">High Severity:</span>
-        <span class="metric-value"><%= results.count { |r| %w[High Critical].include?(r.dig("advisory", "criticality")) } %></span>
+        <span class="metric-value"><%= results.count { |r| %w[high critical].include?(r.dig("advisory", "criticality").to_s.downcase) } %></span>
       </div>
     </div>
     
