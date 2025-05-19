@@ -7,17 +7,6 @@
       <div class="status-badge success">All Clear</div>
     <% else %>
       <div class="status-badge warning"><%= @todo_stats&.dig(:total) || 0 %> <%= "Item".pluralize(@todo_stats&.dig(:total) || 0) %> Found</div>
-      
-      <%# Debug information - remove in production %>
-      <% if Rails.env.development? %>
-        <div class="debug-info small text-muted mt-2">
-          <details>
-            <summary>Debug Info</summary>
-            <pre>Todo Stats: <%= @todo_stats.inspect %></pre>
-            <pre>Todo Items: <%= @todo_items.inspect %></pre>
-          </details>
-        </div>
-      <% end %>
     <% end %>
     
     <% if @todo_items.present? && @todo_stats.present? %>
