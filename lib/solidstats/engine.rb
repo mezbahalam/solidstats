@@ -10,7 +10,7 @@ module Solidstats
 
     initializer "solidstats.assets.precompile" do |app|
       if Rails.env.development?
-        app.config.assets.precompile += %w( solidstats/application.css )
+        app.config.assets.precompile += %w[ solidstats/application.css ]
       end
     end
   end
