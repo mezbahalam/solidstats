@@ -1,9 +1,9 @@
 module Solidstats
   class DashboardController < ApplicationController
     AUDIT_CACHE_FILE = Rails.root.join("tmp", "solidstats_audit.json")
-    TODO_CACHE_FILE = Rails.root.join("tmp", "solidstats_todos.json") 
+    TODO_CACHE_FILE = Rails.root.join("tmp", "solidstats_todos.json")
     AUDIT_CACHE_HOURS = 12 # Configure how many hours before refreshing
-    
+
     def index
       @audit_output = fetch_audit_output
       @rubocop_output = "JSON.parse(`rubocop --format json`)"
@@ -59,23 +59,31 @@ module Solidstats
       end
 
       todos = []
-      raw_output = `grep -r -n -E "TODO|FIXME|HACK" app lib`.split("\n")
-      
+      # Updated grep pattern to match only all-uppercase or all-lowercase variants
+      raw_output = `grep -r -n -E "(TODO|FIXME|HACK|todo|fixme|hack)" app lib`.split("\n")
+
       raw_output.each do |line|
         if line =~ /^(.+):(\d+):(.+)$/
           file = $1
           line_num = $2
           content = $3
-          
-          todos << {
-            file: file,
-            line: line_num.to_i,
-            content: content.strip,
-            type: content.match(/TODO|FIXME|HACK/).to_s
-          }
+
+          # Match only exact lowercase or uppercase variants
+          type_match = content.match(/(TODO|FIXME|HACK|todo|fixme|hack)/)
+          if type_match
+            # Convert to uppercase for consistency
+            type = type_match.to_s.upcase
+
+            todos << {
+              file: file,
+              line: line_num.to_i,
+              content: content.strip,
+              type: type
+            }
+          end
         end
       end
-      
+
       # Save to cache file with timestamp
       cache_data = {
         "output" => todos,
@@ -87,13 +95,13 @@ module Solidstats
 
       # Write the cache file
       File.write(TODO_CACHE_FILE, JSON.generate(cache_data))
-      
+
       todos
     end
 
     def calculate_todo_stats(todos)
       return {} if todos.nil? || todos.empty?
-      
+
       stats = {
         total: todos.count,
         by_type: {
@@ -103,19 +111,19 @@ module Solidstats
         },
         by_file: {}
       }
-      
+
       # Group by file path
       todos.each do |todo|
         file_path = todo[:file]
         stats[:by_file][file_path] ||= 0
         stats[:by_file][file_path] += 1
       end
-      
+
       # Find files with most TODOs (top 5)
       stats[:hotspots] = stats[:by_file].sort_by { |_, count| -count }
-                                        .first(5)
-                                        .to_h
-      
+                                       .first(5)
+                                       .to_h
+
       stats
     end
 

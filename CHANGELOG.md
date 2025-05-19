@@ -18,3 +18,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Development mode restriction
 - Dashboard controller with initial views
 - Security audit components and views
+
+## [Unreleased]
+
+- Improved TODO dashboard partial:
+  - Ensured correct handling of nil keys in the hotspots hash.
+  - Displayed TODO, FIXME, and HACK counts with color-coded badges.
+  - Added expandable details for files with most TODOs and all TODO items.
+  - Enhanced UI with better grouping and error handling for TODO data.

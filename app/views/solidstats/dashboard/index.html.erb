@@ -7,6 +7,8 @@
   <div class="stats-cards">
     <%= render 'solidstats/dashboard/audit/security_audit' %>
 
+    <%= render partial: 'todos' %>
+
     <div class="stat-card">
       <h2><span class="icon">🧹</span> Code Quality</h2>
       <div class="card-content">
@@ -34,8 +36,6 @@
         </div>
       </div>
     </div>
-
-    <%= render partial: 'todos' %>
   </div>
   
   <div class="dashboard-actions">
