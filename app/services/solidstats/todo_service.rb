@@ -33,16 +33,16 @@ module Solidstats
     def calculate_stats(todos)
       stats = {
         by_type: {
-          "TODO" => todos.count { |t| t[:type] == "TODO" },
-          "FIXME" => todos.count { |t| t[:type] == "FIXME" },
-          "HACK" => todos.count { |t| t[:type] == "HACK" }
+          "TODO" => todos.count { |t| (t[:type] || t["type"]) == "TODO" },
+          "FIXME" => todos.count { |t| (t[:type] || t["type"]) == "FIXME" },
+          "HACK" => todos.count { |t| (t[:type] || t["type"]) == "HACK" }
         },
         by_file: {}
       }
 
       # Group by file path
       todos.each do |todo|
-        file_path = todo[:file]
+        file_path = todo[:file] || todo["file"]
         stats[:by_file][file_path] ||= 0
         stats[:by_file][file_path] += 1
       end

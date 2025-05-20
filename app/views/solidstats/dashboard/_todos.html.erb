@@ -9,25 +9,19 @@
       <div class="status-badge warning"><%= @todo_items.count %> <%= "Item".pluralize(@todo_items.count) %> Found</div>
     <% end %>
     
-    <% if @todo_items.present? && @todo_stats.present? %>
-      <%
-        # Ensure we have proper counts by type - recalculate if needed
-        todo_count = @todo_items.count { |item| (item[:type] || item["type"])&.upcase == "TODO" }
-        fixme_count = @todo_items.count { |item| (item[:type] || item["type"])&.upcase == "FIXME" }
-        hack_count = @todo_items.count { |item| (item[:type] || item["type"])&.upcase == "HACK" }
-      %>
+    <% if @todo_items.present? && @todo_summary.present? %>
       <div class="metrics-group">
         <div class="metric">
           <span class="metric-label">TODO:</span>
-          <span class="metric-value"><%= todo_count %></span>
+          <span class="metric-value"><%= @todo_summary[:by_type]["TODO"] %></span>
         </div>
         <div class="metric">
           <span class="metric-label">FIXME:</span>
-          <span class="metric-value text-danger"><%= fixme_count %></span>
+          <span class="metric-value text-danger"><%= @todo_summary[:by_type]["FIXME"] %></span>
         </div>
         <div class="metric">
           <span class="metric-label">HACK:</span>
-          <span class="metric-value text-warning"><%= hack_count %></span>
+          <span class="metric-value text-warning"><%= @todo_summary[:by_type]["HACK"] %></span>
         </div>
       </div>
       
@@ -35,7 +29,7 @@
     <% end %>
   </div>
   
-  <% if @todo_items.present? && @todo_stats.present? %>
+  <% if @todo_items.present? && @todo_summary.present? %>
     <div id="todo-details" class="details-panel hidden">
       <h3 class="details-section-title">Files with Most TODOs</h3>
       <div class="table-responsive mb-4">
@@ -47,22 +41,7 @@
             </tr>
           </thead>
           <tbody>
-            <%
-              # If hotspots has nil keys, reconstruct it from @todo_items
-              hotspots = @todo_stats[:hotspots]
-              if hotspots.is_a?(Hash) && hotspots.keys.any?(&:nil?)
-                # Rebuild hotspots from todo_items
-                hotspots = {}
-                @todo_items.each do |item|
-                  item_hash = item.respond_to?(:symbolize_keys) ? item.symbolize_keys : item
-                  file = item_hash[:file] || item["file"]
-                  next unless file.present?
-                  hotspots[file] ||= 0
-                  hotspots[file] += 1
-                end
-              end
-            %>
-            
+            <% hotspots = @todo_summary[:hotspots] %>
             <% if hotspots.present? %>
               <% hotspots.each do |file, count| %>
                 <tr>
