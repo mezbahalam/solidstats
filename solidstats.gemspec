@@ -15,6 +15,20 @@ Gem::Specification.new do |spec|
     Dir["{app,config,db,lib}/**/*", "MIT-LICENSE", "Rakefile", "README.md", "CHANGELOG.md"]
   end
 
-  spec.add_dependency "rails", ">= 6.1"
+  # Allow Rails 6.1+ but let Ruby version determine max Rails version
+  spec.required_ruby_version = ">= 2.7.0"
+  
+  # This will use the highest compatible version for the Ruby version
+  # Rails 7.0 supports Ruby 2.7+
+  # Rails 7.1 supports Ruby 3.0+
+  # Rails 8.0 supports Ruby 3.2+
+  if Gem::Version.new(RUBY_VERSION) < Gem::Version.new("3.0.0")
+    spec.add_dependency "rails", ">= 6.1", "< 7.1"
+  elsif Gem::Version.new(RUBY_VERSION) < Gem::Version.new("3.2.0")
+    spec.add_dependency "rails", ">= 6.1", "< 8.0.2"
+  else
+    spec.add_dependency "rails", ">= 6.1"
+  end
+  
   spec.add_dependency "bundler-audit"
 end

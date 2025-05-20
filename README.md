@@ -7,6 +7,14 @@ Solidstats is a local-only Rails engine that shows your project's health at `/so
 - TODO/FIXME tracker
 - Test coverage summary
 
+## Compatibility
+
+- Ruby 2.7+: Compatible with Rails 6.1 through Rails 7.0
+- Ruby 3.0-3.1: Compatible with Rails 6.1 through Rails 7.x
+- Ruby 3.2+: Compatible with all Rails 6.1+ versions
+
+Solidstats automatically detects your Ruby version and selects a compatible Rails version.
+
 ## Installation
 
 ```ruby
