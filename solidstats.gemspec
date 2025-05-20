@@ -17,7 +17,7 @@ Gem::Specification.new do |spec|
 
   # Allow Rails 6.1+ but let Ruby version determine max Rails version
   spec.required_ruby_version = ">= 2.7.0"
-  
+
   # This will use the highest compatible version for the Ruby version
   # Rails 7.0 supports Ruby 2.7+
   # Rails 7.1 supports Ruby 3.0+
@@ -29,6 +29,6 @@ Gem::Specification.new do |spec|
   else
     spec.add_dependency "rails", ">= 6.1"
   end
-  
+
   spec.add_dependency "bundler-audit"
 end

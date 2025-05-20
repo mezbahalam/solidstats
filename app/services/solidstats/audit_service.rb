@@ -13,7 +13,7 @@ module Solidstats
     def summary
       data = fetch
       vuln_count = data["vulnerabilities"]&.count || 0
-      
+
       {
         count: vuln_count,
         status: determine_status(vuln_count),

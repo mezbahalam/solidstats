@@ -15,7 +15,7 @@ module Solidstats
       return { count: 0, status: "success", message: "No TODO items found" } if todos.nil? || todos.empty?
 
       stats = calculate_stats(todos)
-      
+
       {
         count: todos.count,
         status: determine_status(todos),
@@ -61,7 +61,7 @@ module Solidstats
     def determine_status(todos)
       fixme_count = todos.count { |t| t[:type] == "FIXME" }
       hack_count = todos.count { |t| t[:type] == "HACK" }
-      
+
       if hack_count > 0
         "danger"
       elsif fixme_count > 0

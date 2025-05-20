@@ -21,7 +21,7 @@ module Solidstats
     # @return [Hash] The collected data
     def fetch
       return cached_data if fresh_cache?
-      
+
       data = collect_data
       save_to_cache(data)
       data
@@ -48,7 +48,7 @@ module Solidstats
     # @return [Boolean] True if cache is valid and not expired
     def fresh_cache?
       return false unless File.exist?(cache_file)
-      
+
       begin
         cached_data = JSON.parse(File.read(cache_file))
         last_run_time = Time.parse(cached_data["timestamp"])
@@ -66,7 +66,7 @@ module Solidstats
         "output" => data,
         "timestamp" => Time.now.iso8601
       }
-      
+
       FileUtils.mkdir_p(File.dirname(cache_file))
       File.write(cache_file, JSON.generate(cache_data))
     rescue StandardError => e

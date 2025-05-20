@@ -8,18 +8,18 @@ module Solidstats
       # Use new services for data collection
       audit_service = AuditService.new
       todo_service = TodoService.new
-      
+
       # Get full data for detailed views
       @audit_output = audit_service.fetch
       @todo_items = todo_service.fetch
-      
+
       # Get summary data for dashboard cards
       @audit_summary = audit_service.summary
       @todo_summary = todo_service.summary
-      
+
       # Calculate stats from the full data (temporary until refactored)
       @todo_stats = calculate_todo_stats(@todo_items)
-      
+
       # TODO: Refactor these to use services as well
       @rubocop_output = "JSON.parse(`rubocop --format json`)"
       @coverage = "read_coverage_percent"
