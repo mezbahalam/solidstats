@@ -18,7 +18,7 @@ module Solidstats
 
       # TODO: Refactor these to use services as well
       @rubocop_output = "JSON.parse(`rubocop --format json`)"
-      @coverage = "Coverage Percent %"
+      @coverage = "100"
     end
   end
 end
