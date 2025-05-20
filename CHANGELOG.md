@@ -11,12 +11,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Service-based architecture for data collection with caching
 - Base DataCollectorService class for shared functionality
 - Specialized services: AuditService and TodoService
+- Comprehensive UI/UX redesign with modern dashboard layout:
+  - Sticky navigation menu with intuitive section links
+  - Organized dashboard sections (Overview, Security, Code Quality, Tasks)
+  - Tabbed interfaces for better content organization
+  - Interactive summary cards with click-to-navigate functionality
+- Enhanced security visualization:
+  - Visual security score indicator (A+, B, C ratings) with color coding
+  - Improved vulnerability metrics display with severity breakdown
+  - Detailed vulnerability table with filtering and search capabilities
+  - New "Affected Gems" tab with visual cards for vulnerable dependencies
+  - Timeline visualization for security history
+- Improved code quality section:
+  - Dedicated tabs for Metrics, Test Coverage, and Code Health
+  - Visual progress bars for test coverage
+- Task management improvements:
+  - Organized tabs for TODOs, FIXMEs, and HACKs
+  - Better categorization and display of code tasks
+- Responsive layout adjustments for various screen sizes
+- Quick floating navigation menu for easy section access
+- Toast notification system for user feedback
 
 ### Fixed
 - Ruby version compatibility issues with dependency constraints
 - Support for multiple Ruby versions (2.7+, 3.0+, 3.2+)
 - Automatic Rails version selection based on Ruby version (6.1 through 8.x)
 - Documentation of compatibility matrix in README
+- Variable scope issues in nested template partials
+- Consistent passing of data between dashboard partials
 
 ## [0.0.3] - 2025-05-20
 
