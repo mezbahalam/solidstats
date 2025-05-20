@@ -8,7 +8,7 @@ module Solidstats
     def root
       File.dirname(__dir__)
     end
-    
+
     # Returns version string
     # @return [String] Version
     def version

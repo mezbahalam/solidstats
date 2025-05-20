@@ -1,4 +1,4 @@
-require 'rails/generators/base'
+require "rails/generators/base"
 
 module Solidstats
   module Generators
@@ -11,7 +11,7 @@ module Solidstats
     # 1. Add the Solidstats routes to the host application's config/routes.rb
     # 2. Show a helpful README with next steps
     class InstallGenerator < Rails::Generators::Base
-      source_root File.expand_path('templates', __dir__)
+      source_root File.expand_path("templates", __dir__)
       desc "Adds Solidstats routes to your development application"
 
       def add_routes
