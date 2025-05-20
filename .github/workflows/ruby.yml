@@ -5,6 +5,7 @@ on:
     branches: [ main, master, development ]
   pull_request:
     branches: [ main, master, development ]
+  workflow_dispatch: # Allow manual triggering
 
 jobs:
   test:
@@ -21,14 +22,19 @@ jobs:
       uses: ruby/setup-ruby@v1
       with:
         ruby-version: ${{ matrix.ruby-version }}
-        bundler-cache: true # This will run `bundle install` and cache the result automatically
+        bundler-cache: false # We'll handle installation manually
     
-    - name: Ensure bundler is not in frozen mode
+    - name: Run CI setup script
       run: |
-        bundle config set --local frozen false
-    
+        chmod +x ./script/ci_setup.sh
+        ./script/ci_setup.sh
+        
+    - name: Remove Gemfile.lock to force regeneration
+      run: |
+        rm -f Gemfile.lock
+        
     - name: Install dependencies
-      run: bundle install
+      run: bundle install --jobs 4
       
     - name: Run tests
       run: bundle exec rake test

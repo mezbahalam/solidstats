@@ -22,12 +22,20 @@ Gem::Specification.new do |spec|
   # Rails 7.0 supports Ruby 2.7+
   # Rails 7.1 supports Ruby 3.0+
   # Rails 8.0 supports Ruby 3.2+
-  if Gem::Version.new(RUBY_VERSION) < Gem::Version.new("3.0.0")
+  begin
+    if Gem::Version.new(RUBY_VERSION) < Gem::Version.new("3.0.0")
+      spec.add_dependency "rails", ">= 6.1", "< 7.1"
+    elsif Gem::Version.new(RUBY_VERSION) < Gem::Version.new("3.2.0")
+      spec.add_dependency "rails", ">= 6.1", "< 8.0"
+    else
+      spec.add_dependency "rails", ">= 6.1"
+    end
+  rescue => e
+    # In CI, we might get here if something goes wrong with Ruby version detection
+    # In that case, use the most conservative constraint
+    warn "Warning: Exception during Rails version constraint selection: #{e.message}"
+    warn "Defaulting to conservative Rails constraint (>= 6.1, < 7.1)"
     spec.add_dependency "rails", ">= 6.1", "< 7.1"
-  elsif Gem::Version.new(RUBY_VERSION) < Gem::Version.new("3.2.0")
-    spec.add_dependency "rails", ">= 6.1", "< 8.0.2"
-  else
-    spec.add_dependency "rails", ">= 6.1"
   end
 
   spec.add_dependency "bundler-audit"
