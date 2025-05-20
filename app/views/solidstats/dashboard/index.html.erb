@@ -29,7 +29,7 @@
     <h2 class="section-title">Overview</h2>
     
     <div class="stats-summary">
-      <div class="summary-card <%= @audit_output.dig('results').present? ? 'status-warning' : 'status-ok' %>">
+      <div class="summary-card <%= @audit_output.dig('results').present? ? 'status-warning' : 'status-ok' %>" data-section="security" data-tab="security-overview">
         <div class="summary-icon">🔒</div>
         <div class="summary-data">
           <div class="summary-value"><%= @audit_output.dig('results')&.size || 0 %></div>
@@ -37,7 +37,7 @@
         </div>
       </div>
       
-      <div class="summary-card <%= @todo_items&.present? ? 'status-warning' : 'status-ok' %>">
+      <div class="summary-card <%= @todo_items&.present? ? 'status-warning' : 'status-ok' %>" data-section="tasks" data-tab="todos">
         <div class="summary-icon">📝</div>
         <div class="summary-data">
           <div class="summary-value"><%= @todo_items&.count || 0 %></div>
@@ -45,7 +45,7 @@
         </div>
       </div>
       
-      <div class="summary-card <%= @coverage.to_f > 80 ? 'status-ok' : (@coverage.to_f > 60 ? 'status-warning' : 'status-danger') %>">
+      <div class="summary-card <%= @coverage.to_f > 80 ? 'status-ok' : (@coverage.to_f > 60 ? 'status-warning' : 'status-danger') %>" data-section="code-quality" data-tab="test-coverage">
         <div class="summary-icon">🧪</div>
         <div class="summary-data">
           <div class="summary-value"><%= @coverage %>%</div>
@@ -270,6 +270,7 @@
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     transition: transform 0.2s;
+    cursor: pointer;
   }
   
   .summary-card:hover {
@@ -644,6 +645,49 @@
         
         // Close the quick nav menu
         document.querySelector('.quick-nav-menu').style.display = 'none';
+      });
+    });
+    
+    // Summary card navigation
+    document.querySelectorAll('.summary-card').forEach(function(card) {
+      card.addEventListener('click', function() {
+        const section = this.getAttribute('data-section');
+        const tab = this.getAttribute('data-tab');
+        
+        // Update active classes for main navigation
+        document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+        document.querySelectorAll('.dashboard-section').forEach(section => section.classList.remove('active'));
+        
+        const targetNavItem = document.querySelector(`.nav-item[data-section="${section}"]`);
+        if (targetNavItem) {
+          targetNavItem.classList.add('active');
+          
+          // Show corresponding section
+          const targetSection = document.getElementById(section);
+          targetSection.classList.add('active');
+          
+          // If tab is specified, activate the tab
+          if (tab) {
+            const tabsContainer = targetSection.querySelector('.tabs-container');
+            if (tabsContainer) {
+              // Deactivate all tabs first
+              tabsContainer.querySelectorAll('.tab-button').forEach(button => button.classList.remove('active'));
+              tabsContainer.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+              
+              // Activate the target tab
+              const targetTabButton = tabsContainer.querySelector(`.tab-button[data-tab="${tab}"]`);
+              const targetTabContent = tabsContainer.querySelector(`#${tab}`);
+              
+              if (targetTabButton) targetTabButton.classList.add('active');
+              if (targetTabContent) targetTabContent.classList.add('active');
+              
+              // Scroll to the section
+              setTimeout(() => {
+                targetSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }, 100);
+            }
+          }
+        }
       });
     });
   });
