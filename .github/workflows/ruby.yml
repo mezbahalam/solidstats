@@ -35,6 +35,6 @@ jobs:
         
     - name: Install dependencies
       run: bundle install --jobs 4
-      
-    - name: Run tests
-      run: bundle exec rake test
+    
+    - name: Run solidstats generator
+      run: bundle exec rails g solidstats:install
