@@ -1,0 +1,18 @@
+===============================================================================
+
+Solidstats has been successfully installed for development!
+
+Your Solidstats dashboard is now available at: /solidstats
+(Only in development environment)
+
+To access your stats:
+1. Start your Rails server: bundle exec rails s
+2. Visit: http://localhost:3000/solidstats
+
+Solidstats will show you:
+- TODO/FIXME items in your codebase
+- Security audit information
+- Code quality metrics
+- And more!
+
+===============================================================================

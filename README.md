@@ -12,13 +12,26 @@ Solidstats is a local-only Rails engine that shows your project's health at `/so
 ```ruby
 # Gemfile (dev only)
 group :development do
-  gem 'solidstats', path: '../solidstats'
+  gem 'solidstats'
 end
 ```
 
-Then mount in `config/routes.rb`:
+After bundle install, you can run the installer:
+
+```bash
+bundle exec rails g solidstats:install
+```
+
+Or using the provided rake task:
+
+```bash
+bundle exec rake solidstats:install
+```
+
+The installer will automatically mount the engine in your routes:
 
 ```ruby
+# config/routes.rb
 mount Solidstats::Engine => '/solidstats' if Rails.env.development?
 ```
 
