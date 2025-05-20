@@ -10,6 +10,7 @@
 .DS_Store
 .ruby-version
 .ruby-gemset
+Gemfile.lock
 
 # Keep the config file (but not its contents)
 !/.bundle/config
