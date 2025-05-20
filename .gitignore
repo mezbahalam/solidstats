@@ -3,3 +3,14 @@
 /log/*.log
 /pkg/
 /tmp/
+/coverage/
+/spec/reports/
+*.gem
+*.rbc
+.DS_Store
+.ruby-version
+.ruby-gemset
+Gemfile.lock
+
+# Keep the config file (but not its contents)
+!/.bundle/config

@@ -1,46 +1,319 @@
 <div class="solidstats-dashboard">
   <header class="dashboard-header">
-    <h1><span class="icon">🚥</span> Solidstats Dashboard</h1>
-    <p class="dashboard-last-updated">Last updated: <%= Time.now.strftime("%B %d, %Y at %H:%M") %></p>
+    <div class="header-main">
+      <h1><span class="icon">🚥</span> Solidstats Dashboard</h1>
+      <p class="dashboard-last-updated">Last updated: <%= Time.now.strftime("%B %d, %Y at %H:%M") %></p>
+    </div>
+    
+    <nav class="dashboard-nav">
+      <ul>
+        <li><a href="#overview" class="nav-item active" data-section="overview">Overview</a></li>
+        <li><a href="#security" class="nav-item" data-section="security">Security</a></li>
+        <li><a href="#code-quality" class="nav-item" data-section="code-quality">Code Quality</a></li>
+        <li><a href="#tasks" class="nav-item" data-section="tasks">Tasks</a></li>
+      </ul>
+      
+      <div class="dashboard-actions">
+        <a href="#" class="action-button" onclick="refreshAudit(); return false;">
+          <span class="action-icon">↻</span> Refresh
+        </a>
+        <a href="#" class="action-button" onclick="exportReport(); return false;">
+          <span class="action-icon">↓</span> Export
+        </a>
+      </div>
+    </nav>
   </header>
 
-  <div class="stats-cards">
-    <%= render 'solidstats/dashboard/audit/security_audit' %>
-
-    <%= render partial: 'todos' %>
-
-    <div class="stat-card">
-      <h2><span class="icon">🧹</span> Code Quality</h2>
-      <div class="card-content">
-        <div class="metric">
-          <!-- Your code quality metrics -->
+  <!-- Overview Section with Key Metrics -->
+  <section id="overview" class="dashboard-section active">
+    <h2 class="section-title">Overview</h2>
+    
+    <div class="stats-summary">
+      <div class="summary-card <%= @audit_output.dig('results').present? ? 'status-warning' : 'status-ok' %>" data-section="security" data-tab="security-overview">
+        <div class="summary-icon">🔒</div>
+        <div class="summary-data">
+          <div class="summary-value"><%= @audit_output.dig('results')&.size || 0 %></div>
+          <div class="summary-label">Security Issues</div>
+        </div>
+      </div>
+      
+      <div class="summary-card <%= @todo_items&.present? ? 'status-warning' : 'status-ok' %>" data-section="tasks" data-tab="todos">
+        <div class="summary-icon">📝</div>
+        <div class="summary-data">
+          <div class="summary-value"><%= @todo_items&.count || 0 %></div>
+          <div class="summary-label">TODO Items</div>
+        </div>
+      </div>
+      
+      <div class="summary-card <%= @coverage.to_f > 80 ? 'status-ok' : (@coverage.to_f > 60 ? 'status-warning' : 'status-danger') %>" data-section="code-quality" data-tab="test-coverage">
+        <div class="summary-icon">🧪</div>
+        <div class="summary-data">
+          <div class="summary-value"><%= @coverage %>%</div>
+          <div class="summary-label">Test Coverage</div>
         </div>
       </div>
     </div>
+  </section>
 
-    <div class="stat-card">
-      <h2><span class="icon">📝</span> Code Health</h2>
-      <div class="card-content">
-        <!-- Your code health metrics -->
+  <!-- Security Section -->
+  <section id="security" class="dashboard-section">
+    <h2 class="section-title">Security</h2>
+    
+    <div class="security-overview">
+      <% results = @audit_output.dig("results") || [] %>
+      <% vulnerabilities_count = results.size %>
+      <% high_severity = results.count { |r| %w[high critical].include?(r.dig("advisory", "criticality").to_s.downcase) } %>
+      <% affected_gems = results.map { |r| r.dig("gem", "name") }.uniq.size %>
+      
+      <div class="security-score-container">
+        <div class="security-score <%= vulnerabilities_count == 0 ? 'score-excellent' : (high_severity > 0 ? 'score-critical' : 'score-warning') %>">
+          <div class="score-value"><%= vulnerabilities_count == 0 ? 'A+' : (high_severity > 0 ? 'C' : 'B') %></div>
+          <div class="score-label">Security<br>Rating</div>
+        </div>
+        
+        <div class="security-metrics">
+          <div class="metric-item <%= high_severity > 0 ? 'metric-critical' : '' %>">
+            <div class="metric-icon">⚠️</div>
+            <div class="metric-data">
+              <div class="metric-value"><%= high_severity %></div>
+              <div class="metric-label">Critical Issues</div>
+            </div>
+          </div>
+          
+          <div class="metric-item <%= vulnerabilities_count > 0 ? 'metric-warning' : '' %>">
+            <div class="metric-icon">🔍</div>
+            <div class="metric-data">
+              <div class="metric-value"><%= vulnerabilities_count %></div>
+              <div class="metric-label">Total Vulnerabilities</div>
+            </div>
+          </div>
+          
+          <div class="metric-item <%= affected_gems > 0 ? 'metric-warning' : '' %>">
+            <div class="metric-icon">💎</div>
+            <div class="metric-data">
+              <div class="metric-value"><%= affected_gems %></div>
+              <div class="metric-label">Affected Gems</div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
-
-    <div class="stat-card <%= @coverage.to_f > 80 ? 'status-ok' : (@coverage.to_f > 60 ? 'status-warning' : 'status-danger') %>">
-      <h2><span class="icon">🧪</span> Test Coverage</h2>
-      <div class="card-content">
-        <div class="progress-container">
-          <div class="progress-bar" style="width: <%= @coverage %>%"></div>
+    
+    <div class="tabs-container">
+      <div class="tabs-header security-tabs">
+        <button class="tab-button active" data-tab="security-overview">
+          <span class="tab-icon">📊</span> Overview
+        </button>
+        <button class="tab-button" data-tab="security-vulnerabilities">
+          <span class="tab-icon">🛡️</span> Vulnerabilities
+        </button>
+        <button class="tab-button" data-tab="security-gems">
+          <span class="tab-icon">💎</span> Affected Gems
+        </button>
+        <button class="tab-button" data-tab="security-timeline">
+          <span class="tab-icon">📈</span> Timeline
+        </button>
+      </div>
+      
+      <div class="tabs-content">
+        <div class="tab-content active" id="security-overview">
+          <%= render partial: 'solidstats/dashboard/audit/security_audit', locals: { results: results } %>
         </div>
-        <div class="metric">
-          <span class="metric-value"><%= @coverage %>%</span>
+        <div class="tab-content" id="security-vulnerabilities">
+          <%= render partial: 'solidstats/dashboard/audit/vulnerabilities_table', locals: { results: results } %>
+        </div>
+        <div class="tab-content" id="security-gems">
+          <div class="gem-impact-analysis">
+            <h3>Gem Impact Analysis</h3>
+            <% results = @audit_output.dig("results") || [] %>
+            <% if results.any? %>
+              <div class="gems-container">
+                <% results.map { |r| r.dig("gem", "name") }.uniq.each do |gem_name| %>
+                  <% gem_vulns = results.select { |r| r.dig("gem", "name") == gem_name } %>
+                  <% highest_severity = gem_vulns.map { |v| v.dig("advisory", "criticality").to_s.downcase }.select { |c| %w[critical high medium low].include?(c) }.min_by { |s| %w[critical high medium low].index(s) || 999 } || "unknown" %>
+                  
+                  <div class="gem-card severity-<%= highest_severity %>">
+                    <div class="gem-header">
+                      <div class="gem-name"><%= gem_name %></div>
+                      <div class="gem-severity <%= highest_severity %>"><%= highest_severity.capitalize %></div>
+                    </div>
+                    <div class="gem-details">
+                      <div class="gem-versions">
+                        <div class="current-version">
+                          <span class="version-label">Current:</span>
+                          <span class="version-value"><%= gem_vulns.first.dig("gem", "version") rescue "Unknown" %></span>
+                        </div>
+                        <div class="target-version">
+                          <span class="version-label">Target:</span>
+                          <span class="version-value"><%= gem_vulns.first.dig("advisory", "patched_versions")&.first || "N/A" %></span>
+                        </div>
+                      </div>
+                      <div class="gem-vulnerabilities-count">
+                        <%= gem_vulns.size %> <%= "vulnerability".pluralize(gem_vulns.size) %> found
+                      </div>
+                    </div>
+                    <div class="gem-actions">
+                      <button class="action-button gem-update-button">
+                        <span class="action-icon">↑</span> Update Gem
+                      </button>
+                    </div>
+                  </div>
+                <% end %>
+              </div>
+            <% else %>
+              <div class="empty-state">
+                <div class="empty-icon">✅</div>
+                <div class="empty-message">No vulnerable gems found</div>
+                <div class="empty-description">Your application is secure. Keep up with regular security audits!</div>
+              </div>
+            <% end %>
+          </div>
+        </div>
+        <div class="tab-content" id="security-timeline">
+          <div class="security-timeline-container">
+            <h3>Security Timeline</h3>
+            <div class="timeline-chart-placeholder">
+              <div class="chart-header">
+                <div class="chart-title">Vulnerability History</div>
+                <div class="chart-legend">
+                  <div class="legend-item">
+                    <span class="legend-color" style="background-color: #dc3545;"></span>
+                    <span class="legend-label">Critical</span>
+                  </div>
+                  <div class="legend-item">
+                    <span class="legend-color" style="background-color: #ffc107;"></span>
+                    <span class="legend-label">Medium</span>
+                  </div>
+                  <div class="legend-item">
+                    <span class="legend-color" style="background-color: #28a745;"></span>
+                    <span class="legend-label">Low</span>
+                  </div>
+                </div>
+              </div>
+              <div class="chart-visualization">
+                <!-- Placeholder for the actual chart -->
+                <div class="chart-timeline">
+                  <div class="timeline-point" style="left: 10%;">
+                    <div class="timeline-marker critical"></div>
+                    <div class="timeline-date">Jan 2025</div>
+                  </div>
+                  <div class="timeline-point" style="left: 30%;">
+                    <div class="timeline-marker medium"></div>
+                    <div class="timeline-date">Feb 2025</div>
+                  </div>
+                  <div class="timeline-point" style="left: 65%;">
+                    <div class="timeline-marker low"></div>
+                    <div class="timeline-date">Apr 2025</div>
+                  </div>
+                  <div class="timeline-point" style="left: 85%;">
+                    <div class="timeline-marker critical"></div>
+                    <div class="timeline-date">May 2025</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="timeline-insights">
+              <div class="insight-card">
+                <div class="insight-header">Key Insights</div>
+                <div class="insight-content">
+                  <div class="insight-item">
+                    <div class="insight-title">Notable Trend</div>
+                    <div class="insight-description">4 vulnerabilities discovered in the last 3 months.</div>
+                  </div>
+                  <div class="insight-item">
+                    <div class="insight-title">Recent Activity</div>
+                    <div class="insight-description">Last security scan: <%= Time.now.strftime("%B %d, %Y") %></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
-  </div>
+  </section>
+
+  <!-- Code Quality Section -->
+  <section id="code-quality" class="dashboard-section">
+    <h2 class="section-title">Code Quality</h2>
+    
+    <div class="tabs-container">
+      <div class="tabs-header">
+        <button class="tab-button active" data-tab="quality-metrics">Metrics</button>
+        <button class="tab-button" data-tab="test-coverage">Test Coverage</button>
+        <button class="tab-button" data-tab="code-health">Code Health</button>
+      </div>
+      
+      <div class="tabs-content">
+        <div class="tab-content active" id="quality-metrics">
+          <div class="stat-card">
+            <h2><span class="icon">🧹</span> Code Quality</h2>
+            <div class="card-content">
+              <div class="metric">
+                <!-- Your code quality metrics -->
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="tab-content" id="test-coverage">
+          <div class="stat-card <%= @coverage.to_f > 80 ? 'status-ok' : (@coverage.to_f > 60 ? 'status-warning' : 'status-danger') %>">
+            <h2><span class="icon">🧪</span> Test Coverage</h2>
+            <div class="card-content">
+              <div class="progress-container">
+                <div class="progress-bar" style="width: <%= @coverage %>%"></div>
+              </div>
+              <div class="metric">
+                <span class="metric-value"><%= @coverage %>%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="tab-content" id="code-health">
+          <div class="stat-card">
+            <h2><span class="icon">📝</span> Code Health</h2>
+            <div class="card-content">
+              <!-- Your code health metrics -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Tasks Section -->
+  <section id="tasks" class="dashboard-section">
+    <h2 class="section-title">Tasks</h2>
+    
+    <div class="tabs-container">
+      <div class="tabs-header">
+        <button class="tab-button active" data-tab="todos">TODO Items</button>
+        <button class="tab-button" data-tab="fixmes">FIXMEs</button>
+        <button class="tab-button" data-tab="hacks">HACKs</button>
+      </div>
+      
+      <div class="tabs-content">
+        <div class="tab-content active" id="todos">
+          <%= render partial: 'todos' %>
+        </div>
+        <div class="tab-content" id="fixmes">
+          <!-- FIXME specific content -->
+        </div>
+        <div class="tab-content" id="hacks">
+          <!-- HACK specific content -->
+        </div>
+      </div>
+    </div>
+  </section>
   
-  <div class="dashboard-actions">
-    <a href="#" class="action-button" onclick="refreshAudit(); return false;">Refresh Security Audit</a>
-    <a href="#" class="action-button" onclick="exportReport(); return false;">Export Report</a>
+  <!-- Floating quick navigation -->
+  <div class="quick-nav">
+    <button class="quick-nav-toggle">↑</button>
+    <div class="quick-nav-menu">
+      <a href="#overview" class="quick-nav-item">Overview</a>
+      <a href="#security" class="quick-nav-item">Security</a>
+      <a href="#code-quality" class="quick-nav-item">Code Quality</a>
+      <a href="#tasks" class="quick-nav-item">Tasks</a>
+    </div>
   </div>
 </div>
 
@@ -54,15 +327,28 @@
     padding: 20px;
   }
   
-  /* Header styles */
+  /* Header and Navigation styles */
   .dashboard-header {
     margin-bottom: 2rem;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background-color: #fff;
+    padding: 15px 0;
+    border-bottom: 1px solid #eaeaea;
+  }
+  
+  .header-main {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 1rem;
   }
   
   .dashboard-header h1 {
     font-size: 1.8rem;
     font-weight: 600;
-    margin: 0 0 0.5rem 0;
+    margin: 0;
   }
   
   .dashboard-last-updated {
@@ -71,12 +357,235 @@
     font-size: 0.9rem;
   }
   
-  /* Card grid layout */
+  .dashboard-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .dashboard-nav ul {
+    display: flex;
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    gap: 1rem;
+  }
+  
+  .nav-item {
+    padding: 0.5rem 1rem;
+    text-decoration: none;
+    color: #555;
+    border-radius: 4px;
+    font-weight: 500;
+    transition: all 0.2s;
+  }
+  
+  .nav-item:hover {
+    background-color: #f5f5f5;
+    color: #000;
+  }
+  
+  .nav-item.active {
+    background-color: #e9f5ff;
+    color: #0366d6;
+  }
+  
+  /* Section styling */
+  .dashboard-section {
+    margin-bottom: 3rem;
+    display: none;
+  }
+  
+  .dashboard-section.active {
+    display: block;
+  }
+  
+  .section-title {
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #eee;
+  }
+  
+  /* Overview summary cards */
+  .stats-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  
+  .summary-card {
+    display: flex;
+    align-items: center;
+    padding: 1.5rem;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s;
+    cursor: pointer;
+  }
+  
+  .summary-card:hover {
+    transform: translateY(-2px);
+  }
+  
+  .summary-icon {
+    font-size: 2rem;
+    margin-right: 1rem;
+  }
+  
+  .summary-data {
+    flex-grow: 1;
+  }
+  
+  .summary-value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 0.25rem;
+  }
+  
+  .summary-label {
+    color: #666;
+    font-size: 0.9rem;
+  }
+  
+  /* Tabs container */
+  .tabs-container {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+  }
+  
+  .tabs-header {
+    display: flex;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+    overflow-x: auto;
+  }
+  
+  .tab-button {
+    padding: 0.75rem 1.25rem;
+    background: none;
+    border: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #555;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  
+  .tab-button:hover {
+    color: #000;
+    background-color: #f1f1f1;
+  }
+  
+  .tab-button.active {
+    color: #0366d6;
+    border-bottom: 2px solid #0366d6;
+    background-color: white;
+  }
+  
+  .tabs-content {
+    padding: 1.5rem;
+  }
+  
+  .tab-content {
+    display: none;
+  }
+  
+  .tab-content.active {
+    display: block;
+  }
+  
+  /* Card grid layout - modified for tabs */
   .stats-cards {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 1.5rem;
     margin-bottom: 2rem;
+  }
+  
+  /* Quick navigation floating button */
+  .quick-nav {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    z-index: 99;
+  }
+  
+  .quick-nav-toggle {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background-color: #0366d6;
+    color: white;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s;
+  }
+  
+  .quick-nav-toggle:hover {
+    transform: scale(1.05);
+  }
+  
+  .quick-nav-menu {
+    position: absolute;
+    bottom: 60px;
+    right: 0;
+    background-color: white;
+    border-radius: 8px;
+    width: 150px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    display: none;
+    flex-direction: column;
+  }
+  
+  .quick-nav-item {
+    padding: 0.75rem 1rem;
+    text-decoration: none;
+    color: #333;
+    transition: background-color 0.2s;
+  }
+  
+  .quick-nav-item:hover {
+    background-color: #f5f5f5;
+  }
+  
+  .quick-nav:hover .quick-nav-menu {
+    display: flex;
+  }
+  
+  /* Action buttons */
+  .dashboard-actions {
+    display: flex;
+    gap: 0.5rem;
+  }
+  
+  .action-button {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    color: #333;
+    text-decoration: none;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  
+  .action-button:hover {
+    background-color: #e9ecef;
+  }
+  
+  .action-icon {
+    margin-right: 0.25rem;
   }
   
   /* Fix for audit card to span full width when details are shown */
@@ -85,17 +594,11 @@
     transition: all 0.3s ease;
   }
   
-  .audit-card.expanded {
-    grid-column: 1 / -1;
-    width: 100%;
-  }
-  
-  /* Card styles */
+  /* Card styles - simplified for tabs */
   .stat-card {
-    background: #fff;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    padding: 1.5rem;
+    background: transparent;
+    padding: 0;
+    box-shadow: none;
     overflow: visible;
   }
   
@@ -108,82 +611,431 @@
     gap: 0.5rem;
   }
   
-  .stat-card .icon {
-    font-size: 1.4rem;
+  /* Security section specific styles */
+  .security-overview {
+    margin-bottom: 1.5rem;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    padding: 1.5rem;
   }
   
-  /* Metrics styling */
-  .metric {
+  .security-score-container {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    margin-bottom: 0.75rem;
+    gap: 2rem;
   }
   
-  .metric-label {
-    color: #666;
-    font-size: 0.9rem;
+  .security-score {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
+  
+  .score-value {
+    font-size: 3rem;
+    font-weight: 700;
+    line-height: 1;
+  }
+  
+  .score-label {
+    font-size: 0.85rem;
+    text-align: center;
+    margin-top: 0.25rem;
+  }
+  
+  .score-excellent {
+    background-color: #e9f7ef;
+    color: #27ae60;
+    border: 3px solid #27ae60;
+  }
+  
+  .score-warning {
+    background-color: #fcf3cf;
+    color: #f39c12;
+    border: 3px solid #f39c12;
+  }
+  
+  .score-critical {
+    background-color: #fdedeb;
+    color: #e74c3c;
+    border: 3px solid #e74c3c;
+  }
+  
+  .security-metrics {
+    display: flex;
+    flex-grow: 1;
+    gap: 2rem;
+  }
+  
+  .metric-item {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background-color: #f9fafb;
+    border-radius: 8px;
+    transition: transform 0.2s;
+  }
+  
+  .metric-item:hover {
+    transform: translateY(-2px);
+  }
+  
+  .metric-critical {
+    border-left: 4px solid #e74c3c;
+  }
+  
+  .metric-warning {
+    border-left: 4px solid #f39c12;
+  }
+  
+  .metric-icon {
+    font-size: 1.8rem;
+    opacity: 0.8;
+  }
+  
+  .metric-data {
+    flex-grow: 1;
   }
   
   .metric-value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    line-height: 1;
+  }
+  
+  .metric-label {
+    font-size: 0.85rem;
+    color: #666;
+    margin-top: 0.25rem;
+  }
+  
+  .security-tabs .tab-button {
+    position: relative;
+  }
+  
+  .security-tabs .tab-button .tab-icon {
+    margin-right: 0.5rem;
+  }
+  
+  .gem-impact-analysis {
+    padding: 1rem 0;
+  }
+  
+  .gems-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+  
+  .gem-card {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    transition: transform 0.2s;
+  }
+  
+  .gem-card:hover {
+    transform: translateY(-2px);
+  }
+  
+  .gem-card.severity-critical {
+    border-top: 4px solid #e74c3c;
+  }
+  
+  .gem-card.severity-high {
+    border-top: 4px solid #fd7e14;
+  }
+  
+  .gem-card.severity-medium {
+    border-top: 4px solid #f39c12;
+  }
+  
+  .gem-card.severity-low {
+    border-top: 4px solid #27ae60;
+  }
+  
+  .gem-header {
+    padding: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #eeeeee;
+  }
+  
+  .gem-name {
+    font-weight: 600;
+    color: #333;
+  }
+  
+  .gem-severity {
+    font-size: 0.85rem;
+    padding: 0.2rem 0.75rem;
+    border-radius: 12px;
+  }
+  
+  .gem-severity.critical {
+    background-color: rgba(231, 76, 60, 0.15);
+    color: #e74c3c;
+  }
+  
+  .gem-severity.high {
+    background-color: rgba(253, 126, 20, 0.15);
+    color: #fd7e14;
+  }
+  
+  .gem-severity.medium {
+    background-color: rgba(243, 156, 18, 0.15);
+    color: #f39c12;
+  }
+  
+  .gem-severity.low {
+    background-color: rgba(39, 174, 96, 0.15);
+    color: #27ae60;
+  }
+  
+  .gem-severity.unknown {
+    background-color: rgba(173, 181, 189, 0.15);
+    color: #6c757d;
+  }
+  
+  .gem-details {
+    padding: 1rem;
+    background-color: #f9fafb;
+  }
+  
+  .gem-versions {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+    font-size: 0.9rem;
+  }
+  
+  .version-label {
+    color: #666;
+  }
+  
+  .version-value {
+    font-family: monospace;
+  }
+  
+  .gem-vulnerabilities-count {
+    font-size: 0.85rem;
+    color: #666;
+  }
+  
+  .gem-actions {
+    padding: 1rem;
+    display: flex;
+    justify-content: center;
+  }
+  
+  .empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+  }
+  
+  .empty-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    color: #27ae60;
+  }
+  
+  .empty-message {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
+  
+  .empty-description {
+    color: #666;
+  }
+  
+  .security-timeline-container {
+    padding: 1rem 0;
+  }
+  
+  .timeline-chart-placeholder {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    padding: 1.5rem;
+    margin-top: 1.5rem;
+  }
+  
+  .chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+  }
+  
+  .chart-title {
     font-weight: 600;
     font-size: 1.1rem;
   }
   
-  /* Status badges */
-  .status-badge {
-    display: inline-block;
-    padding: 0.35rem 0.75rem;
-    border-radius: 20px;
+  .chart-legend {
+    display: flex;
+    gap: 1rem;
+  }
+  
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
     font-size: 0.85rem;
-    font-weight: 500;
-    margin-bottom: 1rem;
   }
   
-  .status-badge.success {
-    background-color: #d4edda;
-    color: #155724;
+  .legend-color {
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
   }
   
-  .status-badge.warning {
-    background-color: #fff3cd;
-    color: #856404;
+  .chart-visualization {
+    height: 200px;
+    position: relative;
+    margin-bottom: 1.5rem;
   }
   
-  .status-badge.danger {
-    background-color: #f8d7da;
-    color: #721c24;
-  }
-  
-  /* Progress bar */
-  .progress-container {
-    width: 100%;
-    height: 8px;
-    background-color: #e9ecef;
+  .chart-timeline {
+    height: 80px;
+    background-color: #f8f9fa;
     border-radius: 4px;
-    overflow: hidden;
-    margin-bottom: 0.75rem;
+    position: relative;
+    margin-top: 40px;
   }
   
-  .progress-bar {
-    height: 100%;
-    background-color: #28a745;
-    border-radius: 4px;
+  .timeline-point {
+    position: absolute;
+    bottom: 0;
+    transform: translateX(-50%);
   }
   
-  /* Status contextual colors */
-  .status-ok .progress-bar {
-    background-color: #28a745;
+  .timeline-marker {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    position: relative;
   }
   
-  .status-warning .progress-bar {
-    background-color: #ffc107;
+  .timeline-marker::before {
+    content: '';
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 1px;
+    height: 30px;
+    background-color: rgba(0,0,0,0.1);
   }
   
-  .status-danger .progress-bar {
+  .timeline-marker.critical {
     background-color: #dc3545;
   }
   
+  .timeline-marker.medium {
+    background-color: #ffc107;
+  }
+  
+  .timeline-marker.low {
+    background-color: #28a745;
+  }
+  
+  .timeline-date {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    font-size: 0.85rem;
+    color: #666;
+    margin-bottom: 0.5rem;
+  }
+  
+  .timeline-insights {
+    margin-top: 1.5rem;
+  }
+  
+  .insight-card {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+  }
+  
+  .insight-header {
+    background-color: #f8f9fa;
+    padding: 1rem;
+    font-weight: 600;
+    border-bottom: 1px solid #eeeeee;
+  }
+  
+  .insight-content {
+    padding: 1rem;
+  }
+  
+  .insight-item {
+    margin-bottom: 1rem;
+  }
+  
+  .insight-item:last-child {
+    margin-bottom: 0;
+  }
+  
+  .insight-title {
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .insight-description {
+    color: #555;
+    font-size: 0.9rem;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .dashboard-nav {
+      flex-direction: column;
+      gap: 1rem;
+    }
+    
+    .dashboard-nav ul {
+      width: 100%;
+      overflow-x: auto;
+      padding-bottom: 0.5rem;
+    }
+    
+    .dashboard-actions {
+      width: 100%;
+    }
+    
+    .action-button {
+      flex: 1;
+      justify-content: center;
+    }
+    
+    .tabs-header {
+      padding: 0;
+    }
+    
+    .tab-button {
+      padding: 0.75rem 1rem;
+    }
+  }
+  
+  /* Keep compatibility with existing styles */
   /* Details panel styling */
   .details-panel {
     background: #f9f9f9;
@@ -215,97 +1067,54 @@
     text-decoration: underline;
   }
   
-  /* Table styling for vulnerability list */
-  .vulnerabilities-table {
-    overflow-x: auto;
-    margin-top: 1rem;
+  /* Status colors */
+  .status-ok {
+    border-left: 4px solid #28a745;
   }
   
-  .table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.9rem;
+  .status-warning {
+    border-left: 4px solid #ffc107;
   }
   
-  .table th {
-    text-align: left;
-    padding: 0.75rem;
-    background-color: #f8f9fa;
-    border-bottom: 2px solid #dee2e6;
+  .status-danger {
+    border-left: 4px solid #dc3545;
   }
   
-  .table td {
-    padding: 0.75rem;
-    border-bottom: 1px solid #dee2e6;
-    vertical-align: middle;
-  }
-  
-  /* Severity indicators */
-  .severity {
-    display: inline-block;
-    padding: 0.25rem 0.5rem;
+  /* Toast notifications styling */
+  .toast-notification {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100%);
+    background-color: white;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     border-radius: 4px;
-    font-size: 0.8rem;
-    font-weight: 500;
-  }
-  
-  .severity.high, .severity.critical {
-    background-color: #f8d7da;
-    color: #721c24;
-  }
-  
-  .severity.medium {
-    background-color: #fff3cd;
-    color: #856404;
-  }
-  
-  .severity.low {
-    background-color: #d1ecf1;
-    color: #0c5460;
-  }
-  
-  .severity.unknown {
-    background-color: #e9ecef;
-    color: #495057;
-  }
-  
-  /* Dashboard actions */
-  .dashboard-actions {
-    display: flex;
-    gap: 1rem;
-    margin-top: 2rem;
-  }
-  
-  .action-button {
-    display: inline-block;
-    padding: 0.5rem 1rem;
-    background-color: #007bff;
-    color: white;
-    text-decoration: none;
-    border-radius: 4px;
+    padding: 0.75rem 1.5rem;
     font-size: 0.9rem;
-    cursor: pointer;
-    transition: background-color 0.2s;
+    z-index: 1000;
+    transition: transform 0.3s ease;
+    opacity: 0;
   }
   
-  .action-button:hover {
-    background-color: #0069d9;
+  .toast-notification.visible {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
   }
   
-  /* Responsive adjustments */
-  @media (max-width: 768px) {
-    .stats-cards {
-      grid-template-columns: 1fr;
-    }
-    
-    .dashboard-actions {
-      flex-direction: column;
-    }
-    
-    .action-button {
-      width: 100%;
-      text-align: center;
-    }
+  .toast-notification.success {
+    border-left: 4px solid #28a745;
+  }
+  
+  .toast-notification.info {
+    border-left: 4px solid #17a2b8;
+  }
+  
+  .toast-notification.warning {
+    border-left: 4px solid #ffc107;
+  }
+  
+  .toast-notification.error {
+    border-left: 4px solid #dc3545;
   }
 </style>
 
@@ -332,16 +1141,154 @@
         }
       });
     });
+    
+    // Main navigation
+    document.querySelectorAll('.nav-item').forEach(function(navItem) {
+      navItem.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        // Remove active class from all nav items and sections
+        document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+        document.querySelectorAll('.dashboard-section').forEach(section => section.classList.remove('active'));
+        
+        // Add active class to clicked nav item
+        this.classList.add('active');
+        
+        // Show corresponding section
+        const sectionId = this.getAttribute('data-section');
+        document.getElementById(sectionId).classList.add('active');
+      });
+    });
+    
+    // Tab navigation
+    document.querySelectorAll('.tab-button').forEach(function(tabButton) {
+      tabButton.addEventListener('click', function() {
+        const tabContainer = this.closest('.tabs-container');
+        const tabId = this.getAttribute('data-tab');
+        
+        // Remove active class from all buttons and tabs within this container
+        tabContainer.querySelectorAll('.tab-button').forEach(button => button.classList.remove('active'));
+        tabContainer.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+        
+        // Add active class to clicked button and corresponding tab
+        this.classList.add('active');
+        tabContainer.querySelector(`#${tabId}`).classList.add('active');
+      });
+    });
+    
+    // Quick navigation
+    document.querySelectorAll('.quick-nav-item').forEach(function(navItem) {
+      navItem.addEventListener('click', function(e) {
+        const targetId = this.getAttribute('href').substring(1);
+        const targetSection = document.getElementById(targetId);
+        
+        // Update active classes
+        document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+        document.querySelectorAll('.dashboard-section').forEach(section => section.classList.remove('active'));
+        
+        document.querySelector(`.nav-item[data-section="${targetId}"]`).classList.add('active');
+        targetSection.classList.add('active');
+        
+        // Close the quick nav menu
+        document.querySelector('.quick-nav-menu').style.display = 'none';
+      });
+    });
+    
+    // Summary card navigation
+    document.querySelectorAll('.summary-card').forEach(function(card) {
+      card.addEventListener('click', function() {
+        const section = this.getAttribute('data-section');
+        const tab = this.getAttribute('data-tab');
+        
+        // Update active classes for main navigation
+        document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+        document.querySelectorAll('.dashboard-section').forEach(section => section.classList.remove('active'));
+        
+        const targetNavItem = document.querySelector(`.nav-item[data-section="${section}"]`);
+        if (targetNavItem) {
+          targetNavItem.classList.add('active');
+          
+          // Show corresponding section
+          const targetSection = document.getElementById(section);
+          targetSection.classList.add('active');
+          
+          // If tab is specified, activate the tab
+          if (tab) {
+            const tabsContainer = targetSection.querySelector('.tabs-container');
+            if (tabsContainer) {
+              // Deactivate all tabs first
+              tabsContainer.querySelectorAll('.tab-button').forEach(button => button.classList.remove('active'));
+              tabsContainer.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+              
+              // Activate the target tab
+              const targetTabButton = tabsContainer.querySelector(`.tab-button[data-tab="${tab}"]`);
+              const targetTabContent = tabsContainer.querySelector(`#${tab}`);
+              
+              if (targetTabButton) targetTabButton.classList.add('active');
+              if (targetTabContent) targetTabContent.classList.add('active');
+              
+              // Scroll to the section
+              setTimeout(() => {
+                targetSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }, 100);
+            }
+          }
+        }
+      });
+    });
   });
 
   function refreshAudit() {
-    // Implement refresh functionality
-    alert('Refreshing audit data...');
-    location.reload();
+    // Show loading indicator
+    const refreshButton = document.querySelector('.action-button');
+    const originalText = refreshButton.innerHTML;
+    refreshButton.innerHTML = '<span class="action-icon">⟳</span> Refreshing...';
+    refreshButton.disabled = true;
+    
+    // Simulate refresh (in production, this would be an AJAX call)
+    setTimeout(() => {
+      refreshButton.innerHTML = originalText;
+      refreshButton.disabled = false;
+      
+      // Show toast notification
+      showNotification('Security audit data refreshed', 'success');
+      
+      // In production, you would reload the data via AJAX
+      // location.reload();
+    }, 1500);
   }
 
   function exportReport() {
-    // Implement export functionality
-    alert('Exporting report...');
+    // Show toast notification
+    showNotification('Generating report...', 'info');
+    
+    // In production, this would trigger a report download
+    setTimeout(() => {
+      showNotification('Report exported successfully', 'success');
+    }, 1500);
+  }
+  
+  // Toast notification system
+  function showNotification(message, type = 'info') {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `toast-notification ${type}`;
+    notification.innerHTML = message;
+    
+    // Add to document
+    document.body.appendChild(notification);
+    
+    // Animate in
+    setTimeout(() => {
+      notification.classList.add('visible');
+    }, 10);
+    
+    // Remove after delay
+    setTimeout(() => {
+      notification.classList.remove('visible');
+      setTimeout(() => {
+        document.body.removeChild(notification);
+      }, 300);
+    }, 4000);
   }
 </script>

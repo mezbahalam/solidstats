@@ -1,0 +1,40 @@
+name: Ruby Gem Tests
+
+on:
+  push:
+    branches: [ main, master, development ]
+  pull_request:
+    branches: [ main, master, development ]
+  workflow_dispatch: # Allow manual triggering
+
+jobs:
+  test:
+    runs-on: ubuntu-22.04
+    # strategy:
+    #   fail-fast: false
+    #   matrix:
+    #     ruby-version: ['2.7', '3.0', '3.1', '3.2']
+        
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: ${{ matrix.ruby-version }}
+        bundler-cache: false # We'll handle installation manually
+    
+    - name: Run CI setup script
+      run: |
+        chmod +x ./script/ci_setup.sh
+        ./script/ci_setup.sh
+        
+    - name: Remove Gemfile.lock to force regeneration
+      run: |
+        rm -f Gemfile.lock
+        
+    - name: Install dependencies
+      run: bundle install --jobs 4
+    
+    - name: Run solidstats generator
+      run: bundle exec rails g solidstats:install
