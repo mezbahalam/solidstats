@@ -16,22 +16,9 @@ module Solidstats
       @audit_summary = audit_service.summary
       @todo_summary = todo_service.summary
 
-      # Use summary for stats in views
-      # @todo_stats is now replaced by @todo_summary
-
       # TODO: Refactor these to use services as well
       @rubocop_output = "JSON.parse(`rubocop --format json`)"
       @coverage = "read_coverage_percent"
-    end
-
-    private
-
-    def read_coverage_percent
-      file = Rails.root.join("coverage", ".last_run.json")
-      return 0 unless File.exist?(file)
-
-      data = JSON.parse(File.read(file))
-      data.dig("result", "covered_percent").to_f.round(2)
     end
   end
 end
