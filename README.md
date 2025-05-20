@@ -15,6 +15,10 @@ Solidstats is a local-only Rails engine that shows your project's health at `/so
 
 Solidstats automatically detects your Ruby version and selects a compatible Rails version.
 
+### CI/Testing
+
+This gem is automatically tested across multiple Ruby versions (2.7, 3.0, 3.1, and 3.2) to ensure compatibility. If you're contributing to this gem, make sure your changes work across all supported Ruby versions.
+
 ## Installation
 
 ```ruby
