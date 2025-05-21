@@ -6,6 +6,7 @@
     <%= render partial: 'solidstats/dashboard/audit/no_vulnerabilities' %>
   <% else %>
     <%= render partial: 'solidstats/dashboard/audit/vulnerabilities_table', locals: { results: results } %>
+    <%= render partial: 'solidstats/dashboard/audit/vulnerability_details', locals: { results: results } %>
   <% end %>
 </div>
 
