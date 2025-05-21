@@ -105,7 +105,7 @@
           <span class="tab-icon">📊</span> Overview
         </button>
         <button class="tab-button" data-tab="security-vulnerabilities">
-          <span class="tab-icon">🛡️</span> Vulnerabilities
+          <span class="tab-icon">🛡️</span> Vulnerabilities Details
         </button>
         <button class="tab-button" data-tab="security-gems">
           <span class="tab-icon">💎</span> Affected Gems
@@ -120,7 +120,7 @@
           <%= render partial: 'solidstats/dashboard/audit/security_audit', locals: { results: results } %>
         </div>
         <div class="tab-content" id="security-vulnerabilities">
-          <%= render partial: 'solidstats/dashboard/audit/vulnerabilities_table', locals: { results: results } %>
+            <%= render partial: 'solidstats/dashboard/audit/vulnerability_details', locals: { results: results } %>
         </div>
         <div class="tab-content" id="security-gems">
           <div class="gem-impact-analysis">

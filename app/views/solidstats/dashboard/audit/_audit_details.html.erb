@@ -1,13 +1,11 @@
-<div id="audit-details" class="details-panel hidden">
+<div id="audit-details">
   <%= render partial: 'solidstats/dashboard/audit/audit_summary' %>
   
   <% results = @audit_output.dig("results") || [] %>
   <% if results.empty? %>
     <%= render partial: 'solidstats/dashboard/audit/no_vulnerabilities' %>
   <% else %>
-    <%= render partial: 'solidstats/dashboard/audit/audit_filters' %>
     <%= render partial: 'solidstats/dashboard/audit/vulnerabilities_table', locals: { results: results } %>
-    <%= render partial: 'solidstats/dashboard/audit/vulnerability_details', locals: { results: results } %>
   <% end %>
 </div>
 

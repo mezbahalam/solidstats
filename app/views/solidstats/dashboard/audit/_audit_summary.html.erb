@@ -1,7 +1,7 @@
 <%# filepath: /Users/mezbah/microstartup/infolily_organizer/gems/solidstats/app/views/solidstats/dashboard/_audit_summary.html.erb %>
 <div class="audit-summary">
   <div class="audit-summary-header">
-    <h3>Security Audit Summary</h3>
+    <h2><span class="icon">🔒</span>Security Audit Summary</h2>
     <% created_at = @audit_output.dig("created_at") %>
     <span class="audit-date">Last updated: <%= created_at ? DateTime.parse(created_at).strftime("%B %d, %Y at %H:%M") : Time.now.strftime("%B %d, %Y at %H:%M") %></span>
   </div>
