@@ -20,24 +20,24 @@ module Solidstats
       @rubocop_output = "JSON.parse(`rubocop --format json`)"
       @coverage = "100"
     end
-    
+
     # Force refresh all dashboard data
     def refresh
       # Create services
       audit_service = AuditService.new
       todo_service = TodoService.new
-      
+
       # Force refresh of data
       audit_output = audit_service.fetch(true) # Force refresh
       todo_items = todo_service.fetch(true)    # Force refresh
-      
+
       # Get updated summaries
       audit_summary = audit_service.summary
       todo_summary = todo_service.summary
-      
+
       # Get current time for last updated display
       last_updated = Time.now.strftime("%B %d, %Y at %H:%M")
-      
+
       # Return JSON response with refreshed data
       render json: {
         audit_output: audit_output,
