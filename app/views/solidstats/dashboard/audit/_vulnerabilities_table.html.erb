@@ -28,15 +28,38 @@
 <div class="vulnerability-summary">
   <div class="donut-chart">
     <div class="chart-container" id="severity-donut-chart">
-      <!-- We'll use a simple CSS-based donut chart as placeholder -->
-      <div class="donut" style="--critical: <%= results.count { |r| r.dig("advisory", "criticality").to_s.downcase == "critical" } %>; 
-                              --high: <%= results.count { |r| r.dig("advisory", "criticality").to_s.downcase == "high" } %>; 
-                              --medium: <%= results.count { |r| r.dig("advisory", "criticality").to_s.downcase == "medium" } %>; 
-                              --low: <%= results.count { |r| r.dig("advisory", "criticality").to_s.downcase == "low" } %>; 
-                              --unknown: <%= results.count { |r| r.dig("advisory", "criticality").to_s.downcase != "critical" && 
-                                                                r.dig("advisory", "criticality").to_s.downcase != "high" && 
-                                                                r.dig("advisory", "criticality").to_s.downcase != "medium" && 
-                                                                r.dig("advisory", "criticality").to_s.downcase != "low" } %>;">
+      <!-- CSS-based donut chart -->
+      <% 
+        # Calculate counts for each severity
+        critical_count = results.count { |r| r.dig("advisory", "criticality").to_s.downcase == "critical" }
+        high_count = results.count { |r| r.dig("advisory", "criticality").to_s.downcase == "high" }
+        medium_count = results.count { |r| r.dig("advisory", "criticality").to_s.downcase == "medium" }
+        low_count = results.count { |r| r.dig("advisory", "criticality").to_s.downcase == "low" }
+        unknown_count = results.count { |r| ["", nil].include?(r.dig("advisory", "criticality")) || 
+                                            r.dig("advisory", "criticality").to_s.downcase == "unknown" }
+        
+        # Calculate total for percentages
+        total = critical_count + high_count + medium_count + low_count + unknown_count
+
+        # Calculate percentages (avoid division by zero)
+        critical_pct = total > 0 ? critical_count.to_f / total : 0
+        high_pct = total > 0 ? high_count.to_f / total : 0
+        medium_pct = total > 0 ? medium_count.to_f / total : 0
+        low_pct = total > 0 ? low_count.to_f / total : 0
+        unknown_pct = total > 0 ? unknown_count.to_f / total : 0
+      %>
+      <div class="donut" 
+           style="--critical: <%= critical_pct %>; 
+                  --high: <%= high_pct %>; 
+                  --medium: <%= medium_pct %>; 
+                  --low: <%= low_pct %>; 
+                  --unknown: <%= unknown_pct %>;"
+           data-count="<%= total %>"
+           data-critical="<%= critical_count %>"
+           data-high="<%= high_count %>"
+           data-medium="<%= medium_count %>"
+           data-low="<%= low_count %>"
+           data-unknown="<%= unknown_count %>">
       </div>
     </div>
     <div class="chart-legend">
@@ -98,7 +121,8 @@
           gem = result.dig("gem") || {}
           advisory = result.dig("advisory") || {}
           criticality = advisory["criticality"] || "unknown"
-          is_high = %w[high critical].include?(criticality.downcase)
+          criticality = criticality.to_s.downcase # Ensure consistent lowercase
+          is_high = %w[high critical].include?(criticality)
           
           # Extract CVE or GHSA ID
           vuln_id = advisory["cve"].present? ? "CVE-#{advisory["cve"]}" : 
@@ -294,12 +318,18 @@
   }
   
   .donut::after {
-    content: '';
+    content: attr(data-count);
     width: 60px;
     height: 60px;
     background: white;
     border-radius: 50%;
     position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 16px;
+    color: #333;
   }
   
   .chart-legend {
@@ -853,17 +883,79 @@
         const filter = this.getAttribute('data-filter');
         const rows = document.querySelectorAll('.vulnerability-row');
         
+        // Counts for updating donut chart
+        let visibleCritical = 0;
+        let visibleHigh = 0;
+        let visibleMedium = 0;
+        let visibleLow = 0;
+        let visibleUnknown = 0;
+        let visibleTotal = 0;
+        
         rows.forEach(function(row) {
+          const severity = row.getAttribute('data-severity');
+          
           if (filter === 'all') {
             row.style.display = '';
+            
+            // Count by severity for all visible rows
+            if (severity === 'critical') visibleCritical++;
+            else if (severity === 'high') visibleHigh++;
+            else if (severity === 'medium') visibleMedium++;
+            else if (severity === 'low') visibleLow++;
+            else visibleUnknown++;
+            
+            visibleTotal++;
+            
           } else {
-            if (row.getAttribute('data-severity') === filter) {
+            if (severity === filter) {
               row.style.display = '';
+              
+              // For filtered view, only count matching severity
+              if (severity === 'critical') visibleCritical++;
+              else if (severity === 'high') visibleHigh++;
+              else if (severity === 'medium') visibleMedium++;
+              else if (severity === 'low') visibleLow++;
+              else visibleUnknown++;
+              
+              visibleTotal++;
             } else {
               row.style.display = 'none';
             }
           }
         });
+        
+        // Update donut chart percentages based on visible rows
+        const donut = document.querySelector('.donut');
+        if (donut) {
+          // Calculate percentages
+          const criticalPct = visibleTotal > 0 ? visibleCritical / visibleTotal : 0;
+          const highPct = visibleTotal > 0 ? visibleHigh / visibleTotal : 0;
+          const mediumPct = visibleTotal > 0 ? visibleMedium / visibleTotal : 0;
+          const lowPct = visibleTotal > 0 ? visibleLow / visibleTotal : 0;
+          const unknownPct = visibleTotal > 0 ? visibleUnknown / visibleTotal : 0;
+          
+          // Update CSS variables
+          donut.style.setProperty('--critical', criticalPct);
+          donut.style.setProperty('--high', highPct);
+          donut.style.setProperty('--medium', mediumPct);
+          donut.style.setProperty('--low', lowPct);
+          donut.style.setProperty('--unknown', unknownPct);
+        }
+        
+        // Update stats counters
+        const critHighCounter = document.querySelector('.vulnerability-stats .stat-value:nth-child(1)');
+        const mediumCounter = document.querySelector('.vulnerability-stats .stat-item:nth-child(2) .stat-value');
+        const lowCounter = document.querySelector('.vulnerability-stats .stat-item:nth-child(3) .stat-value');
+        
+        if (critHighCounter) {
+          critHighCounter.textContent = visibleCritical + visibleHigh;
+        }
+        if (mediumCounter) {
+          mediumCounter.textContent = visibleMedium;
+        }
+        if (lowCounter) {
+          lowCounter.textContent = visibleLow;
+        }
       });
     });
     
