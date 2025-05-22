@@ -27,7 +27,7 @@ This PR prepares SolidStats for the v1.1.0 release, which adds a comprehensive L
 After this PR is merged:
 1. Push the gem to RubyGems.org
 2. Create a Git tag for the release
-3. Update the demo site (if applicable)
+3. Update the demo site (https://solidstats.infolily.com)
 
 ## Notes
 This is a significant milestone release that represents the stability and maturity of the SolidStats gem.

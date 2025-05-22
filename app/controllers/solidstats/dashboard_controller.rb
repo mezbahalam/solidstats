@@ -59,18 +59,18 @@ module Solidstats
         message: "Failed to refresh data: #{e.message}"
       }, status: :internal_server_error
     end
-    
+
     def truncate_log
       log_monitor_service = LogSizeMonitorService.new
       filename = params[:filename]
-      
+
       # Add .log extension if not included in the filename
-      if filename.present? && !filename.end_with?('.log')
+      if filename.present? && !filename.end_with?(".log")
         filename = "#{filename}.log"
       end
-      
+
       result = log_monitor_service.truncate_log(filename)
-      
+
       render json: result
     end
   end

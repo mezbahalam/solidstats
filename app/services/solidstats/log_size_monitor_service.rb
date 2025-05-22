@@ -6,7 +6,7 @@ module Solidstats
     def collect_data
       log_files = scan_log_directory
       total_size_bytes = log_files.sum { |file| file[:size_bytes] }
-      
+
       # Create aggregated data
       {
         log_dir_path: log_directory,
@@ -24,11 +24,11 @@ module Solidstats
         if filename.present?
           # Truncate specific log file
           # Ensure filename has .log extension
-          filename = "#{filename}.log" unless filename.end_with?('.log')
-          
+          filename = "#{filename}.log" unless filename.end_with?(".log")
+
           file_path = File.join(log_directory, filename)
           if File.exist?(file_path)
-            File.open(file_path, 'w') { |f| f.truncate(0) }
+            File.open(file_path, "w") { |f| f.truncate(0) }
             { success: true, message: "Log file '#{filename}' truncated successfully" }
           else
             { success: false, message: "Log file '#{filename}' not found" }
@@ -36,7 +36,7 @@ module Solidstats
         else
           # Truncate all log files
           scan_log_directory.each do |log_file|
-            File.open(log_file[:path], 'w') { |f| f.truncate(0) }
+            File.open(log_file[:path], "w") { |f| f.truncate(0) }
           end
           { success: true, message: "All log files truncated successfully" }
         end
@@ -50,16 +50,16 @@ module Solidstats
     def log_directory
       Rails.root.join("log").to_s
     end
-    
+
     def scan_log_directory
       log_files = []
-      
+
       # Get all files in the log directory
       Dir.glob(File.join(log_directory, "*.log")).each do |file_path|
         if File.file?(file_path)
           size_bytes = File.size(file_path)
           filename = File.basename(file_path)
-          
+
           log_files << {
             filename: filename,
             path: file_path,
@@ -70,7 +70,7 @@ module Solidstats
           }
         end
       end
-      
+
       # Sort by size (largest first)
       log_files.sort_by { |file| -file[:size_bytes] }
     end
@@ -81,7 +81,7 @@ module Solidstats
 
     def calculate_status(size_bytes)
       size_mb = bytes_to_mb(size_bytes)
-      
+
       if size_mb >= DANGER_THRESHOLD
         :danger
       elsif size_mb >= WARNING_THRESHOLD
