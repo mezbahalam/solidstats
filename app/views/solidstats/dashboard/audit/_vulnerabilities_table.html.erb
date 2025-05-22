@@ -16,10 +16,10 @@
     </div>
   </div>
   <div class="vulnerability-actions">
-    <button class="action-button bulk-action-button">
+    <button class="action-button bulk-action-button" disabled>
       <span class="action-icon">✓</span> Bulk Update
     </button>
-    <button class="action-button export-csv-button">
+    <button class="action-button export-csv-button" disabled>
       <span class="action-icon">↓</span> Export CSV
     </button>
   </div>
@@ -693,6 +693,27 @@
   
   .copy-btn:hover {
     background-color: #e9ecef;
+  }
+  
+  .action-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    position: relative;
+  }
+  
+  .action-button:disabled:hover::after {
+    content: "Currently unavailable";
+    position: absolute;
+    up: -150px; /* Position tooltip to the right of the button */
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: #333;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    z-index: 100;
   }
   
   .no-patch {
