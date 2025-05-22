@@ -106,20 +106,31 @@
           # Format the link
           vuln_link = advisory["cve"].present? ? "https://nvd.nist.gov/vuln/detail/CVE-#{advisory["cve"]}" :
                      (advisory["ghsa"].present? ? "https://github.com/advisories/#{advisory["ghsa"]}" : "#")
+                     
+          # Extract published date and format it
+          published_date = advisory["date"] || "Unknown"
+          formatted_date = published_date != "Unknown" ? Date.parse(published_date).strftime("%b %d, %Y") : "Unknown"
         %>
         <tr class="vulnerability-row <%= criticality.to_s.downcase %>" data-severity="<%= criticality.to_s.downcase %>" data-gem="<%= gem["name"] %>" data-index="<%= index %>">
           <td class="severity-column">
-            <div class="severity-indicator <%= criticality.to_s.downcase %>">
-              <span class="severity-icon"><%= criticality == "critical" ? "!" : (criticality == "high" ? "▲" : (criticality == "medium" ? "●" : "▼")) %></span>
-              <span class="severity-text"><%= criticality %></span>
+            <div class="severity-badge <%= criticality.to_s.downcase %>">
+              <%= criticality %>
             </div>
           </td>
           <td class="gem-column">
             <div class="gem-name"><%= gem["name"] %></div>
+            <% if gem["source_url"].present? %>
+              <a href="<%= gem["source_url"] %>" target="_blank" class="gem-source-link">
+                <small>Repository <span class="external-link-icon">↗</span></small>
+              </a>
+            <% end %>
           </td>
           <td class="version-column">
             <div class="version-info">
               <span class="current-version"><%= gem["version"] %></span>
+            </div>
+            <div class="vulnerability-meta">
+              <small>Published: <%= formatted_date %></small>
             </div>
           </td>
           <td class="cve-column">
@@ -135,23 +146,25 @@
           <td class="description-column">
             <div class="vulnerability-title"><%= advisory["title"] %></div>
             <% if advisory["description"].present? %>
-              <button class="details-toggle-btn" data-target="vulnerability-details-<%= index %>">
-                <span class="toggle-icon">▾</span> More details
-              </button>
-              <div id="vulnerability-details-<%= index %>" class="vulnerability-details collapsed">
-                <div class="details-content">
-                  <%= advisory["description"] %>
-                </div>
-              </div>
+              <a href="#vulnerability-<%= index %>" class="details-link-btn scroll-to-details">
+                <span class="details-icon">⤵</span> More details
+              </a>
             <% end %>
           </td>
           <td class="remediation-column">
             <% if advisory["patched_versions"].present? %>
               <div class="remediation-action">
-                <span class="solution-version"><%= advisory["patched_versions"].first %></span>
-                <button class="copy-btn" data-solution="<%= "#{gem["name"]}, #{advisory["patched_versions"].join(", ")}" %>">
-                  <span class="copy-icon">📋</span>
-                </button>
+                <div class="patched-versions-pill">
+                  <div class="versions-container">
+                    <% advisory["patched_versions"].each_with_index do |version_text, index| %>
+                      <% version_display = version_text.include?(">=") ? version_text : ">= #{version_text}" %>
+                      <span class="solution-version<%= index == advisory["patched_versions"].size - 1 ? ' last-version' : '' %>"><%= version_display %></span>
+                    <% end %>
+                  </div>
+                  <button class="copy-btn" data-solution="<%= "#{gem["name"]}, #{advisory["patched_versions"].join(", ")}" %>" title="Copy gem name and patched versions">
+                    <span class="copy-icon">📋</span>
+                  </button>
+                </div>
               </div>
             <% else %>
               <span class="no-patch">No patch available</span>
@@ -383,7 +396,7 @@
   }
   
   .table td {
-    padding: 0.75rem;
+    padding: 0.65rem 0.75rem;
     border-bottom: 1px solid #dee2e6;
     vertical-align: middle;
     word-break: break-word;
@@ -391,27 +404,33 @@
   }
   
   .severity-column {
-    width: 12%;
+    width: 8%;
+    min-width: 90px;
   }
   
   .gem-column {
     width: 15%;
+    min-width: 120px;
   }
   
   .version-column {
     width: 10%;
+    min-width: 100px;
   }
   
   .cve-column {
     width: 12%;
+    min-width: 110px;
   }
   
   .description-column {
-    width: 36%;
+    width: 30%;
+    min-width: 180px;
   }
   
   .remediation-column {
-    width: 15%;
+    width: 20%;
+    min-width: 160px;
   }
   
   .vulnerability-row {
@@ -442,42 +461,47 @@
     border-left: 4px solid #adb5bd;
   }
   
-  .severity-indicator {
-    display: flex;
-    align-items: center;
-    padding: 0.35rem 0.5rem;
-    border-radius: 4px;
-    font-weight: 500;
+  .severity-badge {
+    display: inline-block;
+    padding: 0.3rem 0.6rem;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-align: center;
+    white-space: nowrap;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    min-width: 70px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
   }
   
-  .severity-indicator.critical {
-    background-color: rgba(220, 53, 69, 0.15);
-    color: #dc3545;
+  .severity-badge.critical {
+    background-color: #dc3545;
+    color: white;
   }
   
-  .severity-indicator.high {
-    background-color: rgba(253, 126, 20, 0.15);
-    color: #fd7e14;
+  .severity-badge.high {
+    background-color: #fd7e14;
+    color: white;
   }
   
-  .severity-indicator.medium {
-    background-color: rgba(255, 193, 7, 0.15);
-    color: #ffc107;
+  .severity-badge.medium {
+    background-color: #ffc107;
+    color: #212529;
   }
   
-  .severity-indicator.low {
-    background-color: rgba(40, 167, 69, 0.15);
-    color: #28a745;
+  .severity-badge.low {
+    background-color: #28a745;
+    color: white;
   }
   
-  .severity-indicator.unknown {
-    background-color: rgba(173, 181, 189, 0.15);
-    color: #6c757d;
+  .severity-badge.unknown {
+    background-color: #adb5bd;
+    color: white;
   }
   
-  .severity-icon {
-    margin-right: 0.35rem;
-    font-size: 0.85rem;
+  .details-icon {
+    font-size: 0.9rem;
     font-weight: bold;
   }
   
@@ -508,7 +532,19 @@
     color: #28a745;
     word-break: break-all;
     font-weight: 500;
-    margin-right: 0.5rem;
+    padding: 0.1rem 0.25rem;
+    display: inline-block;
+    background-color: rgba(40, 167, 69, 0.08);
+    border-radius: 3px;
+    margin-right: 0.25rem;
+  }
+  
+  .solution-version.last-version {
+    margin-bottom: 0;
+  }
+  
+  .solution-version.single-version {
+    margin-right: 0;
   }
   
   .vuln-link {
@@ -549,18 +585,27 @@
     transition: transform 0.2s;
   }
   
+  .vulnerability-details-container {
+    position: relative;
+    z-index: 5;
+  }
+  
   .vulnerability-details {
     max-height: 0;
     overflow: hidden;
-    transition: max-height 0.3s ease;
+    transition: max-height 0.3s ease, opacity 0.3s ease;
     margin-top: 0.75rem;
     font-size: 0.85rem;
+    opacity: 0;
   }
   
   .vulnerability-details.expanded {
     max-height: 300px;
     overflow-y: auto;
     width: 100%;
+    opacity: 1;
+    position: relative;
+    z-index: 10;
   }
   
   .details-content {
@@ -571,6 +616,8 @@
     color: #495057;
     overflow-wrap: break-word;
     word-wrap: break-word;
+    border: 1px solid #e9ecef;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
   }
   
   .remediation-action {
@@ -580,11 +627,44 @@
     flex-wrap: wrap;
   }
   
+  .patched-versions-pill {
+    display: flex;
+    align-items: center;
+    background-color: rgba(40, 167, 69, 0.08);
+    border-radius: 4px;
+    padding: 0.35rem 0.5rem;
+    max-width: 100%;
+    overflow-wrap: break-word;
+    border-left: 3px solid #28a745;
+  }
+  
+  .versions-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    flex-grow: 1;
+  }
+  
+  .more-versions {
+    font-size: 0.75rem;
+    background-color: rgba(40, 167, 69, 0.2);
+    color: #28a745;
+    font-weight: 500;
+    border-radius: 3px;
+    padding: 0.15rem 0.35rem;
+    cursor: help;
+    margin-left: 0.25rem;
+    display: inline-block;
+    min-width: 1.5rem;
+    text-align: center;
+  }
+  
   .copy-btn {
-    background-color: #f8f9fa;
+    background-color: transparent;
     color: #495057;
-    border: 1px solid #dee2e6;
-    padding: 0.35rem;
+    border: none;
+    padding: 0.25rem;
+    margin-left: 0.25rem;
     border-radius: 4px;
     font-size: 0.85rem;
     cursor: pointer;
@@ -644,6 +724,27 @@
     cursor: not-allowed;
   }
   
+  .details-link-btn {
+    color: #0366d6;
+    font-size: 0.85rem;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+  }
+  
+  .details-link-btn:hover {
+    background-color: rgba(3, 102, 214, 0.1);
+    text-decoration: none;
+  }
+  
+  .scroll-to-details {
+    cursor: pointer;
+  }
+  
   /* Responsive styles for smaller screens */
   @media (max-width: 992px) {
     .vulnerability-summary {
@@ -661,7 +762,14 @@
   
   @media (max-width: 768px) {
     .severity-column {
-      width: 15%;
+      width: 12%;
+      text-align: center;
+    }
+    
+    .severity-badge {
+      min-width: 60px;
+      padding: 0.25rem 0.4rem;
+      font-size: 0.75rem;
     }
     
     .gem-column {
@@ -725,6 +833,21 @@
       padding: 0.5rem;
       min-height: 44px; /* Better touch target */
     }
+    
+    /* Enhance remediation column display on small screens */
+    .remediation-column .patched-versions-pill {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    
+    .remediation-column .versions-container {
+      width: 100%;
+      margin-bottom: 0.25rem;
+    }
+    
+    .copy-btn {
+      align-self: flex-end;
+    }
   }
 </style>
 
@@ -774,24 +897,48 @@
       });
     }
     
-    // Toggle details functionality
-    document.querySelectorAll('.details-toggle-btn').forEach(function(button) {
-      button.addEventListener('click', function() {
-        const targetId = this.getAttribute('data-target');
-        const detailsElement = document.getElementById(targetId);
-        const toggleIcon = this.querySelector('.toggle-icon');
+    // Scroll to vulnerability details when clicking "More details"
+    document.querySelectorAll('.scroll-to-details').forEach(function(link) {
+      link.addEventListener('click', function(e) {
+        e.preventDefault();
+        const targetId = this.getAttribute('href');
+        const detailsSection = document.querySelector('.vulnerabilities-details-section');
         
-        if (detailsElement.classList.contains('expanded')) {
-          detailsElement.classList.remove('expanded');
-          detailsElement.classList.add('collapsed');
-          toggleIcon.textContent = '▾';
-          this.querySelector('span:not(.toggle-icon)').textContent = ' More details';
-        } else {
-          detailsElement.classList.remove('collapsed');
-          detailsElement.classList.add('expanded');
-          toggleIcon.textContent = '▴';
-          this.querySelector('span:not(.toggle-icon)').textContent = ' Less details';
+        // Ensure the details section is visible
+        if (detailsSection.classList.contains('hidden')) {
+          detailsSection.classList.remove('hidden');
+          const toggleBtn = document.querySelector('.toggle-details-btn');
+          if (toggleBtn) {
+            toggleBtn.textContent = 'Hide Details';
+            toggleBtn.setAttribute('aria-expanded', 'true');
+          }
         }
+        
+        // Scroll to the specific vulnerability detail
+        setTimeout(() => {
+          const targetElement = document.querySelector(targetId);
+          if (targetElement) {
+            const headerHeight = 60; // Approximate height of sticky header
+            const targetPosition = targetElement.getBoundingClientRect().top + window.pageYOffset - headerHeight - 20;
+            window.scrollTo({
+              top: targetPosition,
+              behavior: 'smooth'
+            });
+            
+            // Highlight the target element briefly
+            targetElement.classList.add('highlight-detail');
+            setTimeout(() => {
+              targetElement.classList.remove('highlight-detail');
+            }, 1500);
+          }
+        }, 100);
+      });
+    });
+    
+    // Tooltip functionality for patched versions
+    document.querySelectorAll('.more-versions').forEach(function(element) {
+      element.addEventListener('mouseenter', function() {
+        // Could implement custom tooltip here if needed
       });
     });
     
@@ -846,9 +993,10 @@
         // Make severity column more compact
         const severityCells = document.querySelectorAll('.severity-column');
         severityCells.forEach(cell => {
-          const indicator = cell.querySelector('.severity-indicator');
-          if (indicator) {
-            indicator.style.padding = '0.25rem';
+          const badge = cell.querySelector('.severity-badge');
+          if (badge) {
+            badge.style.padding = '0.2rem 0.4rem';
+            badge.style.minWidth = 'auto';
           }
         });
       }

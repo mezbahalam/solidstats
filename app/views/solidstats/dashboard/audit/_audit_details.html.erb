@@ -158,12 +158,6 @@
     border-left: 4px solid #dc3545;
   }
   
-  .vulnerability-title {
-    margin-top: 0;
-    margin-bottom: 0.75rem;
-    font-size: 1.1rem;
-    font-weight: 600;
-  }
   
   .vulnerability-meta {
     display: flex;
@@ -223,6 +217,7 @@
     border-bottom: 1px solid #e1e4e8;
     padding: 24px;
     background-color: #ffffff;
+    transition: background-color 0.3s ease;
   }
   
   .md-entry:last-child {
@@ -231,6 +226,10 @@
   
   .md-entry.high-severity {
     border-left: 4px solid #d73a49;
+  }
+  
+  .md-entry.highlight-detail {
+    background-color: #fffbe6;
   }
   
   /* Markdown heading style */
@@ -415,12 +414,12 @@
     const toggleBtn = document.querySelector('.toggle-details-btn');
     if (toggleBtn) {
       toggleBtn.addEventListener('click', function() {
-        const detailsSection = document.querySelector('.vulnerabilities-details-section');
-        const isHidden = detailsSection.classList.contains('hidden');
+        const detailsSection = document.querySelector('.md-container');
+        const isHidden = detailsSection.style.display === 'none';
         
         if (isHidden) {
           // Show the details
-          detailsSection.classList.remove('hidden');
+          detailsSection.style.display = '';
           this.textContent = 'Hide Details';
           this.setAttribute('aria-expanded', 'true');
           
@@ -431,7 +430,7 @@
           });
         } else {
           // Hide the details
-          detailsSection.classList.add('hidden');
+          detailsSection.style.display = 'none';
           this.textContent = 'Show Details';
           this.setAttribute('aria-expanded', 'false');
         }
@@ -439,26 +438,41 @@
     }
     
     // View details link functionality - simplified to avoid duplication
-    document.querySelectorAll('.view-details-link').forEach(function(link) {
+    document.querySelectorAll('.view-details-link, .scroll-to-details').forEach(function(link) {
       link.addEventListener('click', function(e) {
         e.preventDefault();
         const target = this.getAttribute('href');
-        const detailsSection = document.querySelector('.vulnerabilities-details-section');
+        const mdContainer = document.querySelector('.md-container');
         
         // Show the details section if it's hidden
-        if (detailsSection.classList.contains('hidden')) {
-          detailsSection.classList.remove('hidden');
+        if (mdContainer.style.display === 'none') {
+          mdContainer.style.display = '';
           const toggleBtn = document.querySelector('.toggle-details-btn');
-          toggleBtn.textContent = 'Hide Details';
-          toggleBtn.setAttribute('aria-expanded', 'true');
+          if (toggleBtn) {
+            toggleBtn.textContent = 'Hide Details';
+            toggleBtn.setAttribute('aria-expanded', 'true');
+          }
         }
         
         // Scroll to the specific vulnerability
         setTimeout(() => {
-          document.querySelector(target).scrollIntoView({
-            behavior: 'smooth',
-            block: 'start'
-          });
+          const targetElement = document.querySelector(target);
+          if (targetElement) {
+            const headerOffset = 70;
+            const elementPosition = targetElement.getBoundingClientRect().top;
+            const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+            
+            window.scrollTo({
+              top: offsetPosition,
+              behavior: "smooth"
+            });
+            
+            // Highlight the target element briefly
+            targetElement.classList.add('highlight-detail');
+            setTimeout(() => {
+              targetElement.classList.remove('highlight-detail');
+            }, 1500);
+          }
         }, 100);
       });
     });
