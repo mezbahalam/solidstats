@@ -2,7 +2,8 @@
   <header class="dashboard-header">
     <div class="header-main">
       <h1><span class="icon">🚥</span> Solidstats Dashboard</h1>
-      <p class="dashboard-last-updated">Last updated: <%= Time.now.strftime("%B %d, %Y at %H:%M") %></p>
+     <% created_at = @audit_output.dig("created_at") %>
+    <span class="audit-date">Last updated: <%= created_at ? DateTime.parse(created_at).strftime("%B %d, %Y at %H:%M") : Time.now.strftime("%B %d, %Y at %H:%M") %></span>
     </div>
     
     <nav class="dashboard-nav">
@@ -1296,50 +1297,41 @@
     refreshButton.innerHTML = '<span class="action-icon">⟳</span> Refreshing...';
     refreshButton.disabled = true;
     
-    // Simulate refresh (in production, this would be an AJAX call)
-    setTimeout(() => {
+    // Make AJAX call to refresh endpoint
+    fetch('/solidstats/refresh', {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      credentials: 'same-origin'
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.json();
+    })
+    .then(data => {
+      // Update the dashboard with fresh data
+      location.reload();
+      
+      // Show success notification
+      showNotification('Dashboard data refreshed successfully', 'success');
+      
+      // Reset button state
       refreshButton.innerHTML = originalText;
       refreshButton.disabled = false;
+    })
+    .catch(error => {
+      console.error('Error refreshing data:', error);
       
-      // Show toast notification
-      showNotification('Security audit data refreshed', 'success');
+      // Show error notification
+      showNotification('Failed to refresh data. Please try again.', 'error');
       
-      // In production, you would reload the data via AJAX
-      // location.reload();
-    }, 1500);
-  }
-
-  function exportReport() {
-    // Show toast notification
-    showNotification('Generating report...', 'info');
-    
-    // In production, this would trigger a report download
-    setTimeout(() => {
-      showNotification('Report exported successfully', 'success');
-    }, 1500);
-  }
-  
-  // Toast notification system
-  function showNotification(message, type = 'info') {
-    // Create notification element
-    const notification = document.createElement('div');
-    notification.className = `toast-notification ${type}`;
-    notification.innerHTML = message;
-    
-    // Add to document
-    document.body.appendChild(notification);
-    
-    // Animate in
-    setTimeout(() => {
-      notification.classList.add('visible');
-    }, 10);
-    
-    // Remove after delay
-    setTimeout(() => {
-      notification.classList.remove('visible');
-      setTimeout(() => {
-        document.body.removeChild(notification);
-      }, 300);
-    }, 4000);
+      // Reset button state
+      refreshButton.innerHTML = originalText;
+      refreshButton.disabled = false;
+    });
   }
 </script>
