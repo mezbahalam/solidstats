@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2025-05-23
+
+### Added
+- Log Size Monitor feature:
+  - Comprehensive monitoring of all Rails application log files
+  - Total log directory size tracking with status indicators
+  - Individual log file monitoring with size and status details
+  - Visual indicators for log size status (OK, Warning, Danger)
+  - Visual meter showing log size relative to thresholds
+  - One-click log truncation for individual files or all logs
+  - Sortable log file table with size and last modified information
+  - Log management recommendations
+
+### Fixed
+- Fixed log file truncation when filename is provided without extension
+- Added constraints to route handling to improve filename parameter handling
+
 ## [1.0.0] - 2025-05-22
 
 ### Added

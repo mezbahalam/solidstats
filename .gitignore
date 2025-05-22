@@ -11,6 +11,7 @@
 .ruby-version
 .ruby-gemset
 Gemfile.lock
+.idea
 
 # Keep the config file (but not its contents)
 !/.bundle/config

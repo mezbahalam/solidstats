@@ -7,6 +7,8 @@ Solidstats is a local-only Rails engine that shows your project's health at `/so
 - Bundler Audit scan with detailed remediation suggestions
 - Interactive vulnerability details with patched version information
 - Gem impact analysis showing affected gems by severity
+- Log Size Monitor for tracking and managing application log files
+- Log file truncation tool for individual or all log files
 - Rubocop offense count and quality metrics
 - TODO/FIXME tracker with file hotspots
 - Test coverage summary
