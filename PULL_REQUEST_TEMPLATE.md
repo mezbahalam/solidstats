@@ -1,20 +1,20 @@
 # Pull Request Template for SolidStats Releases
 
 ## Release Version
-1.0.0
+1.1.0
 
 ## Release Date
-May 22, 2025
+May 23, 2025
 
 ## Description
-This PR prepares SolidStats for the v1.0.0 release. This is our first major release that includes a comprehensive security dashboard with real-time refresh capabilities.
+This PR prepares SolidStats for the v1.1.0 release, which adds a comprehensive Log Size Monitor feature for tracking and managing application log files.
 
 ## Changes
-- Updated version to 1.0.0 in version.rb
+- Updated version to 1.1.0 in version.rb
+- Added new Log Size Monitor feature with log file tracking and truncation
 - Updated CHANGELOG.md with detailed release notes
-- Enhanced README.md with new feature descriptions and usage instructions
-- Improved gemspec description
-- Added release tasks and checklist
+- Enhanced README.md with new feature descriptions
+- Fixed log file truncation issues with filename handling
 
 ## Checklist
 - [x] Version number updated

@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.0.0] - 2025-05-23
+## [1.1.0] - 2025-05-23
 
 ### Added
 - Log Size Monitor feature:
@@ -17,6 +17,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - One-click log truncation for individual files or all logs
   - Sortable log file table with size and last modified information
   - Log management recommendations
+
+### Fixed
+- Fixed log file truncation when filename is provided without extension
+- Added constraints to route handling to improve filename parameter handling
+
+## [1.0.0] - 2025-05-22
+
+### Added
 - Fully functional refresh button with AJAX updates
 - Dynamic dashboard refreshing for all components:
   - Security metrics and score update in real-time
