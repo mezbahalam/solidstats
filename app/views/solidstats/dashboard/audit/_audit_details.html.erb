@@ -477,42 +477,18 @@
       });
     });
     
-    // Filter functionality
-    document.querySelectorAll('.filter-btn').forEach(function(button) {
-      button.addEventListener('click', function() {
-        const filter = this.getAttribute('data-filter');
-        
-        // Update active button
-        document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-        this.classList.add('active');
-        
-        // Handle special case for copy-solutions
-        if (filter === 'copy-solutions') {
-          const solutions = [];
-          document.querySelectorAll('.vulnerability-row').forEach(function(row) {
-            const gem = row.cells[0].textContent.trim();
-            const solution = row.querySelector('.solution code')?.textContent.trim() || "No patch available";
-            solutions.push(`${gem}: ${solution}`);
-          });
-          
-          // Copy all solutions to clipboard
-          navigator.clipboard.writeText(solutions.join('\n')).then(() => {
-            alert('All solutions copied to clipboard!');
-          });
-          
-          return;
-        }
-        
-        // Filter the vulnerability rows
-        document.querySelectorAll('.vulnerability-row').forEach(function(row) {
-          const isHigh = row.classList.contains('high-severity');
-          
-          if (filter === 'all') {
-            row.style.display = '';
-          } else if (filter === 'high') {
-            row.style.display = isHigh ? '' : 'none';
-          }
-        });
+    // Special case handler for copy-solutions button (if it exists)
+    document.querySelector('.filter-btn[data-filter="copy-solutions"]')?.addEventListener('click', function() {
+      const solutions = [];
+      document.querySelectorAll('.vulnerability-row').forEach(function(row) {
+        const gem = row.cells[0].textContent.trim();
+        const solution = row.querySelector('.solution code')?.textContent.trim() || "No patch available";
+        solutions.push(`${gem}: ${solution}`);
+      });
+      
+      // Copy all solutions to clipboard
+      navigator.clipboard.writeText(solutions.join('\n')).then(() => {
+        alert('All solutions copied to clipboard!');
       });
     });
   });

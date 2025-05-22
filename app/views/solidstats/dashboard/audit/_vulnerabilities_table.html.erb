@@ -8,6 +8,7 @@
       <button class="filter-btn high-filter" data-filter="high">High</button>
       <button class="filter-btn" data-filter="medium">Medium</button>
       <button class="filter-btn" data-filter="low">Low</button>
+      <button class="filter-btn" data-filter="unknown">Unknown</button>
     </div>
     <div class="search-container">
       <input type="text" id="vulnerability-search" placeholder="Search vulnerabilities..." class="search-input">
@@ -96,7 +97,7 @@
         <% 
           gem = result.dig("gem") || {}
           advisory = result.dig("advisory") || {}
-          criticality = advisory["criticality"] || "Unknown"
+          criticality = advisory["criticality"] || "unknown"
           is_high = %w[high critical].include?(criticality.downcase)
           
           # Extract CVE or GHSA ID
@@ -175,17 +176,6 @@
     </tbody>
   </table>
 </div>
-
-<% if results.any? %>
-  <div class="vulnerabilities-pagination">
-    <div class="pagination-text">Showing <%= [results.size, 10].min %> of <%= results.size %> vulnerabilities</div>
-    <div class="pagination-controls">
-      <button class="pagination-btn" disabled>← Previous</button>
-      <span class="pagination-pages">Page 1 of <%= (results.size / 10.0).ceil %></span>
-      <button class="pagination-btn" <%= results.size <= 10 ? 'disabled' : '' %>>Next →</button>
-    </div>
-  </div>
-<% end %>
 
 <style>
   .vulnerabilities-controls {
