@@ -7,10 +7,12 @@ module Solidstats
       # Use new services for data collection
       audit_service = AuditService.new
       todo_service = TodoService.new
+      log_monitor_service = LogSizeMonitorService.new
 
       # Get full data for detailed views
       @audit_output = audit_service.fetch
       @todo_items = todo_service.fetch
+      @log_data = log_monitor_service.collect_data
 
       # Get summary data for dashboard cards
       @audit_summary = audit_service.summary
@@ -26,10 +28,12 @@ module Solidstats
       # Create services
       audit_service = AuditService.new
       todo_service = TodoService.new
+      log_monitor_service = LogSizeMonitorService.new
 
       # Force refresh of data
       audit_output = audit_service.fetch(true) # Force refresh
       todo_items = todo_service.fetch(true)    # Force refresh
+      log_data = log_monitor_service.collect_data
 
       # Get updated summaries
       audit_summary = audit_service.summary
@@ -44,6 +48,7 @@ module Solidstats
         todo_items: todo_items,
         audit_summary: audit_summary,
         todo_summary: todo_summary,
+        log_data: log_data,
         last_updated: last_updated,
         status: "success"
       }
@@ -53,6 +58,20 @@ module Solidstats
         status: "error",
         message: "Failed to refresh data: #{e.message}"
       }, status: :internal_server_error
+    end
+    
+    def truncate_log
+      log_monitor_service = LogSizeMonitorService.new
+      filename = params[:filename]
+      
+      # Add .log extension if not included in the filename
+      if filename.present? && !filename.end_with?('.log')
+        filename = "#{filename}.log"
+      end
+      
+      result = log_monitor_service.truncate_log(filename)
+      
+      render json: result
     end
   end
 end

@@ -1,0 +1,759 @@
+<% 
+  # Convert status symbol to CSS class and display text
+  status_class = case @log_data[:status]
+                 when :ok then "status-ok"
+                 when :warning then "status-warning" 
+                 when :danger then "status-danger"
+                 else ""
+                 end
+                 
+  status_text = case @log_data[:status]
+                when :ok then "✅ OK: Log files are within acceptable limits"
+                when :warning then "⚠️ Warning: Log files are getting large"
+                when :danger then "❌ Danger: Log files are too large"
+                else "Unknown status"
+                end
+                
+  # Calculate meter fill percentage (capped at 100%)
+  fill_percentage = [(@log_data[:total_size_mb] / 50.0) * 100, 100].min
+  
+  # Set color based on status
+  fill_color = case @log_data[:status]
+               when :ok then "#28a745"
+               when :warning then "#ffc107"
+               when :danger then "#dc3545"
+               else "#6c757d"
+               end
+%>
+
+<div class="log-monitor-card">
+  <div class="log-header">
+    <div>
+      <h3><span class="icon">📊</span> Log Size Monitor</h3>
+      <p class="log-path"><%= @log_data[:log_dir_path] %></p>
+    </div>
+    <div class="log-actions">
+      <button id="truncate-all-logs-btn" class="action-button truncate-button">
+        <span class="action-icon">✂️</span> Truncate All Logs
+      </button>
+    </div>
+  </div>
+  
+  <div class="log-content">
+    <div class="log-status">
+      <div class="log-indicator <%= status_class %>"></div>
+      <div class="log-status-text"><%= status_text %></div>
+    </div>
+    
+    <div class="log-size-container">
+      <div class="log-size-label">Total Size:</div>
+      <div class="log-size-value"><%= @log_data[:total_size_mb] %> MB</div>
+      <div class="log-files-count">(<%= @log_data[:logs_count] %> log files)</div>
+    </div>
+    
+    <div class="log-size-meter">
+      <div class="meter-bg"></div>
+      <div class="meter-fill" style="width: <%= fill_percentage %>%; background-color: <%= fill_color %>;"></div>
+      <div class="meter-markers">
+        <div class="marker" style="left: 0%">0</div>
+        <div class="marker warning-marker" style="left: 50%">25 MB</div>
+        <div class="marker danger-marker" style="left: 100%">50+ MB</div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="log-files-table">
+    <h4>Individual Log Files</h4>
+    <table>
+      <thead>
+        <tr>
+          <th>File Name</th>
+          <th>Size</th>
+          <th>Last Modified</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @log_data[:log_files].each do |log_file| %>
+          <% 
+            file_status_class = case log_file[:status]
+                               when :ok then "status-ok"
+                               when :warning then "status-warning"
+                               when :danger then "status-danger"
+                               else ""
+                               end
+          %>
+          <tr class="<%= file_status_class %>">
+            <td class="filename"><%= log_file[:filename] %></td>
+            <td class="size"><%= log_file[:size_mb] %> MB</td>
+            <td class="modified"><%= log_file[:last_modified].strftime("%b %d, %Y %H:%M") %></td>
+            <td class="status">
+              <% if log_file[:status] == :ok %>
+                <span class="status-icon">✅</span>
+              <% elsif log_file[:status] == :warning %>
+                <span class="status-icon">⚠️</span>
+              <% else %>
+                <span class="status-icon">❌</span>
+              <% end %>
+            </td>
+            <td class="actions">
+              <button class="truncate-file-btn" data-filename="<%= log_file[:filename] %>">
+                <span class="action-icon">✂️</span> Truncate
+              </button>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+  
+  <div class="log-recommendations">
+    <h4>Recommendations</h4>
+    <ul>
+      <% if @log_data[:status] == :danger %>
+        <li><strong>Immediate action required:</strong> Your log files exceed 50MB in total. Consider truncating them now.</li>
+      <% elsif @log_data[:status] == :warning %>
+        <li><strong>Monitor closely:</strong> Your log files exceed 25MB in total. Consider truncating them soon.</li>
+      <% end %>
+      <li>Configure log rotation to automatically manage log file sizes</li>
+      <li>For production environments, consider using a log management service</li>
+    </ul>
+  </div>
+</div>
+
+<style>
+  .log-monitor-card {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    margin-top: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .log-header {
+    padding: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    border-bottom: 1px solid #eee;
+  }
+  
+  .log-header h3 {
+    font-size: 1.2rem;
+    margin: 0 0 0.5rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  .log-path {
+    font-family: monospace;
+    font-size: 0.8rem;
+    color: #666;
+    margin: 0;
+    word-break: break-all;
+  }
+  
+  .log-actions {
+    flex-shrink: 0;
+  }
+  
+  .truncate-button {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    color: #333;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  
+  .truncate-button:hover {
+    background-color: #e9ecef;
+  }
+  
+  .log-content {
+    padding: 1rem;
+  }
+  
+  .log-status {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+  
+  .log-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: #6c757d;
+  }
+  
+  .log-indicator.status-ok {
+    background-color: #28a745;
+  }
+  
+  .log-indicator.status-warning {
+    background-color: #ffc107;
+  }
+  
+  .log-indicator.status-danger {
+    background-color: #dc3545;
+  }
+  
+  .log-status-text {
+    font-weight: 500;
+  }
+  
+  .log-size-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+  }
+  
+  .log-size-label {
+    font-size: 0.9rem;
+    color: #495057;
+  }
+  
+  .log-size-value {
+    font-weight: 600;
+    font-size: 1.1rem;
+  }
+  
+  .log-files-count {
+    font-size: 0.9rem;
+    color: #6c757d;
+  }
+  
+  .log-size-meter {
+    position: relative;
+    height: 30px;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+  }
+  
+  .meter-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to right, #28a745 0%, #28a745 50%, #ffc107 50%, #ffc107 75%, #dc3545 75%, #dc3545 100%);
+    opacity: 0.15;
+  }
+  
+  .meter-fill {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    transition: width 0.5s;
+  }
+  
+  .meter-markers {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: flex-end;
+    padding-bottom: 0.25rem;
+  }
+  
+  .marker {
+    position: absolute;
+    font-size: 0.7rem;
+    transform: translateX(-50%);
+    padding: 2px 4px;
+    color: #495057;
+  }
+  
+  .warning-marker {
+    color: #856404;
+  }
+  
+  .danger-marker {
+    color: #721c24;
+  }
+  
+  .log-files-table {
+    padding: 1rem;
+    border-top: 1px solid #eee;
+  }
+  
+  .log-files-table h4 {
+    font-size: 1rem;
+    margin-top: 0;
+    margin-bottom: 0.75rem;
+  }
+  
+  .log-files-table table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+  }
+  
+  .log-files-table th,
+  .log-files-table td {
+    padding: 0.5rem;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+  }
+  
+  .log-files-table th {
+    font-weight: 600;
+    color: #495057;
+  }
+  
+  .log-files-table tr:last-child td {
+    border-bottom: none;
+  }
+  
+  .log-files-table .filename {
+    font-family: monospace;
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  
+  .log-files-table .status {
+    text-align: center;
+  }
+  
+  .log-files-table .actions {
+    text-align: right;
+  }
+  
+  .log-files-table .truncate-file-btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.8rem;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+  
+  .log-files-table .truncate-file-btn:hover {
+    background-color: #e9ecef;
+  }
+  
+  .log-files-table tr.status-danger {
+    background-color: rgba(220, 53, 69, 0.05);
+  }
+  
+  .log-files-table tr.status-warning {
+    background-color: rgba(255, 193, 7, 0.05);
+  }
+  
+  .log-recommendations {
+    padding: 1rem;
+    background-color: #f8f9fa;
+    border-top: 1px solid #eee;
+  }
+  
+  .log-recommendations h4 {
+    font-size: 1rem;
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+  }
+  
+  .log-recommendations ul {
+    margin-bottom: 0;
+    padding-left: 1.5rem;
+  }
+  
+  .log-recommendations li {
+    margin-bottom: 0.3rem;
+    font-size: 0.9rem;
+  }
+  
+  .log-recommendations li:last-child {
+    margin-bottom: 0;
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Truncate all logs
+    const truncateAllLogsBtn = document.getElementById('truncate-all-logs-btn');
+    if (truncateAllLogsBtn) {
+      truncateAllLogsBtn.addEventListener('click', function() {
+        // Confirm before truncating
+        if (!confirm('Are you sure you want to truncate ALL log files? This action cannot be undone.')) {
+          return;
+        }
+        
+        truncateLog(null, this);
+      });
+    }
+    
+    // Individual file truncate buttons
+    document.querySelectorAll('.truncate-file-btn').forEach(function(button) {
+      button.addEventListener('click', function() {
+        const filename = this.getAttribute('data-filename');
+        
+        // Confirm before truncating
+        if (!confirm(`Are you sure you want to truncate log file: ${filename}? This action cannot be undone.`)) {
+          return;
+        }
+        
+        truncateLog(filename, this);
+      });
+    });
+    
+    function truncateLog(filename, button) {
+      const originalText = button.innerHTML;
+      button.innerHTML = '<span class="action-icon">⏳</span> Truncating...';
+      button.disabled = true;
+      
+      // Strip .log extension from filename if present (controller will add it back)
+      let urlFilename = filename;
+      if (urlFilename && urlFilename.endsWith('.log')) {
+        urlFilename = urlFilename.substring(0, urlFilename.length - 4);
+      }
+      
+      const url = urlFilename ? 
+        '<%= solidstats.truncate_log_path %>/' + encodeURIComponent(urlFilename) : 
+        '<%= solidstats.truncate_log_path %>';
+      
+      fetch(url, {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+          'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+        },
+        credentials: 'same-origin'
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          showNotification(data.message, 'success');
+          // Reload the page to see updated log sizes
+          window.location.reload();
+        } else {
+          showNotification(data.message, 'error');
+          // Reset button state
+          button.innerHTML = originalText;
+          button.disabled = false;
+        }
+      })
+      .catch(error => {
+        console.error('Error truncating log file:', error);
+        showNotification('Failed to truncate log file', 'error');
+        
+        // Reset button state
+        button.innerHTML = originalText;
+        button.disabled = false;
+      });
+    }
+  });
+  
+  // Notification function if not already defined
+  if (typeof showNotification !== 'function') {
+    function showNotification(message, type) {
+      // Create notification element
+      const notification = document.createElement('div');
+      notification.className = `toast-notification ${type}`;
+      notification.textContent = message;
+      
+      // Add to body
+      document.body.appendChild(notification);
+      
+      // Show notification
+      setTimeout(() => {
+        notification.classList.add('visible');
+      }, 10);
+      
+      // Hide and remove notification
+      setTimeout(() => {
+        notification.classList.remove('visible');
+        setTimeout(() => {
+          notification.remove();
+        }, 300);
+      }, 5000);
+    }
+  }
+</script>
+
+<style>
+  .log-monitor-card {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    margin-top: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .log-header {
+    padding: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    border-bottom: 1px solid #eee;
+  }
+  
+  .log-header h3 {
+    font-size: 1.2rem;
+    margin: 0 0 0.5rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  .log-path {
+    font-family: monospace;
+    font-size: 0.8rem;
+    color: #666;
+    margin: 0;
+    word-break: break-all;
+  }
+  
+  .log-actions {
+    flex-shrink: 0;
+  }
+  
+  .truncate-button {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    color: #333;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  
+  .truncate-button:hover {
+    background-color: #e9ecef;
+  }
+  
+  .log-content {
+    padding: 1rem;
+  }
+  
+  .log-status {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+  
+  .log-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: #6c757d;
+  }
+  
+  .log-indicator.status-ok {
+    background-color: #28a745;
+  }
+  
+  .log-indicator.status-warning {
+    background-color: #ffc107;
+  }
+  
+  .log-indicator.status-danger {
+    background-color: #dc3545;
+  }
+  
+  .log-status-text {
+    font-weight: 500;
+  }
+  
+  .log-size-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+  }
+  
+  .log-size-label {
+    font-size: 0.9rem;
+    color: #495057;
+  }
+  
+  .log-size-value {
+    font-weight: 600;
+    font-size: 1.1rem;
+  }
+  
+  .log-size-meter {
+    position: relative;
+    height: 30px;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+  }
+  
+  .meter-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to right, #28a745 0%, #28a745 50%, #ffc107 50%, #ffc107 75%, #dc3545 75%, #dc3545 100%);
+    opacity: 0.15;
+  }
+  
+  .meter-fill {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    transition: width 0.5s;
+  }
+  
+  .meter-markers {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: flex-end;
+    padding-bottom: 0.25rem;
+  }
+  
+  .marker {
+    position: absolute;
+    font-size: 0.7rem;
+    transform: translateX(-50%);
+    padding: 2px 4px;
+    color: #495057;
+  }
+  
+  .warning-marker {
+    color: #856404;
+  }
+  
+  .danger-marker {
+    color: #721c24;
+  }
+  
+  .log-recommendations {
+    padding: 1rem;
+    background-color: #f8f9fa;
+    border-top: 1px solid #eee;
+  }
+  
+  .log-recommendations h4 {
+    font-size: 1rem;
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+  }
+  
+  .log-recommendations ul {
+    margin-bottom: 0;
+    padding-left: 1.5rem;
+  }
+  
+  .log-recommendations li {
+    margin-bottom: 0.3rem;
+    font-size: 0.9rem;
+  }
+  
+  .log-recommendations li:last-child {
+    margin-bottom: 0;
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const truncateButton = document.getElementById('truncate-log-btn');
+    if (truncateButton) {
+      truncateButton.addEventListener('click', function() {
+        // Confirm before truncating
+        if (!confirm('Are you sure you want to truncate the log file? This action cannot be undone.')) {
+          return;
+        }
+        
+        const button = this;
+        const originalText = button.innerHTML;
+        button.innerHTML = '<span class="action-icon">⏳</span> Truncating...';
+        button.disabled = true;
+        
+        fetch('<%= solidstats.truncate_log_path %>', {
+          method: 'POST',
+          headers: {
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+          },
+          credentials: 'same-origin'
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            showNotification(data.message, 'success');
+            // Reload the page to see updated log size
+            window.location.reload();
+          } else {
+            showNotification(data.message, 'error');
+            // Reset button state
+            button.innerHTML = originalText;
+            button.disabled = false;
+          }
+        })
+        .catch(error => {
+          console.error('Error truncating log file:', error);
+          showNotification('Failed to truncate log file', 'error');
+          
+          // Reset button state
+          button.innerHTML = originalText;
+          button.disabled = false;
+        });
+      });
+    }
+  });
+  
+  // Notification function if not already defined
+  if (typeof showNotification !== 'function') {
+    function showNotification(message, type) {
+      // Create notification element
+      const notification = document.createElement('div');
+      notification.className = `toast-notification ${type}`;
+      notification.textContent = message;
+      
+      // Add to body
+      document.body.appendChild(notification);
+      
+      // Show notification
+      setTimeout(() => {
+        notification.classList.add('visible');
+      }, 10);
+      
+      // Hide and remove notification
+      setTimeout(() => {
+        notification.classList.remove('visible');
+        setTimeout(() => {
+          notification.remove();
+        }, 300);
+      }, 5000);
+    }
+  }
+</script>

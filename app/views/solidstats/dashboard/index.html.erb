@@ -53,6 +53,14 @@
           <div class="summary-label">Test Coverage</div>
         </div>
       </div>
+      
+      <div class="summary-card status-<%= @log_data[:status] %>" data-section="code-quality" data-tab="log-monitor">
+        <div class="summary-icon">📊</div>
+        <div class="summary-data">
+          <div class="summary-value"><%= @log_data[:total_size_mb] %> MB</div>
+          <div class="summary-label">Log Files Size</div>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -237,6 +245,9 @@
         <button class="tab-button active" data-tab="quality-metrics">Metrics</button>
         <button class="tab-button" data-tab="test-coverage">Test Coverage</button>
         <button class="tab-button" data-tab="code-health">Code Health</button>
+        <button class="tab-button" data-tab="log-monitor">
+          <span class="tab-icon">📊</span> Log Monitor
+        </button>
       </div>
       
       <div class="tabs-content">
@@ -270,6 +281,9 @@
               <!-- Your code health metrics -->
             </div>
           </div>
+        </div>
+        <div class="tab-content" id="log-monitor">
+          <%= render partial: 'solidstats/dashboard/log_monitor' %>
         </div>
       </div>
     </div>
