@@ -940,6 +940,14 @@
           donut.style.setProperty('--medium', mediumPct);
           donut.style.setProperty('--low', lowPct);
           donut.style.setProperty('--unknown', unknownPct);
+          
+          // Update data attributes
+          donut.setAttribute('data-count', visibleTotal);
+          donut.setAttribute('data-critical', visibleCritical);
+          donut.setAttribute('data-high', visibleHigh);
+          donut.setAttribute('data-medium', visibleMedium);
+          donut.setAttribute('data-low', visibleLow);
+          donut.setAttribute('data-unknown', visibleUnknown);
         }
         
         // Update stats counters

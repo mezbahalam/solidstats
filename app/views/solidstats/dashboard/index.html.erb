@@ -1114,6 +1114,43 @@
 
 <script>
   document.addEventListener('DOMContentLoaded', function() {
+    // Check for hash in URL and navigate accordingly
+    function handleHashNavigation() {
+      if (location.hash) {
+        const hashParts = location.hash.substring(1).split('/');
+        const section = hashParts[0];
+        const tab = hashParts[1] || null;
+        
+        if (section && document.getElementById(section)) {
+          // On page load, don't scroll - this prevents jumping around
+          // For manual hash changes, do scroll
+          const isPageLoad = !window.hasPageLoaded;
+          navigateToSection(section, tab, !isPageLoad);
+          return true;
+        }
+      }
+      return false;
+    }
+    
+    // Track if page has loaded fully
+    window.hasPageLoaded = false;
+    
+    // Try to handle hash navigation, if it fails (no hash or invalid section),
+    // the default 'overview' section will remain active
+    const hashNavigated = handleHashNavigation();
+    if (!hashNavigated) {
+      // If no hash navigation happened, set default hash to #overview
+      updateUrlHash('overview');
+    }
+    
+    // Listen for hash changes
+    window.addEventListener('hashchange', handleHashNavigation);
+    
+    // Mark page as fully loaded after a short delay
+    setTimeout(() => {
+      window.hasPageLoaded = true;
+    }, 500);
+    
     // Toggle details panels
     document.querySelectorAll('.toggle-details').forEach(function(toggle) {
       toggle.addEventListener('click', function(e) {
@@ -1136,21 +1173,71 @@
       });
     });
     
+    // Function to update URL hash with current state
+    function updateUrlHash(section, tab = null) {
+      let hash = '#' + section;
+      if (tab) {
+        hash += '/' + tab;
+      }
+      history.replaceState(null, null, hash);
+    }
+    
+    // Function to navigate to section and tab
+    function navigateToSection(section, tab = null, shouldScroll = false) {
+      // Remove active class from all nav items and sections
+      document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+      document.querySelectorAll('.dashboard-section').forEach(section => section.classList.remove('active'));
+      
+      // Add active class to matching nav item
+      const navItem = document.querySelector(`.nav-item[data-section="${section}"]`);
+      if (navItem) {
+        navItem.classList.add('active');
+      }
+      
+      // Show corresponding section
+      const sectionElement = document.getElementById(section);
+      if (sectionElement) {
+        sectionElement.classList.add('active');
+        
+        // If tab is specified, activate that tab
+        if (tab) {
+          const tabsContainer = sectionElement.querySelector('.tabs-container');
+          if (tabsContainer) {
+            // Deactivate all tabs first
+            tabsContainer.querySelectorAll('.tab-button').forEach(button => button.classList.remove('active'));
+            tabsContainer.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            // Activate the target tab
+            const targetTabButton = tabsContainer.querySelector(`.tab-button[data-tab="${tab}"]`);
+            const targetTabContent = tabsContainer.querySelector(`#${tab}`);
+            
+            if (targetTabButton) targetTabButton.classList.add('active');
+            if (targetTabContent) targetTabContent.classList.add('active');
+          }
+        }
+        
+        // Scroll to section if requested (with a small delay to ensure rendering)
+        if (shouldScroll) {
+          setTimeout(() => {
+            sectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }, 100);
+        }
+        
+        // Update URL hash
+        updateUrlHash(section, tab);
+      }
+    }
+    
     // Main navigation
     document.querySelectorAll('.nav-item').forEach(function(navItem) {
       navItem.addEventListener('click', function(e) {
         e.preventDefault();
         
-        // Remove active class from all nav items and sections
-        document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-        document.querySelectorAll('.dashboard-section').forEach(section => section.classList.remove('active'));
-        
-        // Add active class to clicked nav item
-        this.classList.add('active');
-        
-        // Show corresponding section
+        // Get section ID from data attribute
         const sectionId = this.getAttribute('data-section');
-        document.getElementById(sectionId).classList.add('active');
+        
+        // Navigate to the section
+        navigateToSection(sectionId);
       });
     });
     
@@ -1160,6 +1247,9 @@
         const tabContainer = this.closest('.tabs-container');
         const tabId = this.getAttribute('data-tab');
         
+        // Find the current active section
+        const currentSection = document.querySelector('.dashboard-section.active').id;
+        
         // Remove active class from all buttons and tabs within this container
         tabContainer.querySelectorAll('.tab-button').forEach(button => button.classList.remove('active'));
         tabContainer.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
@@ -1167,21 +1257,20 @@
         // Add active class to clicked button and corresponding tab
         this.classList.add('active');
         tabContainer.querySelector(`#${tabId}`).classList.add('active');
+        
+        // Update URL hash with current section and tab
+        updateUrlHash(currentSection, tabId);
       });
     });
     
     // Quick navigation
     document.querySelectorAll('.quick-nav-item').forEach(function(navItem) {
       navItem.addEventListener('click', function(e) {
+        e.preventDefault();
         const targetId = this.getAttribute('href').substring(1);
-        const targetSection = document.getElementById(targetId);
         
-        // Update active classes
-        document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-        document.querySelectorAll('.dashboard-section').forEach(section => section.classList.remove('active'));
-        
-        document.querySelector(`.nav-item[data-section="${targetId}"]`).classList.add('active');
-        targetSection.classList.add('active');
+        // Navigate to the specified section
+        navigateToSection(targetId);
         
         // Close the quick nav menu
         document.querySelector('.quick-nav-menu').style.display = 'none';
@@ -1194,40 +1283,8 @@
         const section = this.getAttribute('data-section');
         const tab = this.getAttribute('data-tab');
         
-        // Update active classes for main navigation
-        document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-        document.querySelectorAll('.dashboard-section').forEach(section => section.classList.remove('active'));
-        
-        const targetNavItem = document.querySelector(`.nav-item[data-section="${section}"]`);
-        if (targetNavItem) {
-          targetNavItem.classList.add('active');
-          
-          // Show corresponding section
-          const targetSection = document.getElementById(section);
-          targetSection.classList.add('active');
-          
-          // If tab is specified, activate the tab
-          if (tab) {
-            const tabsContainer = targetSection.querySelector('.tabs-container');
-            if (tabsContainer) {
-              // Deactivate all tabs first
-              tabsContainer.querySelectorAll('.tab-button').forEach(button => button.classList.remove('active'));
-              tabsContainer.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-              
-              // Activate the target tab
-              const targetTabButton = tabsContainer.querySelector(`.tab-button[data-tab="${tab}"]`);
-              const targetTabContent = tabsContainer.querySelector(`#${tab}`);
-              
-              if (targetTabButton) targetTabButton.classList.add('active');
-              if (targetTabContent) targetTabContent.classList.add('active');
-              
-              // Scroll to the section
-              setTimeout(() => {
-                targetSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-              }, 100);
-            }
-          }
-        }
+        // Navigate to the specified section and tab, with scrolling
+        navigateToSection(section, tab, true);
       });
     });
   });
