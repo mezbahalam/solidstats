@@ -21,7 +21,7 @@ jobs:
     - name: Set up Ruby
       uses: ruby/setup-ruby@v1
       with:
-        ruby-version: ${{ matrix.ruby-version }}
+        ruby-version: '3.2'
         bundler-cache: false # We'll handle installation manually
     
     - name: Run CI setup script
