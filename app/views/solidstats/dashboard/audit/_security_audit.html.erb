@@ -1,27 +1,4 @@
 <div class="stat-card audit-card">
-  <h2><span class="icon">🔒</span> Security Audit</h2>
-  <div class="card-content">
-    <% results = @audit_output.dig("results") || [] %>
-    <% vulnerabilities_count = results.size %>
-    <% if vulnerabilities_count == 0 %>
-      <div class="status-badge success">All Clear</div>
-    <% else %>
-      <div class="status-badge warning"><%= vulnerabilities_count %> <%= "Vulnerability".pluralize(vulnerabilities_count) %> Found</div>
-    <% end %>
-    
-    <div class="metrics-group">
-      <div class="metric">
-        <span class="metric-label">Affected Gems:</span>
-        <span class="metric-value"><%= results.map { |r| r.dig("gem", "name") }.uniq.size %></span>
-      </div>
-      <div class="metric">
-        <span class="metric-label">High Severity:</span>
-        <span class="metric-value"><%= results.count { |r| %w[high critical].include?(r.dig("advisory", "criticality").to_s.downcase) } %></span>
-      </div>
-    </div>
-    
-    <a href="#" class="toggle-details" data-target="audit-details">Show Details</a>
-  </div>
   <%= render 'solidstats/dashboard/audit/audit_details' %>
 </div>
 

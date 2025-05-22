@@ -8,6 +8,7 @@
       <button class="filter-btn high-filter" data-filter="high">High</button>
       <button class="filter-btn" data-filter="medium">Medium</button>
       <button class="filter-btn" data-filter="low">Low</button>
+      <button class="filter-btn" data-filter="unknown">Unknown</button>
     </div>
     <div class="search-container">
       <input type="text" id="vulnerability-search" placeholder="Search vulnerabilities..." class="search-input">
@@ -15,10 +16,10 @@
     </div>
   </div>
   <div class="vulnerability-actions">
-    <button class="action-button bulk-action-button">
+    <button class="action-button bulk-action-button" disabled>
       <span class="action-icon">✓</span> Bulk Update
     </button>
-    <button class="action-button export-csv-button">
+    <button class="action-button export-csv-button" disabled>
       <span class="action-icon">↓</span> Export CSV
     </button>
   </div>
@@ -27,15 +28,38 @@
 <div class="vulnerability-summary">
   <div class="donut-chart">
     <div class="chart-container" id="severity-donut-chart">
-      <!-- We'll use a simple CSS-based donut chart as placeholder -->
-      <div class="donut" style="--critical: <%= results.count { |r| r.dig("advisory", "criticality").to_s.downcase == "critical" } %>; 
-                              --high: <%= results.count { |r| r.dig("advisory", "criticality").to_s.downcase == "high" } %>; 
-                              --medium: <%= results.count { |r| r.dig("advisory", "criticality").to_s.downcase == "medium" } %>; 
-                              --low: <%= results.count { |r| r.dig("advisory", "criticality").to_s.downcase == "low" } %>; 
-                              --unknown: <%= results.count { |r| r.dig("advisory", "criticality").to_s.downcase != "critical" && 
-                                                                r.dig("advisory", "criticality").to_s.downcase != "high" && 
-                                                                r.dig("advisory", "criticality").to_s.downcase != "medium" && 
-                                                                r.dig("advisory", "criticality").to_s.downcase != "low" } %>;">
+      <!-- CSS-based donut chart -->
+      <% 
+        # Calculate counts for each severity
+        critical_count = results.count { |r| r.dig("advisory", "criticality").to_s.downcase == "critical" }
+        high_count = results.count { |r| r.dig("advisory", "criticality").to_s.downcase == "high" }
+        medium_count = results.count { |r| r.dig("advisory", "criticality").to_s.downcase == "medium" }
+        low_count = results.count { |r| r.dig("advisory", "criticality").to_s.downcase == "low" }
+        unknown_count = results.count { |r| ["", nil].include?(r.dig("advisory", "criticality")) || 
+                                            r.dig("advisory", "criticality").to_s.downcase == "unknown" }
+        
+        # Calculate total for percentages
+        total = critical_count + high_count + medium_count + low_count + unknown_count
+
+        # Calculate percentages (avoid division by zero)
+        critical_pct = total > 0 ? critical_count.to_f / total : 0
+        high_pct = total > 0 ? high_count.to_f / total : 0
+        medium_pct = total > 0 ? medium_count.to_f / total : 0
+        low_pct = total > 0 ? low_count.to_f / total : 0
+        unknown_pct = total > 0 ? unknown_count.to_f / total : 0
+      %>
+      <div class="donut" 
+           style="--critical: <%= critical_pct %>; 
+                  --high: <%= high_pct %>; 
+                  --medium: <%= medium_pct %>; 
+                  --low: <%= low_pct %>; 
+                  --unknown: <%= unknown_pct %>;"
+           data-count="<%= total %>"
+           data-critical="<%= critical_count %>"
+           data-high="<%= high_count %>"
+           data-medium="<%= medium_count %>"
+           data-low="<%= low_count %>"
+           data-unknown="<%= unknown_count %>">
       </div>
     </div>
     <div class="chart-legend">
@@ -82,13 +106,12 @@
   <table class="table">
     <thead>
       <tr>
-        <th class="select-column"><input type="checkbox" class="select-all-checkbox"></th>
         <th class="severity-column">Severity</th>
-        <th>Gem</th>
-        <th>Version</th>
-        <th>CVE</th>
-        <th>Description</th>
-        <th>Remediation</th>
+        <th class="gem-column">Gem</th>
+        <th class="version-column">Version</th>
+        <th class="cve-column">CVE</th>
+        <th class="description-column">Description</th>
+        <th class="remediation-column">Remediation</th>
       </tr>
     </thead>
     <tbody>
@@ -97,8 +120,9 @@
         <% 
           gem = result.dig("gem") || {}
           advisory = result.dig("advisory") || {}
-          criticality = advisory["criticality"] || "Unknown"
-          is_high = %w[high critical].include?(criticality.downcase)
+          criticality = advisory["criticality"] || "unknown"
+          criticality = criticality.to_s.downcase # Ensure consistent lowercase
+          is_high = %w[high critical].include?(criticality)
           
           # Extract CVE or GHSA ID
           vuln_id = advisory["cve"].present? ? "CVE-#{advisory["cve"]}" : 
@@ -107,27 +131,31 @@
           # Format the link
           vuln_link = advisory["cve"].present? ? "https://nvd.nist.gov/vuln/detail/CVE-#{advisory["cve"]}" :
                      (advisory["ghsa"].present? ? "https://github.com/advisories/#{advisory["ghsa"]}" : "#")
+                     
+          # Extract published date and format it
+          published_date = advisory["date"] || "Unknown"
+          formatted_date = published_date != "Unknown" ? Date.parse(published_date).strftime("%b %d, %Y") : "Unknown"
         %>
         <tr class="vulnerability-row <%= criticality.to_s.downcase %>" data-severity="<%= criticality.to_s.downcase %>" data-gem="<%= gem["name"] %>" data-index="<%= index %>">
-          <td class="select-column">
-            <input type="checkbox" class="vulnerability-checkbox">
-          </td>
           <td class="severity-column">
-            <div class="severity-indicator <%= criticality.to_s.downcase %>">
-              <span class="severity-icon"><%= criticality == "critical" ? "!" : (criticality == "high" ? "▲" : (criticality == "medium" ? "●" : "▼")) %></span>
-              <span class="severity-text"><%= criticality %></span>
+            <div class="severity-badge <%= criticality.to_s.downcase %>">
+              <%= criticality %>
             </div>
           </td>
           <td class="gem-column">
             <div class="gem-name"><%= gem["name"] %></div>
+            <% if gem["source_url"].present? %>
+              <a href="<%= gem["source_url"] %>" target="_blank" class="gem-source-link">
+                <small>Repository <span class="external-link-icon">↗</span></small>
+              </a>
+            <% end %>
           </td>
           <td class="version-column">
             <div class="version-info">
               <span class="current-version"><%= gem["version"] %></span>
-              <% if advisory["patched_versions"].present? %>
-                <span class="version-arrow">→</span>
-                <span class="target-version"><%= advisory["patched_versions"].first %></span>
-              <% end %>
+            </div>
+            <div class="vulnerability-meta">
+              <small>Published: <%= formatted_date %></small>
             </div>
           </td>
           <td class="cve-column">
@@ -143,25 +171,25 @@
           <td class="description-column">
             <div class="vulnerability-title"><%= advisory["title"] %></div>
             <% if advisory["description"].present? %>
-              <button class="details-toggle-btn" data-target="vulnerability-details-<%= index %>">
-                <span class="toggle-icon">▾</span> More details
-              </button>
-              <div id="vulnerability-details-<%= index %>" class="vulnerability-details collapsed">
-                <div class="details-content">
-                  <%= advisory["description"] %>
-                </div>
-              </div>
+              <a href="#vulnerability-<%= index %>" class="details-link-btn scroll-to-details">
+                <span class="details-icon">⤵</span> More details
+              </a>
             <% end %>
           </td>
           <td class="remediation-column">
             <% if advisory["patched_versions"].present? %>
               <div class="remediation-action">
-                <button class="update-btn" data-gem="<%= gem["name"] %>" data-version="<%= advisory["patched_versions"].first %>">
-                  <span class="update-icon">↑</span> Update
-                </button>
-                <button class="copy-btn" data-solution="<%= "#{gem["name"]}, #{advisory["patched_versions"].join(", ")}" %>">
-                  <span class="copy-icon">📋</span>
-                </button>
+                <div class="patched-versions-pill">
+                  <div class="versions-container">
+                    <% advisory["patched_versions"].each_with_index do |version_text, index| %>
+                      <% version_display = version_text.include?(">=") ? version_text : ">= #{version_text}" %>
+                      <span class="solution-version<%= index == advisory["patched_versions"].size - 1 ? ' last-version' : '' %>"><%= version_display %></span>
+                    <% end %>
+                  </div>
+                  <button class="copy-btn" data-solution="<%= "#{gem["name"]}, #{advisory["patched_versions"].join(", ")}" %>" title="Copy gem name and patched versions">
+                    <span class="copy-icon">📋</span>
+                  </button>
+                </div>
               </div>
             <% else %>
               <span class="no-patch">No patch available</span>
@@ -172,17 +200,6 @@
     </tbody>
   </table>
 </div>
-
-<% if results.any? %>
-  <div class="vulnerabilities-pagination">
-    <div class="pagination-text">Showing <%= [results.size, 10].min %> of <%= results.size %> vulnerabilities</div>
-    <div class="pagination-controls">
-      <button class="pagination-btn" disabled>← Previous</button>
-      <span class="pagination-pages">Page 1 of <%= (results.size / 10.0).ceil %></span>
-      <button class="pagination-btn" <%= results.size <= 10 ? 'disabled' : '' %>>Next →</button>
-    </div>
-  </div>
-<% end %>
 
 <style>
   .vulnerabilities-controls {
@@ -301,12 +318,18 @@
   }
   
   .donut::after {
-    content: '';
+    content: attr(data-count);
     width: 60px;
     height: 60px;
     background: white;
     border-radius: 50%;
     position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 16px;
+    color: #333;
   }
   
   .chart-legend {
@@ -373,7 +396,7 @@
   
   .vulnerabilities-table {
     margin-bottom: 1.5rem;
-    overflow-x: auto;
+    width: 100%;
   }
   
   .table {
@@ -381,6 +404,7 @@
     border-collapse: separate;
     border-spacing: 0;
     font-size: 0.9rem;
+    table-layout: fixed;
   }
   
   .table th {
@@ -389,26 +413,44 @@
     text-align: left;
     font-weight: 600;
     border-bottom: 2px solid #dee2e6;
-    white-space: nowrap;
   }
   
   .table td {
-    padding: 0.75rem;
+    padding: 0.65rem 0.75rem;
     border-bottom: 1px solid #dee2e6;
     vertical-align: middle;
-  }
-  
-  .select-column {
-    width: 40px;
-    text-align: center;
+    word-break: break-word;
+    overflow-wrap: break-word;
   }
   
   .severity-column {
-    width: 120px;
+    width: 8%;
+    min-width: 90px;
+  }
+  
+  .gem-column {
+    width: 15%;
+    min-width: 120px;
+  }
+  
+  .version-column {
+    width: 10%;
+    min-width: 100px;
   }
   
   .cve-column {
-    width: 140px;
+    width: 12%;
+    min-width: 110px;
+  }
+  
+  .description-column {
+    width: 30%;
+    min-width: 180px;
+  }
+  
+  .remediation-column {
+    width: 20%;
+    min-width: 160px;
   }
   
   .vulnerability-row {
@@ -439,70 +481,90 @@
     border-left: 4px solid #adb5bd;
   }
   
-  .severity-indicator {
-    display: flex;
-    align-items: center;
-    padding: 0.35rem 0.75rem;
-    border-radius: 4px;
-    font-weight: 500;
+  .severity-badge {
+    display: inline-block;
+    padding: 0.3rem 0.6rem;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-align: center;
     white-space: nowrap;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    min-width: 70px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
   }
   
-  .severity-indicator.critical {
-    background-color: rgba(220, 53, 69, 0.15);
-    color: #dc3545;
+  .severity-badge.critical {
+    background-color: #dc3545;
+    color: white;
   }
   
-  .severity-indicator.high {
-    background-color: rgba(253, 126, 20, 0.15);
-    color: #fd7e14;
+  .severity-badge.high {
+    background-color: #fd7e14;
+    color: white;
   }
   
-  .severity-indicator.medium {
-    background-color: rgba(255, 193, 7, 0.15);
-    color: #ffc107;
+  .severity-badge.medium {
+    background-color: #ffc107;
+    color: #212529;
   }
   
-  .severity-indicator.low {
-    background-color: rgba(40, 167, 69, 0.15);
-    color: #28a745;
+  .severity-badge.low {
+    background-color: #28a745;
+    color: white;
   }
   
-  .severity-indicator.unknown {
-    background-color: rgba(173, 181, 189, 0.15);
-    color: #6c757d;
+  .severity-badge.unknown {
+    background-color: #adb5bd;
+    color: white;
   }
   
-  .severity-icon {
-    margin-right: 0.35rem;
-    font-size: 0.85rem;
+  .details-icon {
+    font-size: 0.9rem;
     font-weight: bold;
   }
   
   .gem-name {
     font-weight: 500;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    word-break: break-word;
+    hyphens: auto;
   }
   
   .version-info {
     display: flex;
     align-items: center;
     gap: 0.35rem;
-    white-space: nowrap;
+    flex-wrap: wrap;
   }
   
   .current-version {
     font-family: monospace;
     font-size: 0.85rem;
+    word-break: break-all;
   }
   
-  .version-arrow {
-    color: #6c757d;
-  }
-  
-  .target-version {
+  .solution-version {
     font-family: monospace;
     font-size: 0.85rem;
     color: #28a745;
+    word-break: break-all;
+    font-weight: 500;
+    padding: 0.1rem 0.25rem;
+    display: inline-block;
+    background-color: rgba(40, 167, 69, 0.08);
+    border-radius: 3px;
+    margin-right: 0.25rem;
+  }
+  
+  .solution-version.last-version {
+    margin-bottom: 0;
+  }
+  
+  .solution-version.single-version {
+    margin-right: 0;
   }
   
   .vuln-link {
@@ -511,6 +573,7 @@
     display: flex;
     align-items: center;
     gap: 0.35rem;
+    word-break: break-all;
   }
   
   .external-link-icon {
@@ -521,6 +584,9 @@
   .vulnerability-title {
     font-weight: 500;
     margin-bottom: 0.5rem;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    hyphens: auto;
   }
   
   .details-toggle-btn {
@@ -539,56 +605,86 @@
     transition: transform 0.2s;
   }
   
+  .vulnerability-details-container {
+    position: relative;
+    z-index: 5;
+  }
+  
   .vulnerability-details {
     max-height: 0;
     overflow: hidden;
-    transition: max-height 0.3s ease;
+    transition: max-height 0.3s ease, opacity 0.3s ease;
     margin-top: 0.75rem;
     font-size: 0.85rem;
+    opacity: 0;
   }
   
   .vulnerability-details.expanded {
     max-height: 300px;
     overflow-y: auto;
+    width: 100%;
+    opacity: 1;
+    position: relative;
+    z-index: 10;
   }
   
   .details-content {
     background-color: #f8f9fa;
     padding: 0.75rem;
     border-radius: 4px;
-    white-space: pre-line;
+    white-space: normal;
     color: #495057;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    border: 1px solid #e9ecef;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
   }
   
   .remediation-action {
     display: flex;
+    align-items: center;
     gap: 0.5rem;
+    flex-wrap: wrap;
   }
   
-  .update-btn {
-    background-color: #e9f5ff;
-    color: #0366d6;
-    border: 1px solid #0366d6;
-    padding: 0.35rem 0.75rem;
-    border-radius: 4px;
-    font-size: 0.85rem;
-    cursor: pointer;
-    transition: all 0.2s;
+  .patched-versions-pill {
     display: flex;
     align-items: center;
-    gap: 0.25rem;
+    background-color: rgba(40, 167, 69, 0.08);
+    border-radius: 4px;
+    padding: 0.35rem 0.5rem;
+    max-width: 100%;
+    overflow-wrap: break-word;
+    border-left: 3px solid #28a745;
   }
   
-  .update-btn:hover {
-    background-color: #0366d6;
-    color: white;
+  .versions-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    flex-grow: 1;
+  }
+  
+  .more-versions {
+    font-size: 0.75rem;
+    background-color: rgba(40, 167, 69, 0.2);
+    color: #28a745;
+    font-weight: 500;
+    border-radius: 3px;
+    padding: 0.15rem 0.35rem;
+    cursor: help;
+    margin-left: 0.25rem;
+    display: inline-block;
+    min-width: 1.5rem;
+    text-align: center;
   }
   
   .copy-btn {
-    background-color: #f8f9fa;
+    background-color: transparent;
     color: #495057;
-    border: 1px solid #dee2e6;
-    padding: 0.35rem;
+    border: none;
+    padding: 0.25rem;
+    margin-left: 0.25rem;
     border-radius: 4px;
     font-size: 0.85rem;
     cursor: pointer;
@@ -597,6 +693,27 @@
   
   .copy-btn:hover {
     background-color: #e9ecef;
+  }
+  
+  .action-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    position: relative;
+  }
+  
+  .action-button:disabled:hover::after {
+    content: "Currently unavailable";
+    position: absolute;
+    up: -150px; /* Position tooltip to the right of the button */
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: #333;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    z-index: 100;
   }
   
   .no-patch {
@@ -647,6 +764,132 @@
     opacity: 0.5;
     cursor: not-allowed;
   }
+  
+  .details-link-btn {
+    color: #0366d6;
+    font-size: 0.85rem;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+  }
+  
+  .details-link-btn:hover {
+    background-color: rgba(3, 102, 214, 0.1);
+    text-decoration: none;
+  }
+  
+  .scroll-to-details {
+    cursor: pointer;
+  }
+  
+  /* Responsive styles for smaller screens */
+  @media (max-width: 992px) {
+    .vulnerability-summary {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    
+    .vulnerability-stats {
+      margin-left: 0;
+      margin-top: 1rem;
+      width: 100%;
+      justify-content: space-around;
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .severity-column {
+      width: 12%;
+      text-align: center;
+    }
+    
+    .severity-badge {
+      min-width: 60px;
+      padding: 0.25rem 0.4rem;
+      font-size: 0.75rem;
+    }
+    
+    .gem-column {
+      width: 18%;
+    }
+    
+    .version-column {
+      width: 12%;
+    }
+    
+    .cve-column {
+      width: 15%;
+    }
+    
+    .description-column {
+      width: 25%;
+    }
+    
+    .remediation-column {
+      width: 15%;
+    }
+    
+    .vulnerability-filters {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.75rem;
+    }
+    
+    .search-input {
+      width: 100%;
+    }
+  }
+  
+  /* Extra small devices */
+  @media (max-width: 576px) {
+    .table {
+      table-layout: auto;
+    }
+    
+    .severity-column {
+      width: 15%;
+    }
+    
+    .vulnerability-stats {
+      justify-content: space-between;
+      width: 100%;
+    }
+    
+    .stat-item {
+      min-width: auto;
+    }
+    
+    /* Ensure text doesn't overflow in vulnerability details */
+    .vulnerability-details .details-content {
+      max-width: 100%;
+      white-space: normal;
+    }
+    
+    /* Make the action buttons more touchable on mobile */
+    .update-btn, .copy-btn {
+      padding: 0.5rem;
+      min-height: 44px; /* Better touch target */
+    }
+    
+    /* Enhance remediation column display on small screens */
+    .remediation-column .patched-versions-pill {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    
+    .remediation-column .versions-container {
+      width: 100%;
+      margin-bottom: 0.25rem;
+    }
+    
+    .copy-btn {
+      align-self: flex-end;
+    }
+  }
 </style>
 
 <script>
@@ -661,17 +904,87 @@
         const filter = this.getAttribute('data-filter');
         const rows = document.querySelectorAll('.vulnerability-row');
         
+        // Counts for updating donut chart
+        let visibleCritical = 0;
+        let visibleHigh = 0;
+        let visibleMedium = 0;
+        let visibleLow = 0;
+        let visibleUnknown = 0;
+        let visibleTotal = 0;
+        
         rows.forEach(function(row) {
+          const severity = row.getAttribute('data-severity');
+          
           if (filter === 'all') {
             row.style.display = '';
+            
+            // Count by severity for all visible rows
+            if (severity === 'critical') visibleCritical++;
+            else if (severity === 'high') visibleHigh++;
+            else if (severity === 'medium') visibleMedium++;
+            else if (severity === 'low') visibleLow++;
+            else visibleUnknown++;
+            
+            visibleTotal++;
+            
           } else {
-            if (row.getAttribute('data-severity') === filter) {
+            if (severity === filter) {
               row.style.display = '';
+              
+              // For filtered view, only count matching severity
+              if (severity === 'critical') visibleCritical++;
+              else if (severity === 'high') visibleHigh++;
+              else if (severity === 'medium') visibleMedium++;
+              else if (severity === 'low') visibleLow++;
+              else visibleUnknown++;
+              
+              visibleTotal++;
             } else {
               row.style.display = 'none';
             }
           }
         });
+        
+        // Update donut chart percentages based on visible rows
+        const donut = document.querySelector('.donut');
+        if (donut) {
+          // Calculate percentages
+          const criticalPct = visibleTotal > 0 ? visibleCritical / visibleTotal : 0;
+          const highPct = visibleTotal > 0 ? visibleHigh / visibleTotal : 0;
+          const mediumPct = visibleTotal > 0 ? visibleMedium / visibleTotal : 0;
+          const lowPct = visibleTotal > 0 ? visibleLow / visibleTotal : 0;
+          const unknownPct = visibleTotal > 0 ? visibleUnknown / visibleTotal : 0;
+          
+          // Update CSS variables
+          donut.style.setProperty('--critical', criticalPct);
+          donut.style.setProperty('--high', highPct);
+          donut.style.setProperty('--medium', mediumPct);
+          donut.style.setProperty('--low', lowPct);
+          donut.style.setProperty('--unknown', unknownPct);
+          
+          // Update data attributes
+          donut.setAttribute('data-count', visibleTotal);
+          donut.setAttribute('data-critical', visibleCritical);
+          donut.setAttribute('data-high', visibleHigh);
+          donut.setAttribute('data-medium', visibleMedium);
+          donut.setAttribute('data-low', visibleLow);
+          donut.setAttribute('data-unknown', visibleUnknown);
+        }
+        
+        // Update stats counters
+        const critHighCounter = document.querySelector('.vulnerability-stats .stat-value:nth-child(1)');
+        const mediumCounter = document.querySelector('.vulnerability-stats .stat-item:nth-child(2) .stat-value');
+        const lowCounter = document.querySelector('.vulnerability-stats .stat-item:nth-child(3) .stat-value');
+        
+        if (critHighCounter) {
+          critHighCounter.textContent = visibleCritical + visibleHigh;
+        }
+        if (mediumCounter) {
+          mediumCounter.textContent = visibleMedium;
+        }
+        if (lowCounter) {
+          lowCounter.textContent = visibleLow;
+        }
       });
     });
     
@@ -695,24 +1008,48 @@
       });
     }
     
-    // Toggle details functionality
-    document.querySelectorAll('.details-toggle-btn').forEach(function(button) {
-      button.addEventListener('click', function() {
-        const targetId = this.getAttribute('data-target');
-        const detailsElement = document.getElementById(targetId);
-        const toggleIcon = this.querySelector('.toggle-icon');
+    // Scroll to vulnerability details when clicking "More details"
+    document.querySelectorAll('.scroll-to-details').forEach(function(link) {
+      link.addEventListener('click', function(e) {
+        e.preventDefault();
+        const targetId = this.getAttribute('href');
+        const detailsSection = document.querySelector('.vulnerabilities-details-section');
         
-        if (detailsElement.classList.contains('expanded')) {
-          detailsElement.classList.remove('expanded');
-          detailsElement.classList.add('collapsed');
-          toggleIcon.textContent = '▾';
-          this.querySelector('span:not(.toggle-icon)').textContent = ' More details';
-        } else {
-          detailsElement.classList.remove('collapsed');
-          detailsElement.classList.add('expanded');
-          toggleIcon.textContent = '▴';
-          this.querySelector('span:not(.toggle-icon)').textContent = ' Less details';
+        // Ensure the details section is visible
+        if (detailsSection.classList.contains('hidden')) {
+          detailsSection.classList.remove('hidden');
+          const toggleBtn = document.querySelector('.toggle-details-btn');
+          if (toggleBtn) {
+            toggleBtn.textContent = 'Hide Details';
+            toggleBtn.setAttribute('aria-expanded', 'true');
+          }
         }
+        
+        // Scroll to the specific vulnerability detail
+        setTimeout(() => {
+          const targetElement = document.querySelector(targetId);
+          if (targetElement) {
+            const headerHeight = 60; // Approximate height of sticky header
+            const targetPosition = targetElement.getBoundingClientRect().top + window.pageYOffset - headerHeight - 20;
+            window.scrollTo({
+              top: targetPosition,
+              behavior: 'smooth'
+            });
+            
+            // Highlight the target element briefly
+            targetElement.classList.add('highlight-detail');
+            setTimeout(() => {
+              targetElement.classList.remove('highlight-detail');
+            }, 1500);
+          }
+        }, 100);
+      });
+    });
+    
+    // Tooltip functionality for patched versions
+    document.querySelectorAll('.more-versions').forEach(function(element) {
+      element.addEventListener('mouseenter', function() {
+        // Could implement custom tooltip here if needed
       });
     });
     
@@ -743,33 +1080,41 @@
       });
     });
     
-    // Select all checkbox
-    const selectAllCheckbox = document.querySelector('.select-all-checkbox');
-    if (selectAllCheckbox) {
-      selectAllCheckbox.addEventListener('change', function() {
-        const checkboxes = document.querySelectorAll('.vulnerability-checkbox');
-        checkboxes.forEach(checkbox => {
-          checkbox.checked = this.checked;
+    // No select-all checkbox or update buttons anymore
+    
+    // Ensure table fits within viewport
+    function adjustTableResponsiveness() {
+      const table = document.querySelector('.vulnerabilities-table table');
+      const viewportWidth = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
+      
+      // If viewport is very small, change display approach
+      if (viewportWidth < 576) {
+        document.querySelectorAll('.vulnerability-row').forEach(row => {
+          // Add more bottom padding for mobile view
+          row.style.paddingBottom = '10px';
         });
-      });
+        
+        // Ensure description column takes necessary space
+        const descriptionCells = document.querySelectorAll('.description-column');
+        descriptionCells.forEach(cell => {
+          cell.style.maxWidth = '100%';
+          cell.style.width = 'auto';
+        });
+        
+        // Make severity column more compact
+        const severityCells = document.querySelectorAll('.severity-column');
+        severityCells.forEach(cell => {
+          const badge = cell.querySelector('.severity-badge');
+          if (badge) {
+            badge.style.padding = '0.2rem 0.4rem';
+            badge.style.minWidth = 'auto';
+          }
+        });
+      }
     }
     
-    // Update buttons
-    document.querySelectorAll('.update-btn').forEach(function(button) {
-      button.addEventListener('click', function() {
-        const gemName = this.getAttribute('data-gem');
-        const targetVersion = this.getAttribute('data-version');
-        
-        // Show toast notification
-        if (typeof showNotification === 'function') {
-          showNotification(`Starting update for ${gemName} to version ${targetVersion}...`, 'info');
-          
-          // Simulate update process
-          setTimeout(() => {
-            showNotification(`Updated ${gemName} to version ${targetVersion}!`, 'success');
-          }, 2000);
-        }
-      });
-    });
+    // Run on page load and on resize
+    adjustTableResponsiveness();
+    window.addEventListener('resize', adjustTableResponsiveness);
   });
 </script>

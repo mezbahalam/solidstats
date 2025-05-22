@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0] - 2025-05-22
+
+### Added
+- Fully functional refresh button with AJAX updates
+- Dynamic dashboard refreshing for all components:
+  - Security metrics and score update in real-time
+  - Vulnerability table regeneration with fresh data
+  - Donut chart visualization updates
+  - Gem impact analysis section updates
+  - Vulnerability details section updates
+- Enhanced disabled button tooltips with inline display
+- Comprehensive security dashboard features:
+  - Security score rating (A+, B, C) based on vulnerabilities
+  - Detailed vulnerability table with filtering and searching
+  - Visual severity breakdown with interactive donut chart
+  - Gem impact analysis with affected gem grouping
+  - Detailed vulnerability information with remediation options
+
+### Fixed
+- Vulnerability details no longer hidden under sticky header when clicking "More details"
+- Improved scroll offset calculations for better navigation
+- Added visual feedback with animations when viewing details
+- Fixed "Back to vulnerabilities table" button positioning
+
 ## [0.0.4] - 2025-05-20
 
 ### Added
@@ -63,8 +87,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-- Improved TODO dashboard partial:
-  - Ensured correct handling of nil keys in the hotspots hash.
-  - Displayed TODO, FIXME, and HACK counts with color-coded badges.
-  - Added expandable details for files with most TODOs and all TODO items.
-  - Enhanced UI with better grouping and error handling for TODO data.
+### Added
+- Future enhancements will be listed here

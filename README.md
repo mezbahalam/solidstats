@@ -1,10 +1,14 @@
-
-Solidstats is a local-only Rails engine that shows your project's health at `/solidstats`.
+Solidstats is a local-only Rails engine that shows your project's health at `/solidstats`. The dashboard provides real-time insights into your application's security, code quality, and development tasks.
 
 ## Features
-- Bundler Audit scan
-- Rubocop offense count
-- TODO/FIXME tracker
+- Interactive security dashboard with real-time refresh capability
+- Comprehensive gem vulnerability analysis with severity breakdown
+- Visual security score rating (A+, B, C) and metrics
+- Bundler Audit scan with detailed remediation suggestions
+- Interactive vulnerability details with patched version information
+- Gem impact analysis showing affected gems by severity
+- Rubocop offense count and quality metrics
+- TODO/FIXME tracker with file hotspots
 - Test coverage summary
 
 ## Compatibility
@@ -46,6 +50,37 @@ The installer will automatically mount the engine in your routes:
 # config/routes.rb
 mount Solidstats::Engine => '/solidstats' if Rails.env.development?
 ```
+
+## Usage
+
+Visit `/solidstats` in your development environment to access the dashboard. The dashboard provides an overview of your application's health and is organized into the following sections:
+
+### Overview
+Shows summary cards for security issues, TODO items, and code quality metrics.
+
+### Security
+Provides a comprehensive security dashboard with:
+- Security score rating based on vulnerability severity
+- Vulnerability metrics showing critical, high, medium and low issues
+- Interactive vulnerability table with filtering and searching
+- Gem impact analysis showing which gems are affected
+- Detailed vulnerability information with remediation suggestions
+
+You can refresh the dashboard data at any time by clicking the "Refresh" button in the top navigation bar. This will:
+1. Trigger a fresh security audit of your application
+2. Update all metrics and visualizations with current data
+3. Show real-time feedback during the refresh process
+4. Update the "Last Updated" timestamp
+
+### Code Quality
+Displays code quality metrics, test coverage, and code health indicators.
+
+### Tasks
+Shows a breakdown of TODO, FIXME, and HACK annotations found in your codebase, with file hotspots and expandable details.
+
+## Contributing
+
+Bug reports and pull requests are welcome on GitHub at https://github.com/infolily/solidstats.
 
 ## License
 The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).

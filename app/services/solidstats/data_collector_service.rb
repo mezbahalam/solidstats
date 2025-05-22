@@ -18,9 +18,10 @@ module Solidstats
     # Fetch data with caching
     # Returns cached data if available and not expired,
     # otherwise collects fresh data
+    # @param force_refresh [Boolean] Whether to force a refresh regardless of cache state
     # @return [Hash] The collected data
-    def fetch
-      return cached_data if fresh_cache?
+    def fetch(force_refresh = false)
+      return cached_data if fresh_cache? && !force_refresh
 
       data = collect_data
       save_to_cache(data)

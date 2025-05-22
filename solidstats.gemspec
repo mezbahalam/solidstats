@@ -7,7 +7,7 @@ Gem::Specification.new do |spec|
   spec.email       = [ "mezbah@infolily.com" ]
   spec.homepage    = "https://solidstats.infolily.com"
   spec.summary     = "Development dashboard for Rails apps"
-  spec.description = "View local project health: secuiry, lints, performance, and more."
+  spec.description = "View local project health: security dashboard with vulnerability analysis, gem impact assessment, code quality metrics, and project task tracking."
   spec.license     = "MIT"
 
 
