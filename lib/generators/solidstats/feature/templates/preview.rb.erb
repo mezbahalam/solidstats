@@ -1,0 +1,107 @@
+module Solidstats
+  module Previews
+    class <%= class_name %>ComponentPreview < ViewComponent::Preview
+      # Preview for dashboard summary component
+      # @label Summary View
+      def default
+        render Solidstats::<%= class_name %>Component.new(
+          data: sample_data
+        )
+      end
+
+      # Preview with warning status
+      # @label Warning State
+      def warning_state
+        render Solidstats::<%= class_name %>Component.new(
+          data: sample_data.merge(
+            status: :warning,
+            value: 75
+          )
+        )
+      end
+
+      # Preview with danger status
+      # @label Danger State
+      def danger_state
+        render Solidstats::<%= class_name %>Component.new(
+          data: sample_data.merge(
+            status: :danger,
+            value: 150
+          )
+        )
+      end
+
+      # Preview with error state
+      # @label Error State
+      def error_state
+        render Solidstats::<%= class_name %>Component.new(
+          data: {
+            value: 0,
+            count: 0,
+            items: [],
+            status: :error,
+            error: "Unable to collect data",
+            last_updated: 2.hours.ago
+          }
+        )
+      end
+
+      # Preview with no data
+      # @label Empty State
+      def empty_state
+        render Solidstats::<%= class_name %>Component.new(
+          data: {
+            value: 0,
+            count: 0,
+            items: [],
+            status: :ok,
+            last_updated: Time.current
+          }
+        )
+      end
+
+      private
+
+      def sample_data
+        {
+          value: 42,
+          count: 8,
+          status: :ok,
+          last_updated: 30.minutes.ago,
+          items: [
+            {
+              name: "Sample Item 1",
+              value: 15,
+              category: "important",
+              description: "This is a sample item for preview"
+            },
+            {
+              name: "Sample Item 2", 
+              value: 8,
+              category: "normal",
+              description: "Another sample item"
+            },
+            {
+              name: "Sample Item 3",
+              value: 12,
+              category: "important",
+              description: "Third sample item"
+            },
+            {
+              name: "Sample Item 4",
+              value: 3,
+              category: "low",
+              description: "Fourth sample item"
+            },
+            {
+              name: "Sample Item 5",
+              value: 7,
+              category: "normal",
+              description: "Fifth sample item"
+            }
+          ]
+        }
+      end
+    end
+  end
+end

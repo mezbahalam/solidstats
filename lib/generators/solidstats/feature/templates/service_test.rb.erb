@@ -1,0 +1,109 @@
+require "test_helper"
+
+module Solidstats
+  class <%= class_name %>ServiceTest < ActiveSupport::TestCase
+    def setup
+      @service = <%= class_name %>Service.new
+    end
+
+    test "should initialize properly" do
+      assert_not_nil @service
+    end
+
+    test "should fetch data without errors" do
+      data = @service.fetch
+      
+      assert_not_nil data
+      assert_kind_of Hash, data
+      assert data.key?(:value)
+      assert data.key?(:count)
+      assert data.key?(:items)
+      assert data.key?(:last_updated)
+      assert data.key?(:status)
+    end
+
+    test "should return summary data" do
+      summary = @service.summary
+      
+      assert_not_nil summary
+      assert_kind_of Hash, summary
+      assert summary.key?(:value)
+      assert summary.key?(:status)
+      assert summary.key?(:last_updated)
+      assert summary.key?(:count)
+    end
+
+    test "should return detailed data" do
+      detailed = @service.detailed_data
+      
+      assert_not_nil detailed
+      assert_kind_of Hash, detailed
+      assert detailed.key?(:value)
+      assert detailed.key?(:items)
+      assert detailed.key?(:breakdown)
+      assert detailed.key?(:trends)
+    end
+
+    test "should handle force refresh" do
+      # Test that force refresh bypasses cache
+      data1 = @service.fetch(false)
+      data2 = @service.fetch(true)
+      
+      assert_not_nil data1
+      assert_not_nil data2
+      assert_kind_of Hash, data1
+      assert_kind_of Hash, data2
+    end
+
+    test "should determine status correctly" do
+      summary = @service.summary
+      
+      assert_includes [:ok, :warning, :danger, :error], summary[:status]
+    end
+
+    test "should handle errors gracefully" do
+      # Mock an error condition
+      @service.stub(:collect_data, -> { raise StandardError.new("Test error") }) do
+        data = @service.fetch
+        
+        assert_equal :error, data[:status]
+        assert_equal "Test error", data[:error]
+        assert_equal 0, data[:value]
+        assert_equal 0, data[:count]
+        assert_empty data[:items]
+      end
+    end
+
+    test "should cache data properly" do
+      # Test caching behavior
+      first_fetch = @service.fetch
+      
+      # Mock cache file existence
+      cache_file = @service.instance_variable_get(:@cache_file)
+      assert_not_nil cache_file
+      
+      # Subsequent fetch should use cache if not expired
+      second_fetch = @service.fetch
+      assert_equal first_fetch[:last_updated], second_fetch[:last_updated]
+    end
+
+    test "should validate data structure" do
+      data = @service.fetch
+      
+      # Validate required fields
+      assert_respond_to data[:value], :to_i
+      assert_respond_to data[:count], :to_i
+      assert_kind_of Array, data[:items]
+      assert_kind_of Time, data[:last_updated]
+      
+      # Validate items structure if present
+      if data[:items].any?
+        data[:items].each do |item|
+          assert_kind_of Hash, item
+          assert item.key?(:name)
+          assert item.key?(:value)
+        end
+      end
+    end
+  end
+end

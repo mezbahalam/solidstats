@@ -1,0 +1,103 @@
+# frozen_string_literal: true
+
+# Helper module for <%= human_name %> component rendering
+# This provides data processing and helper methods for the <%= file_name %> partial
+module Solidstats
+  module <%= class_name %>Helper
+    def <%= file_name %>_status_class(data)
+      "status-#{data[:status] || 'ok'}"
+    end
+
+    def <%= file_name %>_status_icon(data)
+      case data[:status]&.to_sym
+      when :good then "✅"
+      when :warning then "⚠️"
+      when :critical then "❌"
+      when :info then "ℹ️"
+      else "❓"
+      end
+    end
+
+    def <%= file_name %>_status_text(data)
+      case data[:status]&.to_sym
+      when :good then "Good"
+      when :warning then "Warning"
+      when :critical then "Critical"
+      when :info then "Info"
+      else "Unknown"
+      end
+    end
+
+    def <%= file_name %>_value_display(data)
+      value = data[:value]
+      return "0" unless value
+
+      case value
+      when String then value
+      when Numeric
+        # Format large numbers with commas
+        if value >= 1000
+          number_with_delimiter(value)
+        else
+          value.to_s
+        end
+      else
+        value.to_s
+      end
+    end
+
+    def <%= file_name %>_last_updated(data)
+      return "Never" unless data[:last_updated]
+      
+      time = data[:last_updated]
+      time = Time.parse(time) if time.is_a?(String)
+      
+      distance_of_time_in_words(time, Time.current) + " ago"
+    end
+
+    def <%= file_name %>_has_items?(data)
+      data[:items].present? && data[:items].any?
+    end
+
+    def <%= file_name %>_item_count(data)
+      return 0 unless data[:items].present?
+      data[:items].length
+    end
+
+    def <%= file_name %>_summary_metrics(data)
+      {
+        value: <%= file_name %>_value_display(data),
+        status: <%= file_name %>_status_text(data),
+        last_updated: <%= file_name %>_last_updated(data),
+        item_count: <%= file_name %>_item_count(data)
+      }
+    end
+
+    def <%= file_name %>_trend_indicator(data)
+      return "" unless data[:trend]
+      
+      case data[:trend]&.to_sym
+      when :up then "📈"
+      when :down then "📉"
+      when :stable then "➡️"
+      else ""
+      end
+    end
+
+    def <%= file_name %>_priority_class(item)
+      return "" unless item.is_a?(Hash) && item[:priority]
+      
+      "priority-#{item[:priority]}"
+    end
+
+    def <%= file_name %>_format_item_value(item)
+      return "" unless item.is_a?(Hash)
+      
+      if item[:value].is_a?(Numeric) && item[:value] >= 1000
+        number_with_delimiter(item[:value])
+      else
+        item[:value].to_s
+      end
+    end
+  end
+end

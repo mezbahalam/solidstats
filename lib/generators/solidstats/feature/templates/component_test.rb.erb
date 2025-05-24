@@ -1,0 +1,183 @@
+require "test_helper"
+
+module Solidstats
+  class <%= class_name %>HelperTest < ActionView::TestCase
+    include Solidstats::<%= class_name %>Helper
+    
+    def setup
+      @sample_data = {
+        value: 42,
+        count: 8,
+        status: :good,
+        last_updated: 30.minutes.ago,
+        items: [
+          {
+            name: "Test Item 1",
+            value: 15,
+            category: "important",
+            description: "Test description"
+          },
+          {
+            name: "Test Item 2",
+            value: 8,
+            category: "normal"
+          }
+        ]
+      }
+    end
+
+    test "returns correct status class" do
+      assert_equal "status-good", <%= file_name %>_status_class(@sample_data)
+      
+      warning_data = @sample_data.merge(status: :warning)
+      assert_equal "status-warning", <%= file_name %>_status_class(warning_data)
+      
+      critical_data = @sample_data.merge(status: :critical)
+      assert_equal "status-critical", <%= file_name %>_status_class(critical_data)
+    end
+
+    test "returns correct status icon" do
+      assert_equal "✅", <%= file_name %>_status_icon(@sample_data)
+      
+      warning_data = @sample_data.merge(status: :warning)
+      assert_equal "⚠️", <%= file_name %>_status_icon(warning_data)
+      
+      critical_data = @sample_data.merge(status: :critical)
+      assert_equal "❌", <%= file_name %>_status_icon(critical_data)
+    end
+
+    test "returns correct status text" do
+      assert_equal "Good", <%= file_name %>_status_text(@sample_data)
+      
+      critical_data = @sample_data.merge(status: :critical)
+      assert_equal "Critical", <%= file_name %>_status_text(critical_data)
+    end
+
+    test "displays value correctly" do
+      assert_equal "42", <%= file_name %>_value_display(@sample_data)
+      
+      large_value_data = @sample_data.merge(value: 1234567)
+      assert_equal "1,234,567", <%= file_name %>_value_display(large_value_data)
+      
+      string_value_data = @sample_data.merge(value: "Custom Value")
+      assert_equal "Custom Value", <%= file_name %>_value_display(string_value_data)
+    end
+
+    test "returns last updated time" do
+      result = <%= file_name %>_last_updated(@sample_data)
+      assert_includes result, "ago"
+      
+      no_update_data = @sample_data.except(:last_updated)
+      assert_equal "Never", <%= file_name %>_last_updated(no_update_data)
+    end
+
+    test "detects items presence" do
+      assert <%= file_name %>_has_items?(@sample_data)
+      
+      no_items_data = @sample_data.merge(items: [])
+      refute <%= file_name %>_has_items?(no_items_data)
+      
+      nil_items_data = @sample_data.merge(items: nil)
+      refute <%= file_name %>_has_items?(nil_items_data)
+    end
+
+    test "counts items correctly" do
+      assert_equal 2, <%= file_name %>_item_count(@sample_data)
+      
+      no_items_data = @sample_data.merge(items: [])
+      assert_equal 0, <%= file_name %>_item_count(no_items_data)
+      
+      nil_items_data = @sample_data.merge(items: nil)
+      assert_equal 0, <%= file_name %>_item_count(nil_items_data)
+    end
+
+    test "returns summary metrics" do
+      metrics = <%= file_name %>_summary_metrics(@sample_data)
+      
+      assert_equal "42", metrics[:value]
+      assert_equal "Good", metrics[:status]
+      assert_includes metrics[:last_updated], "ago"
+      assert_equal 2, metrics[:item_count]
+    end
+
+    test "returns trend indicators" do
+      up_data = @sample_data.merge(trend: :up)
+      assert_equal "📈", <%= file_name %>_trend_indicator(up_data)
+      
+      down_data = @sample_data.merge(trend: :down)
+      assert_equal "📉", <%= file_name %>_trend_indicator(down_data)
+      
+      stable_data = @sample_data.merge(trend: :stable)
+      assert_equal "➡️", <%= file_name %>_trend_indicator(stable_data)
+      
+      no_trend_data = @sample_data.except(:trend)
+      assert_equal "", <%= file_name %>_trend_indicator(no_trend_data)
+    end
+
+    test "returns priority class for items" do
+      high_priority_item = { priority: "high" }
+      assert_equal "priority-high", <%= file_name %>_priority_class(high_priority_item)
+      
+      low_priority_item = { priority: "low" }
+      assert_equal "priority-low", <%= file_name %>_priority_class(low_priority_item)
+      
+      no_priority_item = { name: "test" }
+      assert_equal "", <%= file_name %>_priority_class(no_priority_item)
+    end
+
+    test "formats item values correctly" do
+      large_value_item = { value: 1500 }
+      assert_equal "1,500", <%= file_name %>_format_item_value(large_value_item)
+      
+      small_value_item = { value: 42 }
+      assert_equal "42", <%= file_name %>_format_item_value(small_value_item)
+      
+      string_value_item = { value: "test" }
+      assert_equal "test", <%= file_name %>_format_item_value(string_value_item)
+    end
+
+    test "handles edge cases" do
+      # Test with nil data
+      nil_data = nil
+      assert_equal "", <%= file_name %>_priority_class(nil_data)
+      assert_equal "", <%= file_name %>_format_item_value(nil_data)
+      
+      # Test with empty hash
+      empty_hash = {}
+      assert_equal "status-ok", <%= file_name %>_status_class(empty_hash)
+      assert_equal "❓", <%= file_name %>_status_icon(empty_hash)
+      assert_equal "Unknown", <%= file_name %>_status_text(empty_hash)
+      
+      # Test with missing items
+      no_items = { value: 10 }
+      refute <%= file_name %>_has_items?(no_items)
+      assert_equal 0, <%= file_name %>_item_count(no_items)
+    end
+
+    test "handles different status values" do
+      statuses = [:good, :warning, :critical, :info, :unknown]
+      
+      statuses.each do |status|
+        test_data = @sample_data.merge(status: status)
+        
+        case status
+        when :good
+          assert_equal "✅", <%= file_name %>_status_icon(test_data)
+          assert_equal "Good", <%= file_name %>_status_text(test_data)
+        when :warning
+          assert_equal "⚠️", <%= file_name %>_status_icon(test_data)
+          assert_equal "Warning", <%= file_name %>_status_text(test_data)
+        when :critical
+          assert_equal "❌", <%= file_name %>_status_icon(test_data)
+          assert_equal "Critical", <%= file_name %>_status_text(test_data)
+        when :info
+          assert_equal "ℹ️", <%= file_name %>_status_icon(test_data)
+          assert_equal "Info", <%= file_name %>_status_text(test_data)
+        else
+          assert_equal "❓", <%= file_name %>_status_icon(test_data)
+          assert_equal "Unknown", <%= file_name %>_status_text(test_data)
+        end
+      end
+    end
+  end
+end
