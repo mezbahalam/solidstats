@@ -12,6 +12,7 @@
         <li><a href="#security" class="nav-item" data-section="security">Security</a></li>
         <li><a href="#code-quality" class="nav-item" data-section="code-quality">Code Quality</a></li>
         <li><a href="#tasks" class="nav-item" data-section="tasks">Tasks</a></li>
+        <li><a href="<%= solidstats.gem_metadata_path %>" class="nav-item">Gem Metadata</a></li>
       </ul>
       
       <div class="dashboard-actions">
@@ -35,6 +36,14 @@
         <div class="summary-data">
           <div class="summary-value"><%= @audit_output.dig('results')&.size || 0 %></div>
           <div class="summary-label">Security Issues</div>
+        </div>
+      </div>
+      
+      <div class="summary-card status-ok" data-section="gem-metadata">
+        <div class="summary-icon">💎</div>
+        <div class="summary-data">
+          <div class="summary-value"><%= Solidstats::GemMetadata::FetcherService.call.size rescue 0 %></div>
+          <div class="summary-label">Gem Dependencies</div>
         </div>
       </div>
       
@@ -288,6 +297,12 @@
       </div>
     </div>
   </section>
+  
+  <!-- Gem Metadata Section -->
+  <section id="gem-metadata" class="dashboard-section">
+    <h2 class="section-title">Gem Dependencies</h2>
+    <%= render partial: 'solidstats/gem_metadata/panel' %>
+  </section>
 
   <!-- Tasks Section -->
   <section id="tasks" class="dashboard-section">
@@ -321,6 +336,7 @@
       <a href="#overview" class="quick-nav-item">Overview</a>
       <a href="#security" class="quick-nav-item">Security</a>
       <a href="#code-quality" class="quick-nav-item">Code Quality</a>
+      <a href="#gem-metadata" class="quick-nav-item">Gem Metadata</a>
       <a href="#tasks" class="quick-nav-item">Tasks</a>
     </div>
   </div>

@@ -1,0 +1,289 @@
+<%# Simplified Gem Metadata Panel with Stats Overview %>
+<div class="gem-metadata-panel">
+  <div class="panel-header">
+    <div class="panel-title-section">
+      <h5 class="panel-title">
+        <span class="panel-icon">💎</span>
+        Gem Dependencies
+      </h5>
+      <div class="panel-subtitle">
+        <% gems = Solidstats::GemMetadata::FetcherService.call rescue [] %>
+        <% gem_count = gems.size %>
+        <span class="last-updated">Last updated: <%= Time.current.strftime('%B %d, %Y at %I:%M %p') %></span>
+      </div>
+    </div>
+    <div class="panel-actions">
+      <%= link_to gem_metadata_path, 
+          class: "action-btn view-all-btn", 
+          title: "View all gems", 
+          aria: { label: 'View all gem metadata' } do %>
+        <i class="fas fa-arrow-right"></i>
+        <span class="btn-text">View All</span>
+      <% end %>
+    </div>
+  </div>
+  
+  <div class="panel-content">
+    <% if gems.any? %>
+      <!-- Stats Overview -->
+      <div class="stats-overview">
+        <% total_gems = gems.size %>
+        <% outdated_gems = gems.count { |gem| gem.current_version && gem.version && gem.version != gem.current_version } %>
+        <% up_to_date_gems = gems.count { |gem| gem.current_version && gem.version && gem.version == gem.current_version } %>
+        <% unavailable_gems = gems.count { |gem| gem.info == '(API unavailable)' } %>
+        
+        <div class="stat-card total">
+          <div class="stat-icon">📦</div>
+          <div class="stat-content">
+            <div class="stat-number"><%= total_gems %></div>
+            <div class="stat-label">Total Gems</div>
+          </div>
+        </div>
+        
+        <div class="stat-card outdated">
+          <div class="stat-icon">⚠️</div>
+          <div class="stat-content">
+            <div class="stat-number"><%= outdated_gems %></div>
+            <div class="stat-label">Need Updates</div>
+          </div>
+        </div>
+        
+        <div class="stat-card up-to-date">
+          <div class="stat-icon">✅</div>
+          <div class="stat-content">
+            <div class="stat-number"><%= up_to_date_gems %></div>
+            <div class="stat-label">Up to Date</div>
+          </div>
+        </div>
+        
+        <div class="stat-card unavailable">
+          <div class="stat-icon">❓</div>
+          <div class="stat-content">
+            <div class="stat-number"><%= unavailable_gems %></div>
+            <div class="stat-label">Unavailable</div>
+          </div>
+        </div>
+      </div>
+    <% else %>
+      <div class="empty-state">
+        <div class="empty-icon">🔍</div>
+        <div class="empty-title">No Gem Data Found</div>
+        <div class="empty-description">
+          Try refreshing to fetch the latest gem metadata from your Gemfile.lock
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<style>
+  /* Simplified Gem Metadata Panel Styles */
+  .gem-metadata-panel {
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    border-radius: 16px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    overflow: hidden;
+    margin-bottom: 2rem;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+  }
+
+  .panel-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .panel-title-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .panel-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .panel-icon {
+    font-size: 1.25rem;
+  }
+
+  .panel-subtitle {
+    opacity: 0.9;
+    font-size: 0.875rem;
+  }
+
+  .last-updated {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 0.125rem 0.5rem;
+    border-radius: 12px;
+    font-weight: 500;
+  }
+
+  .panel-actions {
+    display: flex;
+    gap: 0.75rem;
+  }
+
+  .action-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+  }
+
+  .view-all-btn {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    backdrop-filter: blur(10px);
+  }
+
+  .view-all-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    color: white;
+    transform: translateY(-1px);
+  }
+
+  .panel-content {
+    padding: 1.5rem;
+  }
+
+  /* Stats Overview */
+  .stats-overview {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .stat-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.25rem;
+    border: 1px solid #e5e7eb;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: all 0.3s ease;
+    animation: fadeInUp 0.6s ease-out both;
+  }
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.1);
+    border-color: #d1d5db;
+  }
+
+  .stat-card.total {
+    border-left: 4px solid #3b82f6;
+  }
+
+  .stat-card.outdated {
+    border-left: 4px solid #f59e0b;
+  }
+
+  .stat-card.up-to-date {
+    border-left: 4px solid #10b981;
+  }
+
+  .stat-card.unavailable {
+    border-left: 4px solid #6b7280;
+  }
+
+  .stat-icon {
+    font-size: 1.5rem;
+    opacity: 0.8;
+  }
+
+  .stat-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .stat-number {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #1f2937;
+    line-height: 1;
+  }
+
+  .stat-label {
+    font-size: 0.875rem;
+    color: #6b7280;
+    font-weight: 500;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: #6b7280;
+  }
+
+  .empty-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+  }
+
+  .empty-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 0.5rem;
+  }
+
+  .empty-description {
+    margin-bottom: 1.5rem;
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  /* Responsive design */
+  @media (max-width: 768px) {
+    .panel-header {
+      flex-direction: column;
+      gap: 1rem;
+      text-align: center;
+    }
+
+    .stats-overview {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 480px) {
+    .stats-overview {
+      grid-template-columns: 1fr;
+    }
+    
+    .stat-card {
+      padding: 1rem;
+    }
+  }
+</style>
