@@ -4,7 +4,7 @@ module Solidstats
       @gems = Solidstats::GemMetadata::FetcherService.call(nil, true)
       
       respond_to do |format|
-        format.html { redirect_to solidstats_gem_metadata_index_path, notice: "Gem metadata refreshed successfully." }
+        format.html { redirect_to '/solidstats#gem-metadata', notice: "Gem metadata refreshed successfully." }
         format.json { render json: { gems: @gems } }
       end
     end

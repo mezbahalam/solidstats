@@ -13,7 +13,7 @@
         </div>
       </div>
       <div class="header-actions">
-        <%= link_to refresh_gem_metadata_path, method: :post, 
+        <%= link_to refresh_gem_metadata_path,
             class: "action-btn refresh-btn", 
             title: "Refresh gem metadata", 
             aria: { label: 'Refresh gem metadata' },
@@ -388,7 +388,7 @@
           It looks like we couldn't find any gem metadata. This could happen if your Gemfile.lock is missing or the API is unavailable.
         </div>
         <div class="empty-actions">
-          <%= link_to refresh_gem_metadata_path, method: :post, 
+          <%= link_to refresh_gem_metadata_path,
               class: "action-btn refresh-btn primary", 
               data: { turbo_method: :post } do %>
             <i class="fas fa-sync-alt"></i>
