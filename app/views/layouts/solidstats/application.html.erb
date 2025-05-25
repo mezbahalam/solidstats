@@ -7,7 +7,8 @@
 
   <%= yield :head %>
 
-  <%= stylesheet_link_tag    "solidstats/application", media: "all" %>
+  <%= stylesheet_link_tag "solidstats/application", media: "all", "data-turbo-track": "reload" %>
+  <%= javascript_include_tag "solidstats/application", "data-turbo-track": "reload", defer: true %>
 </head>
 <body>
 
