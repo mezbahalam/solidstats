@@ -1,0 +1,66 @@
+/* SummaryCardComponent Styles */
+.summary-card {
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  transition: all 0.15s ease-in-out;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  cursor: pointer;
+}
+
+.summary-card:hover {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  transform: translateY(-1px);
+}
+
+.summary-card.ok {
+  border-left: 4px solid #10b981;
+}
+
+.summary-card.warning {
+  border-left: 4px solid #f59e0b;
+}
+
+.summary-card.error {
+  border-left: 4px solid #ef4444;
+}
+
+.summary-card.info {
+  border-left: 4px solid #3b82f6;
+}
+
+.summary-card.critical {
+  border-left: 4px solid #ec4899;
+}
+
+.card-icon {
+  display: inline-flex;
+  align-items: center;
+  font-size: 1.5rem;
+  color: #6b7280;
+  flex-shrink: 0;
+}
+
+.card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex-grow: 1;
+}
+
+.card-value {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: #111827;
+  line-height: 1;
+}
+
+.card-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #6b7280;
+}
