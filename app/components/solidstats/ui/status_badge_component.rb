@@ -10,15 +10,15 @@ module Solidstats
         @size = size
         @show_icon = show_icon
       end
-      
+
       private
-      
+
       attr_reader :status, :text, :size, :show_icon
-      
+
       def badge_text
         text || status_text(status)
       end
-      
+
       def badge_classes
         css_classes(
           "status-badge",
@@ -26,7 +26,7 @@ module Solidstats
           size_class
         )
       end
-      
+
       def size_class
         case size
         when :sm

@@ -11,15 +11,15 @@ module Solidstats
           value: 127,
           status: :ok
         ))
-        
+
         assert_selector ".summary-card.summary-card--ok"
         assert_selector ".summary-card__title", text: "Total Gems"
         assert_selector ".summary-card__value", text: "127"
       end
 
       def test_renders_different_statuses
-        statuses = [:ok, :warning, :error, :info, :critical]
-        
+        statuses = [ :ok, :warning, :error, :info, :critical ]
+
         statuses.each do |status|
           render_inline(SummaryCardComponent.new(
             title: "Test",
@@ -37,7 +37,7 @@ module Solidstats
           status: :error,
           href: "/security"
         ))
-        
+
         assert_selector "a.summary-card--clickable[href='/security']"
         assert_selector ".summary-card__title", text: "Security Issues"
         assert_selector ".summary-card__value", text: "3"
@@ -49,7 +49,7 @@ module Solidstats
           value: 42,
           status: :ok
         ))
-        
+
         assert_selector "div .summary-card"
         assert_no_selector "a.summary-card"
       end
@@ -62,7 +62,7 @@ module Solidstats
           status: :ok,
           icon: icon
         ))
-        
+
         assert_selector ".summary-card__icon", text: icon
       end
 
@@ -72,7 +72,7 @@ module Solidstats
           value: 5,
           status: :warning
         ))
-        
+
         # Should render status icon from BaseComponent
         assert_selector ".summary-card__icon"
       end
@@ -83,7 +83,7 @@ module Solidstats
           value: 1234567,
           status: :ok
         ))
-        
+
         # Should format using BaseComponent's format_number method
         assert_selector ".summary-card__value", text: "1,234,567"
       end
@@ -94,7 +94,7 @@ module Solidstats
           value: "94%",
           status: :ok
         ))
-        
+
         assert_selector ".summary-card__value", text: "94%"
       end
 
@@ -105,7 +105,7 @@ module Solidstats
           status: :ok,
           section: "security"
         ))
-        
+
         assert_selector "[data-section='security']"
       end
 
@@ -116,7 +116,7 @@ module Solidstats
           status: :ok,
           class: "custom-class"
         ))
-        
+
         assert_selector ".summary-card.custom-class"
       end
 
@@ -127,7 +127,7 @@ module Solidstats
           status: :ok,
           data: { testid: "summary-card" }
         ))
-        
+
         assert_selector "[data-testid='summary-card']"
       end
 
@@ -137,11 +137,11 @@ module Solidstats
           value: 100,
           status: :ok
         )
-        
+
         render_inline(component) do
           "Additional description content"
         end
-        
+
         assert_selector ".summary-card__description", text: "Additional description content"
       end
     end

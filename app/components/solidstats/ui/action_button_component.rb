@@ -13,11 +13,11 @@ module Solidstats
         @options = options
         super()
       end
-      
+
       private
-      
+
       attr_reader :text, :variant, :size, :icon, :href, :options
-      
+
       def button_classes
         css_classes(
           "action-button",
@@ -26,7 +26,7 @@ module Solidstats
           icon ? "action-button--with-icon" : nil
         )
       end
-      
+
       def variant_class
         case variant
         when :secondary
@@ -39,7 +39,7 @@ module Solidstats
           "action-button--primary"
         end
       end
-      
+
       def size_class
         case size
         when :sm
@@ -50,20 +50,20 @@ module Solidstats
           "action-button--md"
         end
       end
-      
+
       def tag_name
         href ? :a : :button
       end
-      
+
       def tag_attributes
         base_attrs = { class: button_classes }
-        
+
         if href
           base_attrs[:href] = href
         else
           base_attrs[:type] = options[:type] || "button"
         end
-        
+
         base_attrs.merge(options.except(:type))
       end
     end

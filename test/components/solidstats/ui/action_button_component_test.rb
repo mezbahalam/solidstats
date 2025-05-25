@@ -7,11 +7,11 @@ module Solidstats
     class ActionButtonComponentTest < ViewComponent::TestCase
       def test_renders_as_link_with_href
         render_inline(ActionButtonComponent.new(
-          text: "Click Me", 
+          text: "Click Me",
           href: "/test",
           variant: :primary
         ))
-        
+
         assert_selector "a.action-button.action-button--primary[href='/test']", text: "Click Me"
       end
 
@@ -21,16 +21,16 @@ module Solidstats
           variant: :primary,
           type: "submit"
         ))
-        
+
         assert_selector "button.action-button.action-button--primary[type='submit']", text: "Submit"
       end
 
       def test_renders_different_variants
-        variants = [:primary, :secondary, :outline, :ghost, :danger]
-        
+        variants = [ :primary, :secondary, :outline, :ghost, :danger ]
+
         variants.each do |variant|
           render_inline(ActionButtonComponent.new(
-            text: "Test", 
+            text: "Test",
             variant: variant,
             href: "#"
           ))
@@ -39,11 +39,11 @@ module Solidstats
       end
 
       def test_renders_different_sizes
-        sizes = [:small, :medium, :large]
-        
+        sizes = [ :small, :medium, :large ]
+
         sizes.each do |size|
           render_inline(ActionButtonComponent.new(
-            text: "Test", 
+            text: "Test",
             variant: :primary,
             size: size,
             href: "#"
@@ -60,7 +60,7 @@ module Solidstats
           icon: icon,
           href: "#"
         ))
-        
+
         assert_selector ".action-button__icon", text: icon
         assert_selector ".action-button__text", text: "Download"
       end
@@ -71,7 +71,7 @@ module Solidstats
           variant: :primary,
           href: "#"
         ))
-        
+
         assert_no_selector ".action-button__icon"
         assert_selector ".action-button__text", text: "Click Me"
       end
@@ -83,7 +83,7 @@ module Solidstats
           href: "#",
           class: "custom-class"
         ))
-        
+
         assert_selector ".action-button.custom-class"
       end
 
@@ -94,7 +94,7 @@ module Solidstats
           href: "#",
           data: { testid: "action-button" }
         ))
-        
+
         assert_selector "[data-testid='action-button']"
       end
     end

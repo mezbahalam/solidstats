@@ -22,7 +22,7 @@ module Solidstats
       if force_refresh
         @pipeline = nil
       end
-      
+
       @pipeline ||= begin
         if propshaft_available?(app)
           :propshaft
@@ -105,11 +105,11 @@ module Solidstats
         # Convenience method to include all Solidstats assets
         def solidstats_assets(*args)
           options = args.extract_options!
-          
+
           content = []
           content << solidstats_stylesheets(**options.slice(:media, :crossorigin))
           content << solidstats_javascripts(**options.slice(:defer, :async, :crossorigin))
-          
+
           safe_join(content, "\n")
         end
       end
@@ -129,14 +129,14 @@ module Solidstats
 
     # Check if Importmap is available
     def importmap_available?(app)
-      defined?(Importmap) && 
+      defined?(Importmap) &&
         app.config.respond_to?(:importmap) &&
         File.exist?(Rails.root.join("config/importmap.rb"))
     end
 
     # Check if Webpacker is available
     def webpacker_available?(app)
-      defined?(Webpacker) && 
+      defined?(Webpacker) &&
         app.config.respond_to?(:webpacker) &&
         File.exist?(Rails.root.join("config/webpacker.yml"))
     end
@@ -218,7 +218,7 @@ module Solidstats
       # Webpacker configuration is more complex and typically requires
       # manual setup in the host application
       Solidstats.logger.info "[Solidstats] Webpacker detected - manual configuration may be required"
-      
+
       # Add source path if possible
       if app.config.webpacker.respond_to?(:source_path)
         engine_source = Solidstats::Engine.root.join("app", "javascript")

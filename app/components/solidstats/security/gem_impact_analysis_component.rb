@@ -14,11 +14,11 @@ module Solidstats
 
       def affected_gems
         return [] unless results.any?
-        
+
         results.map { |r| r.dig("gem", "name") }.uniq.map do |gem_name|
           gem_vulns = results.select { |r| r.dig("gem", "name") == gem_name }
           highest_severity = calculate_highest_severity(gem_vulns)
-          
+
           {
             name: gem_name,
             vulnerabilities: gem_vulns,

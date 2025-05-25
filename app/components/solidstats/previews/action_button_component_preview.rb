@@ -7,8 +7,8 @@ module Solidstats
       # Default action button
       def default
         render(Solidstats::Ui::ActionButtonComponent.new(
-          text: "Click Me", 
-          href: "#", 
+          text: "Click Me",
+          href: "#",
           variant: :primary
         ))
       end

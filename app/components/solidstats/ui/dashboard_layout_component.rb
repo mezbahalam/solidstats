@@ -37,7 +37,7 @@ module Solidstats
 
       def formatted_subtitle
         return subtitle if subtitle
-        
+
         # Default subtitle with current time
         "Last updated: #{Time.now.strftime('%B %d, %Y at %H:%M')}"
       end

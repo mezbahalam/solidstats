@@ -38,21 +38,21 @@ module Solidstats
 
       def security_score
         if vulnerabilities_count == 0
-          'A+'
+          "A+"
         elsif high_severity_count > 0
-          'C'
+          "C"
         else
-          'B'
+          "B"
         end
       end
 
       def security_score_class
         if vulnerabilities_count == 0
-          'score-excellent'
+          "score-excellent"
         elsif high_severity_count > 0
-          'score-critical'
+          "score-critical"
         else
-          'score-warning'
+          "score-warning"
         end
       end
 
@@ -66,7 +66,7 @@ module Solidstats
 
       def metric_class(count, type = :warning)
         return "" if count == 0
-        
+
         case type
         when :critical
           "metric-critical"

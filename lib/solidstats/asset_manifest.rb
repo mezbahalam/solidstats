@@ -11,7 +11,7 @@ module Solidstats
       # Main application assets
       "solidstats/application.css",
       "solidstats/application.js",
-      
+
       # Component-specific CSS files (using actual filenames)
       "solidstats/components/summary_card.css",
       "solidstats/components/dashboard_layout.css",
@@ -45,11 +45,11 @@ module Solidstats
       # @return [Array<String>] Assets to precompile
       def assets_for_environment(environment = Rails.env)
         assets = PRECOMPILE_ASSETS.dup
-        
+
         if environment == "development"
           assets.concat(DEVELOPMENT_ASSETS)
         end
-        
+
         assets.concat(IMAGE_ASSETS)
         assets.uniq
       end
@@ -60,14 +60,14 @@ module Solidstats
         return unless app.config.respond_to?(:assets)
 
         assets_to_add = assets_for_environment - app.config.assets.precompile
-        
+
         assets_to_add.each do |asset|
           app.config.assets.precompile << asset
         end
 
         # Add asset paths if not already present
         add_asset_paths(app)
-        
+
         Rails.logger.info "[Solidstats] Added #{assets_to_add.size} assets to precompilation list"
       end
 
@@ -143,7 +143,7 @@ module Solidstats
         return unless app.config.respond_to?(:assets)
 
         config = fingerprint_config(environment)
-        
+
         config.each do |key, value|
           if app.config.assets.respond_to?("#{key}=")
             app.config.assets.public_send("#{key}=", value)
@@ -157,14 +157,14 @@ module Solidstats
       # @return [Array<String>] Missing assets
       def missing_assets
         missing = []
-        
+
         PRECOMPILE_ASSETS.each do |asset|
           asset_path = resolve_asset_path(asset)
           unless File.exist?(asset_path)
             missing << asset
           end
         end
-        
+
         missing
       end
 
@@ -172,12 +172,12 @@ module Solidstats
       # @raise [Solidstats::Error] If required assets are missing
       def validate_assets!
         missing = missing_assets
-        
+
         unless missing.empty?
-          raise Solidstats::Error, 
+          raise Solidstats::Error,
                 "Missing required assets: #{missing.join(', ')}"
         end
-        
+
         true
       end
 
@@ -188,16 +188,16 @@ module Solidstats
       # @return [String] File system path
       def resolve_asset_path(asset)
         # Remove the 'solidstats/' prefix and find the actual file
-        relative_path = asset.sub(/^solidstats\//, '')
-        
+        relative_path = asset.sub(/^solidstats\//, "")
+
         # Try different possible locations
         possible_paths = [
           Solidstats::Engine.root.join("app", "assets", "stylesheets", "solidstats", relative_path),
           Solidstats::Engine.root.join("app", "assets", "javascripts", "solidstats", relative_path),
           Solidstats::Engine.root.join("app", "assets", "images", "solidstats", relative_path)
         ]
-        
-        possible_paths.find { |path| File.exist?(path) } || 
+
+        possible_paths.find { |path| File.exist?(path) } ||
           Solidstats::Engine.root.join("app", "assets", "stylesheets", asset).to_s
       end
     end

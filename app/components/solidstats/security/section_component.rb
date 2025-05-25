@@ -29,15 +29,15 @@ module Solidstats
       end
 
       def security_rating
-        return 'A+' if vulnerabilities_count.zero?
-        return 'C' if high_severity_count > 0
-        'B'
+        return "A+" if vulnerabilities_count.zero?
+        return "C" if high_severity_count > 0
+        "B"
       end
 
       def security_score_class
-        return 'score-excellent' if vulnerabilities_count.zero?
-        return 'score-critical' if high_severity_count > 0
-        'score-warning'
+        return "score-excellent" if vulnerabilities_count.zero?
+        return "score-critical" if high_severity_count > 0
+        "score-warning"
       end
 
       def tab_items

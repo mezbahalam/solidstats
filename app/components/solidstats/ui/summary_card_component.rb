@@ -14,11 +14,11 @@ module Solidstats
         @href = href
         @options = options
       end
-      
+
       private
-      
+
       attr_reader :title, :value, :status, :icon, :section, :tab, :href, :options
-      
+
       def card_classes
         css_classes(
           "summary-card",
@@ -26,7 +26,7 @@ module Solidstats
           href ? "summary-card--clickable" : nil
         )
       end
-      
+
       def card_attributes
         attrs = {
           class: card_classes,
@@ -35,22 +35,22 @@ module Solidstats
             tab: tab
           }.compact
         }.compact
-        
+
         attrs.merge(options)
       end
-      
+
       def formatted_value
         format_number(value)
       end
-      
+
       def card_icon
         icon || status_icon(status)
       end
-      
+
       def wrapper_tag
         href ? :a : :div
       end
-      
+
       def wrapper_attributes
         if href
           { href: href }

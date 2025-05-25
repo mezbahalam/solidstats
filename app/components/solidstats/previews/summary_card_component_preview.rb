@@ -7,7 +7,7 @@ module Solidstats
       # Default summary card
       def default
         render(Solidstats::Ui::SummaryCardComponent.new(
-          title: "Total Gems", 
+          title: "Total Gems",
           value: 127,
           status: :ok
         ))

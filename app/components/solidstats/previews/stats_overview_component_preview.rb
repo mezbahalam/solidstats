@@ -26,17 +26,17 @@ module Solidstats
       # Clickable metrics
       def clickable_metrics
         metrics = [
-          { 
-            label: "Security Issues", 
-            value: 3, 
-            icon: "🔒", 
+          {
+            label: "Security Issues",
+            value: 3,
+            icon: "🔒",
             section: "security",
             tab: "vulnerabilities"
           },
           {
-            label: "TODO Items", 
-            value: 15, 
-            icon: "📝", 
+            label: "TODO Items",
+            value: 15,
+            icon: "📝",
             section: "tasks",
             href: "#tasks"
           }

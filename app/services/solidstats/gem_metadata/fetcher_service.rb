@@ -4,16 +4,16 @@ module Solidstats
   module GemMetadata
     class FetcherService
       GemMeta = Struct.new(:name, :version, :current_version, :released, :info, :runtime, keyword_init: true)
-      
+
       def self.call(gem_names = nil, force_refresh = false)
         new.call(gem_names, force_refresh)
       end
-      
+
       def call(gem_names = nil, force_refresh = false)
         gem_names = get_gem_names(gem_names)
         fetch_metadata(gem_names, force_refresh)
       end
-      
+
       private
 
       def get_gem_names(gem_names)
@@ -33,7 +33,7 @@ module Solidstats
 
         lockfile = File.read(gemfile_lock)
         parser = Bundler::LockfileParser.new(lockfile)
-        
+
         parser.specs.each_with_object({}) do |spec, versions|
           versions[spec.name] = spec.version.to_s
         end
@@ -41,15 +41,15 @@ module Solidstats
 
       def fetch_metadata(gem_names, force_refresh)
         current_versions = get_current_versions
-        
+
         gem_names.map do |name|
           fetch_gem_data(name, current_versions[name], force_refresh)
         end
       end
-      
+
       def fetch_gem_data(name, current_version, force_refresh)
         cached_data = fetch_from_cache(name) unless force_refresh
-        
+
         if cached_data
           # Update current version if it changed since caching
           if current_version && cached_data.current_version != current_version
@@ -76,33 +76,33 @@ module Solidstats
           GemMeta.new(name: name, current_version: current_version, info: "(API unavailable)")
         end
       end
-      
+
       def fetch_from_api(name)
         uri = URI.parse("https://rubygems.org/api/v1/gems/#{name}.json")
         http = Net::HTTP.new(uri.host, uri.port)
         http.use_ssl = true
         http.open_timeout = 5
         http.read_timeout = 5
-        
+
         response = http.get(uri.request_uri)
-        
+
         if response.code == "200"
           JSON.parse(response.body)
         else
           raise "API request failed with status #{response.code}"
         end
       end
-      
+
       def fetch_from_cache(name)
         cache_file = cache_path(name)
         return nil unless File.exist?(cache_file)
-        
+
         data = JSON.parse(File.read(cache_file))
         cache_time = File.mtime(cache_file)
-        
+
         # Return nil if cache is older than 24 hours
         return nil if Time.now - cache_time > 24.hours
-        
+
         GemMeta.new(
           name: data["name"],
           version: data["version"],
@@ -112,10 +112,10 @@ module Solidstats
           runtime: data["runtime"] || []
         )
       end
-      
+
       def cache_data(name, meta)
         FileUtils.mkdir_p(File.dirname(cache_path(name)))
-        
+
         data = {
           "name" => meta.name,
           "version" => meta.version,
@@ -124,10 +124,10 @@ module Solidstats
           "info" => meta.info,
           "runtime" => meta.runtime
         }
-        
+
         File.write(cache_path(name), data.to_json)
       end
-      
+
       def cache_path(name)
         Rails.root.join("tmp", "cache", "gem_metadata", "#{name}.json")
       end

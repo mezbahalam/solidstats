@@ -20,7 +20,7 @@ module Solidstats
     # Ensure gem only runs in development environment
     initializer "solidstats.environment_check", before: :load_config_initializers do
       unless Rails.env.development?
-        raise Solidstats::ConfigurationError, 
+        raise Solidstats::ConfigurationError,
               "Solidstats can only be used in development mode. Current environment: #{Rails.env}"
       end
     end
@@ -65,7 +65,7 @@ module Solidstats
 
         configure_view_component_settings(app)
         setup_preview_paths(app)
-        
+
         log_info "🎯 ViewComponent::Base: #{ViewComponent::Base}"
       rescue StandardError => e
         log_error "❌ ViewComponent setup failed: #{e.message}"
@@ -81,7 +81,7 @@ module Solidstats
       view_component_config = app.config.view_component
       view_component_config.show_previews = config.solidstats.enable_previews
       view_component_config.default_preview_layout = "solidstats/component_preview"
-      
+
       # Set preview controller if not already set
       unless view_component_config.preview_controller
         view_component_config.preview_controller = "Solidstats::ComponentPreviewsController"
@@ -94,7 +94,7 @@ module Solidstats
       return unless app.config.respond_to?(:view_component) && config.solidstats.enable_previews
 
       preview_path = Engine.root.join("app", "components", "solidstats", "previews")
-      
+
       unless app.config.view_component.preview_paths.include?(preview_path)
         app.config.view_component.preview_paths << preview_path
         log_info "📁 Added preview path: #{preview_path}"
@@ -105,7 +105,7 @@ module Solidstats
     def load_rake_tasks
       task_files = Dir[Engine.root.join("lib", "tasks", "**", "*.rake")]
       task_files.each { |file| load file }
-      
+
       log_info "📋 Loaded #{task_files.size} rake task(s)" if task_files.any?
     rescue StandardError => e
       log_error "Failed to load rake tasks: #{e.message}"

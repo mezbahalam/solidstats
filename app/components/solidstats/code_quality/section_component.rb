@@ -24,9 +24,9 @@ module Solidstats
 
       def coverage_status
         case coverage.to_f
-        when 80..Float::INFINITY then 'status-ok'
-        when 60...80 then 'status-warning'
-        else 'status-danger'
+        when 80..Float::INFINITY then "status-ok"
+        when 60...80 then "status-warning"
+        else "status-danger"
         end
       end
     end

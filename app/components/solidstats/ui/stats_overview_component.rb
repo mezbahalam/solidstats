@@ -23,7 +23,7 @@ module Solidstats
 
       def metric_status(metric)
         return metric[:status] if metric[:status]
-        
+
         # Auto-determine status based on value and thresholds
         if metric[:value].to_i == 0 && metric[:zero_is_good]
           :ok
@@ -36,7 +36,7 @@ module Solidstats
 
       def determine_threshold_status(value, thresholds)
         numeric_value = extract_numeric_value(value)
-        
+
         if numeric_value >= thresholds[:excellent]
           :ok
         elsif numeric_value >= thresholds[:good]
