@@ -1,0 +1,19 @@
+<%# filepath: /Users/mezbah/microstartup/infolily_organizer/gems/solidstats/ui/dashboard_layout_component.html.erb %>
+<div <%= dashboard_attributes %>>
+  <header <%= { class: header_classes } %>>
+    <div class="header-main">
+      <h1><%= title_with_icon %></h1>
+      <span class="audit-date"><%= formatted_subtitle %></span>
+    </div>
+    
+    <%= render(Solidstats::Ui::NavigationComponent.new(
+      current_section: current_section,
+      sections: navigation_sections,
+      actions: navigation_actions
+    )) %>
+  </header>
+
+  <% if content.present? %>
+    <%= content %>
+  <% end %>
+</div>

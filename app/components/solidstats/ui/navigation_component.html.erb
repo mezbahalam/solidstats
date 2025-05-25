@@ -1,0 +1,34 @@
+<%# filepath: /Users/mezbah/microstartup/infolily_organizer/gems/solidstats/ui/navigation_component.html.erb %>
+<nav <%= nav_attributes %>>
+  <ul>
+    <% sections.each do |section| %>
+      <li>
+        <a <%= section_attributes(section) %>>
+          <%= section[:label] %>
+        </a>
+      </li>
+    <% end %>
+  </ul>
+  
+  <% if actions.any? %>
+    <div class="dashboard-actions">
+      <% actions.each do |action| %>
+        <% if action[:href] %>
+          <a <%= action_attributes(action) %>>
+            <% if action[:icon] %>
+              <span class="action-icon"><%= action[:icon] %></span>
+            <% end %>
+            <%= action[:label] %>
+          </a>
+        <% else %>
+          <button <%= action_attributes(action) %>>
+            <% if action[:icon] %>
+              <span class="action-icon"><%= action[:icon] %></span>
+            <% end %>
+            <%= action[:label] %>
+          </button>
+        <% end %>
+      <% end %>
+    </div>
+  <% end %>
+</nav>
