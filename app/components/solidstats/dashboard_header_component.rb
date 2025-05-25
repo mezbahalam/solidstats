@@ -26,16 +26,8 @@ module Solidstats
         { id: "security", label: "Security", href: "#security" },
         { id: "code-quality", label: "Code Quality", href: "#code-quality" },
         { id: "tasks", label: "Tasks", href: "#tasks" },
-        { id: "gem-metadata", label: "Gem Metadata", href: gem_metadata_path, external: true }
+        { id: "gem-metadata", label: "Gem Metadata", href: "#gem-metadata" }
       ]
-    end
-
-    # Helper method to access engine routes
-    def gem_metadata_path
-      Solidstats::Engine.routes.url_helpers.gem_metadata_path
-    rescue
-      # Fallback if routes aren't available
-      "/solidstats/gem_metadata"
     end
   end
 end

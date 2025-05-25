@@ -59,7 +59,7 @@ module Solidstats
           { id: "security", label: "Security" },
           { id: "code-quality", label: "Code Quality" },
           { id: "tasks", label: "Tasks" },
-          { id: "gem-metadata", label: "Gem Metadata", href: "/gem_metadata" }
+          { id: "gem-metadata", label: "Gem Metadata", href: "#gem-metadata" }
         ]
       end
 
