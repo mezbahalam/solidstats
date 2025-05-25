@@ -1,0 +1,44 @@
+<div class="gem-impact-analysis">
+  <h3>Gem Impact Analysis</h3>
+  <% if has_affected_gems? %>
+    <div class="gems-container">
+      <% affected_gems.each do |gem| %>
+        <div class="gem-card <%= gem[:severity_class] %>">
+          <div class="gem-header">
+            <div class="gem-name"><%= gem[:name] %></div>
+            <div class="gem-severity <%= gem[:severity] %>"><%= gem[:severity].capitalize %></div>
+          </div>
+          <div class="gem-details">
+            <div class="gem-versions">
+              <div class="current-version">
+                <span class="version-label">Current:</span>
+                <span class="version-value"><%= gem[:current_version] %></span>
+              </div>
+              <div class="target-version">
+                <span class="version-label">Target:</span>
+                <span class="version-value"><%= gem[:target_version] %></span>
+              </div>
+            </div>
+            <div class="gem-vulnerabilities-count">
+              <%= gem[:vulnerability_count] %> <%= "vulnerability".pluralize(gem[:vulnerability_count]) %> found
+            </div>
+          </div>
+          <div class="gem-actions">
+            <%= render Solidstats::Ui::ActionButtonComponent.new(
+              text: "Update Gem",
+              icon: "↑",
+              variant: :primary,
+              size: :sm
+            ) %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  <% else %>
+    <div class="empty-state">
+      <div class="empty-icon">✅</div>
+      <div class="empty-message">No vulnerable gems found</div>
+      <div class="empty-description">Your application is secure. Keep up with regular security audits!</div>
+    </div>
+  <% end %>
+</div>

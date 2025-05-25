@@ -13,6 +13,7 @@ module Solidstats
       @audit_output = audit_service.fetch
       @todo_items = todo_service.fetch
       @log_data = log_monitor_service.collect_data
+      @gems = Solidstats::GemMetadata::FetcherService.call
 
       # Get summary data for dashboard cards
       @audit_summary = audit_service.summary
@@ -34,6 +35,7 @@ module Solidstats
       audit_output = audit_service.fetch(true) # Force refresh
       todo_items = todo_service.fetch(true)    # Force refresh
       log_data = log_monitor_service.collect_data
+      gem_metadata = GemMetadata::FetcherService.call(nil, true) # Force refresh
 
       # Get updated summaries
       audit_summary = audit_service.summary
@@ -49,6 +51,7 @@ module Solidstats
         audit_summary: audit_summary,
         todo_summary: todo_summary,
         log_data: log_data,
+        gem_metadata: gem_metadata,
         last_updated: last_updated,
         status: "success"
       }

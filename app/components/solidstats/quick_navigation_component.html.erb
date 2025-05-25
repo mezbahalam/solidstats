@@ -1,0 +1,8 @@
+<div class="quick-nav">
+  <button class="quick-nav-toggle">↑</button>
+  <div class="quick-nav-menu">
+    <% navigation_items.each do |item| %>
+      <a href="<%= item[:href] %>" class="quick-nav-item"><%= item[:label] %></a>
+    <% end %>
+  </div>
+</div>

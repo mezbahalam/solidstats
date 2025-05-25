@@ -1,0 +1,6 @@
+<%# filepath: /Users/mezbah/microstartup/infolily_organizer/gems/solidstats/previews/action_button_component_preview/button_vs_link.html.erb %>
+<div style="display: flex; gap: 1rem; flex-wrap: wrap; padding: 1rem;">
+  <% elements.each do |element_config| %>
+    <%= render(Solidstats::Ui::ActionButtonComponent.new(**element_config)) %>
+  <% end %>
+</div>

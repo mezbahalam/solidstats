@@ -1,0 +1,14 @@
+<%# filepath: /Users/mezbah/microstartup/infolily_organizer/gems/solidstats/ui/stats_overview_component.html.erb %>
+<%= tag.div(**overview_attributes) do %>
+  <% metrics.each do |metric| %>
+    <%= render(Solidstats::Ui::SummaryCardComponent.new(
+      title: metric[:label],
+      value: metric[:value],
+      status: metric_status(metric),
+      icon: metric[:icon],
+      href: metric_href(metric),
+      section: metric[:section],
+      **metric_data_attributes(metric)
+    )) %>
+  <% end %>
+<% end %>

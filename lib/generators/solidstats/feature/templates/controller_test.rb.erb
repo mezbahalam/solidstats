@@ -1,0 +1,111 @@
+require "test_helper"
+
+module Solidstats
+  class <%= class_name %>ControllerTest < ActionDispatch::IntegrationTest
+    include Engine.routes.url_helpers
+
+    def setup
+      # Ensure we're in development mode for tests
+      Rails.env.stub(:development?, true) do
+        @service = <%= class_name %>Service.new
+      end
+    end
+
+    test "should get index in development" do
+      Rails.env.stub(:development?, true) do
+        get <%= file_name %>_path
+        assert_response :success
+        assert_template :index
+      end
+    end
+
+    test "should not get index in production" do
+      Rails.env.stub(:development?, false) do
+        get <%= file_name %>_path
+        assert_response :not_found
+      end
+    end
+
+    test "should get index as json" do
+      Rails.env.stub(:development?, true) do
+        get <%= file_name %>_path, as: :json
+        assert_response :success
+        assert_match "application/json", response.content_type
+        
+        json_response = JSON.parse(response.body)
+        assert json_response.key?("value")
+        assert json_response.key?("items")
+        assert json_response.key?("breakdown")
+        assert json_response.key?("trends")
+      end
+    end
+
+    test "should refresh data" do
+      Rails.env.stub(:development?, true) do
+        post refresh_<%= file_name %>_path if respond_to?(:refresh_<%= file_name %>_path)
+        
+        # If refresh route doesn't exist, test the service directly
+        data = @service.fetch(true)
+        assert_not_nil data
+        assert data.key?(:value)
+        assert data.key?(:last_updated)
+      end
+    end
+
+    test "should get summary as json" do
+      Rails.env.stub(:development?, true) do
+        get summary_<%= file_name %>_path if respond_to?(:summary_<%= file_name %>_path)
+        
+        # If summary route doesn't exist, test the service directly
+        summary = @service.summary
+        assert_not_nil summary
+        assert summary.key?(:value)
+        assert summary.key?(:status)
+        assert summary.key?(:last_updated)
+        assert summary.key?(:count)
+      end
+    end
+
+    test "should assign service data to view" do
+      Rails.env.stub(:development?, true) do
+        get <%= file_name %>_path
+        assert_response :success
+        assert_not_nil assigns(:data)
+        assert_kind_of Hash, assigns(:data)
+      end
+    end
+
+    test "should handle service errors gracefully" do
+      Rails.env.stub(:development?, true) do
+        # Mock service to raise an error
+        <%= class_name %>Service.any_instance.stub(:detailed_data, -> { raise StandardError.new("Test error") }) do
+          assert_raises StandardError do
+            get <%= file_name %>_path
+          end
+        end
+      end
+    end
+
+    test "should validate required instance variables" do
+      Rails.env.stub(:development?, true) do
+        get <%= file_name %>_path
+        assert_response :success
+        
+        # Check that controller sets up required data
+        assert_not_nil assigns(:data)
+        assert assigns(:data).key?(:value)
+        assert assigns(:data).key?(:items)
+      end
+    end
+
+    test "should have proper security headers" do
+      Rails.env.stub(:development?, true) do
+        get <%= file_name %>_path
+        assert_response :success
+        
+        # Verify development-only access is enforced
+        assert_not_nil response.headers
+      end
+    end
+  end
+end

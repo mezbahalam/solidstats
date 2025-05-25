@@ -1,17 +1,38 @@
 Solidstats is a local-only Rails engine that shows your project's health at `/solidstats`. The dashboard provides real-time insights into your application's security, code quality, and development tasks.
 
 ## Features
+
+### Core Dashboard
 - Interactive security dashboard with real-time refresh capability
 - Comprehensive gem vulnerability analysis with severity breakdown
 - Visual security score rating (A+, B, C) and metrics
 - Bundler Audit scan with detailed remediation suggestions
 - Interactive vulnerability details with patched version information
 - Gem impact analysis showing affected gems by severity
+
+### Gem Metadata System
+- **Complete Gem Analysis Platform**: Comprehensive gem metadata dashboard with detailed information about all gems in your project
+- **Dual-View System**: Switch between table and grid layouts for optimal data presentation
+  - **Table View**: Sortable columns with gem name, version, description, dependencies, and status
+  - **Grid View**: Card-based layout with 3 cards per row (responsive: 3 on desktop, 2 on tablet, 1 on mobile)
+- **Advanced Filtering**: Real-time search and filtering across all gem attributes
+- **Dependency Analysis**: View gem dependencies with version compatibility information
+- **Status Monitoring**: Real-time health indicators and gem status tracking
+- **Download Statistics**: Popularity metrics and download statistics for gems
+- **License Information**: Security compliance and license tracking
+
+### System Monitoring
 - Log Size Monitor for tracking and managing application log files
 - Log file truncation tool for individual or all log files
 - Rubocop offense count and quality metrics
 - TODO/FIXME tracker with file hotspots
 - Test coverage summary
+
+### Architecture
+- **View Component Architecture**: Modern, maintainable component-based UI system
+- **Feature Generator System**: Automated scaffolding for rapid development
+- **CSS Component Architecture**: Organized, conflict-free styling with responsive design
+- **Cross-Browser Compatibility**: Enhanced support across modern browsers
 
 ## Compatibility
 
@@ -73,6 +94,18 @@ You can refresh the dashboard data at any time by clicking the "Refresh" button 
 2. Update all metrics and visualizations with current data
 3. Show real-time feedback during the refresh process
 4. Update the "Last Updated" timestamp
+
+### Gem Metadata
+Comprehensive gem analysis and management platform featuring:
+- **Complete Gem Information**: Detailed metadata for all gems in your project including versions, descriptions, dependencies, and status
+- **Flexible Views**: 
+  - **Table View**: Sortable table with comprehensive gem information, perfect for detailed analysis
+  - **Grid View**: Card-based layout showing 3 gems per row with visual appeal and responsive design
+- **Advanced Search & Filtering**: Real-time filtering across gem names, descriptions, and dependencies
+- **Dependency Analysis**: View and analyze gem dependencies with version information
+- **Status Monitoring**: Health indicators and status tracking for all gems
+- **Download Metrics**: Popularity statistics and download information
+- **License Tracking**: Security compliance and license information for each gem
 
 ### Code Quality
 Displays code quality metrics, test coverage, and code health indicators.

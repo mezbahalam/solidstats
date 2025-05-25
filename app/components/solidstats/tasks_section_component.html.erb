@@ -1,0 +1,17 @@
+<section id="tasks" class="dashboard-section">
+  <h2 class="section-title">Tasks</h2>
+  
+  <%= render Solidstats::Ui::TabNavigationComponent.new(tabs: tab_items) %>
+  
+  <div class="tabs-content">
+    <div class="tab-content active" id="todos">
+      <%= render partial: 'todos' %>
+    </div>
+    <div class="tab-content" id="fixmes">
+      <!-- FIXME specific content -->
+    </div>
+    <div class="tab-content" id="hacks">
+      <!-- HACK specific content -->
+    </div>
+  </div>
+</section>

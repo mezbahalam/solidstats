@@ -1,0 +1,6 @@
+<%# filepath: /Users/mezbah/microstartup/infolily_organizer/gems/solidstats/previews/summary_card_component_preview/value_formats.html.erb %>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; padding: 1rem;">
+  <% cards.each do |card_config| %>
+    <%= render(Solidstats::Ui::SummaryCardComponent.new(**card_config)) %>
+  <% end %>
+</div>

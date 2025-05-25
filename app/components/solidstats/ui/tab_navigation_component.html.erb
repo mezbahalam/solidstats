@@ -1,0 +1,22 @@
+<%# filepath: /Users/mezbah/microstartup/infolily_organizer/gems/solidstats/ui/tab_navigation_component.html.erb %>
+<%= tag.nav(**tabs_attributes) do %>
+  <ul class="tab-list">
+    <% tabs.each do |tab| %>
+      <li class="tab-list-item">
+        <% if tab[:disabled] %>
+          <%= tag.span(**tab_attributes(tab)) do %>
+            <%= tab[:label] %>
+            <%= tab_count_badge(tab) %>
+            <%= tab_status_indicator(tab) %>
+          <% end %>
+        <% else %>
+          <%= tag.a(**tab_attributes(tab)) do %>
+            <%= tab[:label] %>
+            <%= tab_count_badge(tab) %>
+            <%= tab_status_indicator(tab) %>
+          <% end %>
+        <% end %>
+      </li>
+    <% end %>
+  </ul>
+<% end %>

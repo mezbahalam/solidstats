@@ -1,0 +1,332 @@
+/* Security Section Styles */
+.security-overview {
+  margin-bottom: 2rem;
+}
+
+.security-score-container {
+  display: flex;
+  gap: 2rem;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.security-score {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  color: white;
+  font-weight: bold;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.score-excellent {
+  background: linear-gradient(135deg, #27ae60, #2ecc71);
+}
+
+.score-warning {
+  background: linear-gradient(135deg, #f39c12, #e67e22);
+}
+
+.score-critical {
+  background: linear-gradient(135deg, #e74c3c, #c0392b);
+}
+
+.score-value {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.score-label {
+  font-size: 0.8rem;
+  text-align: center;
+  line-height: 1.2;
+  margin-top: 0.25rem;
+}
+
+.security-metrics {
+  display: flex;
+  gap: 1rem;
+  flex: 1;
+}
+
+.metric-item {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background-color: #f9fafb;
+  border-radius: 8px;
+  transition: transform 0.2s;
+}
+
+.metric-item:hover {
+  transform: translateY(-2px);
+}
+
+.metric-critical {
+  border-left: 4px solid #e74c3c;
+}
+
+.metric-warning {
+  border-left: 4px solid #f39c12;
+}
+
+.metric-icon {
+  font-size: 1.8rem;
+  opacity: 0.8;
+}
+
+.metric-data {
+  flex-grow: 1;
+}
+
+.metric-value {
+  font-size: 1.8rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.metric-label {
+  font-size: 0.85rem;
+  color: #666;
+  margin-top: 0.25rem;
+}
+
+/* Gem Impact Analysis */
+.gem-impact-analysis {
+  padding: 1rem 0;
+}
+
+.gems-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.gem-card {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  transition: transform 0.2s;
+}
+
+.gem-card:hover {
+  transform: translateY(-2px);
+}
+
+.gem-card.severity-critical {
+  border-top: 4px solid #e74c3c;
+}
+
+.gem-card.severity-high {
+  border-top: 4px solid #fd7e14;
+}
+
+.gem-card.severity-medium {
+  border-top: 4px solid #f39c12;
+}
+
+.gem-card.severity-low {
+  border-top: 4px solid #27ae60;
+}
+
+.gem-header {
+  padding: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #eeeeee;
+}
+
+.gem-name {
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.gem-severity {
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: white;
+}
+
+.gem-severity.critical {
+  background-color: #e74c3c;
+}
+
+.gem-severity.high {
+  background-color: #fd7e14;
+}
+
+.gem-severity.medium {
+  background-color: #f39c12;
+}
+
+.gem-severity.low {
+  background-color: #27ae60;
+}
+
+.gem-details {
+  padding: 1rem;
+}
+
+.gem-versions {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.version-label {
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.version-value {
+  font-weight: 600;
+  margin-left: 0.5rem;
+}
+
+.gem-vulnerabilities-count {
+  font-size: 0.9rem;
+  color: #e74c3c;
+  font-weight: 500;
+}
+
+.gem-actions {
+  padding: 1rem;
+  border-top: 1px solid #eeeeee;
+  background-color: #f8f9fa;
+}
+
+/* Security Timeline */
+.security-timeline-container {
+  padding: 1rem 0;
+}
+
+.timeline-chart-placeholder {
+  background-color: #fff;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.chart-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.chart-legend {
+  display: flex;
+  gap: 1rem;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.legend-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.legend-label {
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.chart-timeline {
+  position: relative;
+  height: 60px;
+  background: linear-gradient(to right, #e9ecef 0%, #e9ecef 100%);
+  border-radius: 4px;
+}
+
+.timeline-point {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transform: translateX(-50%);
+}
+
+.timeline-marker {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  margin-bottom: 0.5rem;
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.timeline-marker.critical {
+  background-color: #dc3545;
+}
+
+.timeline-marker.medium {
+  background-color: #ffc107;
+}
+
+.timeline-marker.low {
+  background-color: #28a745;
+}
+
+.timeline-date {
+  font-size: 0.8rem;
+  color: #666;
+  white-space: nowrap;
+}
+
+.timeline-insights {
+  margin-top: 1.5rem;
+}
+
+.insight-card {
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.insight-header {
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: #495057;
+}
+
+.insight-item {
+  margin-bottom: 0.75rem;
+}
+
+.insight-item:last-child {
+  margin-bottom: 0;
+}
+
+.insight-title {
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+  color: #343a40;
+}
+
+.insight-description {
+  font-size: 0.9rem;
+  color: #6c757d;
+}

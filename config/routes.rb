@@ -5,4 +5,7 @@ Solidstats::Engine.routes.draw do
   # Route for truncating logs - accepts filename without extension
   post "truncate-log(/:filename)", to: "dashboard#truncate_log", as: :truncate_log,
                                    constraints: { filename: /[^\.]+/ }
+
+  post "gem_metadata/refresh", to: "gem_metadata#refresh", as: :refresh_gem_metadata
+  get "gem_metadata/refresh", to: "gem_metadata#refresh"  # Fallback for direct URL access
 end
