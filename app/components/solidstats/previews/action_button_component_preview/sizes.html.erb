@@ -1,0 +1,6 @@
+<%# filepath: /Users/mezbah/microstartup/infolily_organizer/gems/solidstats/previews/action_button_component_preview/sizes.html.erb %>
+<div style="display: flex; gap: 1rem; align-items: center; padding: 1rem;">
+  <% buttons.each do |button_config| %>
+    <%= render(Solidstats::Ui::ActionButtonComponent.new(**button_config)) %>
+  <% end %>
+</div>
