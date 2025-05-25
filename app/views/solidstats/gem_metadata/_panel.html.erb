@@ -13,11 +13,12 @@
         </div>
       </div>
       <div class="header-actions">
-        <%= link_to refresh_gem_metadata_path,
+        <%= button_to refresh_gem_metadata_path,
+            method: :post,
             class: "action-btn refresh-btn", 
             title: "Refresh gem metadata", 
-            aria: { label: 'Refresh gem metadata' },
-            data: { turbo_method: :post, confirm: 'This will fetch the latest gem information. Continue?' } do %>
+            form: { style: "display: inline-block;" },
+            data: { confirm: 'This will fetch the latest gem information. Continue?' } do %>
           <i class="fas fa-sync-alt"></i>
           <span class="btn-text">Refresh All</span>
         <% end %>
@@ -388,9 +389,10 @@
           It looks like we couldn't find any gem metadata. This could happen if your Gemfile.lock is missing or the API is unavailable.
         </div>
         <div class="empty-actions">
-          <%= link_to refresh_gem_metadata_path,
+          <%= button_to refresh_gem_metadata_path,
+              method: :post,
               class: "action-btn refresh-btn primary", 
-              data: { turbo_method: :post } do %>
+              form: { style: "display: inline-block;" } do %>
             <i class="fas fa-sync-alt"></i>
             Try Refreshing
           <% end %>

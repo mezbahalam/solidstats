@@ -7,4 +7,5 @@ Solidstats::Engine.routes.draw do
                                    constraints: { filename: /[^\.]+/ }
 
   post "gem_metadata/refresh", to: "gem_metadata#refresh", as: :refresh_gem_metadata
+  get "gem_metadata/refresh", to: "gem_metadata#refresh"  # Fallback for direct URL access
 end
