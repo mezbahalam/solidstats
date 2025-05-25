@@ -8,14 +8,12 @@ module Solidstats
       audit_service = AuditService.new
       todo_service = TodoService.new
       log_monitor_service = LogSizeMonitorService.new
-      # Initialize the gem metadata service
-      gem_metadata_service = GemMetadata::FetcherService
 
       # Get full data for detailed views
       @audit_output = audit_service.fetch
       @todo_items = todo_service.fetch
       @log_data = log_monitor_service.collect_data
-      @gem_metadata = gem_metadata_service.call
+      @gems = Solidstats::GemMetadata::FetcherService.call
 
       # Get summary data for dashboard cards
       @audit_summary = audit_service.summary

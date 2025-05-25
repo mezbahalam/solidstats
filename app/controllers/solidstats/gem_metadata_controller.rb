@@ -1,14 +1,5 @@
 module Solidstats
   class GemMetadataController < ApplicationController
-    def index
-      @gems = Solidstats::GemMetadata::FetcherService.call
-      
-      respond_to do |format|
-        format.html
-        format.json { render json: { gems: @gems } }
-      end
-    end
-    
     def refresh
       @gems = Solidstats::GemMetadata::FetcherService.call(nil, true)
       

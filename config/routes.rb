@@ -6,7 +6,5 @@ Solidstats::Engine.routes.draw do
   post "truncate-log(/:filename)", to: "dashboard#truncate_log", as: :truncate_log,
                                    constraints: { filename: /[^\.]+/ }
 
-  # Simple gem metadata routes
-  get  "gem_metadata",        to: "gem_metadata#index",   as: :gem_metadata
   post "gem_metadata/refresh", to: "gem_metadata#refresh", as: :refresh_gem_metadata
 end
