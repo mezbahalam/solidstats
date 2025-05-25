@@ -30,8 +30,10 @@ module Solidstats
       def card_attributes
         attrs = {
           class: card_classes,
-          "data-section": section,
-          "data-tab": tab
+          data: {
+            section: section,
+            tab: tab
+          }.compact
         }.compact
         
         attrs.merge(options)

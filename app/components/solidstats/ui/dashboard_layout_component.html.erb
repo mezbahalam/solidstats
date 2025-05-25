@@ -1,6 +1,6 @@
 <%# filepath: /Users/mezbah/microstartup/infolily_organizer/gems/solidstats/ui/dashboard_layout_component.html.erb %>
-<div <%= dashboard_attributes %>>
-  <header <%= { class: header_classes } %>>
+<%= tag.div(**dashboard_attributes) do %>
+  <%= tag.header(class: header_classes) do %>
     <div class="header-main">
       <h1><%= title_with_icon %></h1>
       <span class="audit-date"><%= formatted_subtitle %></span>
@@ -11,9 +11,9 @@
       sections: navigation_sections,
       actions: navigation_actions
     )) %>
-  </header>
+  <% end %>
 
   <% if content.present? %>
     <%= content %>
   <% end %>
-</div>
+<% end %>

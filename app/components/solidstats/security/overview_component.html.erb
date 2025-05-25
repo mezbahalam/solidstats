@@ -1,10 +1,10 @@
 <%# filepath: /Users/mezbah/microstartup/infolily_organizer/gems/solidstats/security/security_overview_component.html.erb %>
-<div <%= overview_attributes %>>
-  <div <%= { class: score_container_classes } %>>
-    <div <%= { class: score_classes } %>>
+<%= tag.div(**overview_attributes) do %>
+  <%= tag.div(class: score_container_classes) do %>
+    <%= tag.div(class: score_classes) do %>
       <div class="score-value"><%= security_score %></div>
       <div class="score-label">Security<br>Rating</div>
-    </div>
+    <% end %>
     
     <div class="security-metrics">
       <% metrics_data.each do |metric| %>
@@ -17,5 +17,5 @@
         </div>
       <% end %>
     </div>
-  </div>
-</div>
+  <% end %>
+<% end %>
