@@ -1,6 +1,6 @@
 <%# Modern Summary Card Component Template %>
-<<%= wrapper_tag %> <%= wrapper_attributes %>>
-  <div <%= card_attributes %>>
+<%= tag.send(wrapper_tag, **wrapper_attributes) do %>
+  <%= tag.div(**card_attributes) do %>
     <% if card_icon %>
       <div class="card-icon"><%= card_icon %></div>
     <% end %>
@@ -8,5 +8,5 @@
       <div class="card-value"><%= formatted_value %></div>
       <div class="card-label"><%= title %></div>
     </div>
-  </div>
-</<%= wrapper_tag %>>
+  <% end %>
+<% end %>
