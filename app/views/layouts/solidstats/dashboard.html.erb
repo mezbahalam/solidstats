@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html data-theme="dark" class="dark transition-colors duration-300">
+<head>
+  <title>Solidstats Dashboard</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <%= csrf_meta_tags %>
+  <%= csp_meta_tag %>
+
+  <%= yield :head %>
+
+  <%= stylesheet_link_tag "solidstats/dashboard", media: "all" %>
+  <script src="https://unpkg.com/feather-icons"></script>
+</head>
+<body class="bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800 min-h-screen transition-all duration-300">
+  
+  <!-- Header -->
+  <header class="sticky top-0 z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg border-b border-slate-200 dark:border-slate-700">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center h-16">
+        <div class="flex items-center space-x-4">
+          <div class="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+            <i data-feather="activity" class="w-5 h-5 text-white"></i>
+          </div>
+          <h1 class="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            Solidstats Dashboard
+          </h1>
+        </div>
+        
+        <!-- Theme Toggle -->
+        <button id="theme-toggle" 
+                class="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors duration-200">
+          <i data-feather="sun" class="w-5 h-5 text-slate-600 dark:text-slate-400 dark:hidden"></i>
+          <i data-feather="moon" class="w-5 h-5 text-slate-600 dark:text-slate-400 hidden dark:inline"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <%= yield %>
+  </main>
+
+  <!-- Theme Toggle Script -->
+  <script>
+    // Initialize Feather icons
+    feather.replace();
+    
+    // Theme toggle functionality
+    const themeToggle = document.getElementById('theme-toggle');
+    const html = document.documentElement;
+    
+    // Check for saved theme preference or default to 'dark'
+    const currentTheme = localStorage.getItem('theme') || 'dark';
+    html.setAttribute('data-theme', currentTheme);
+    
+    if (currentTheme === 'dark') {
+      html.classList.add('dark');
+    }
+    
+    themeToggle.addEventListener('click', () => {
+      const isDark = html.classList.contains('dark');
+      
+      if (isDark) {
+        html.classList.remove('dark');
+        html.setAttribute('data-theme', 'light');
+        localStorage.setItem('theme', 'light');
+      } else {
+        html.classList.add('dark');
+        html.setAttribute('data-theme', 'dark');
+        localStorage.setItem('theme', 'dark');
+      }
+      
+      // Re-initialize icons after theme change
+      setTimeout(() => feather.replace(), 100);
+    });
+  </script>
+</body>
+</html>

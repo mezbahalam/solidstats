@@ -1,5 +1,7 @@
 module Solidstats
   class DashboardController < ApplicationController
+    layout 'solidstats/dashboard'
+    
     TODO_CACHE_FILE = Rails.root.join("tmp", "solidstats_todos.json")
     AUDIT_CACHE_HOURS = 12 # Configure how many hours before refreshing
 
@@ -66,12 +68,50 @@ module Solidstats
 
       # Add .log extension if not included in the filename
       if filename.present? && !filename.end_with?(".log")
-        filename = "#{filename}.log"
+              filename = "#{filename}.log"
       end
 
       result = log_monitor_service.truncate_log(filename)
 
       render json: result
+    end
+
+    def dashboard
+      # Load dashboard cards from JSON file
+      @dashboard_cards = load_dashboard_cards
+      render 'dashboard'
+    end
+
+    private
+
+    def load_dashboard_cards
+      json_file_path = Rails.root.join("solidstats", "summary.json")
+      
+      begin
+        # Read and parse the JSON file
+        json_data = JSON.parse(File.read(json_file_path))
+        
+        # Transform the JSON data into the format expected by the view
+        json_data.map do |name, data|
+          {
+            name: name,
+            icon: data["icon"],
+            status: data["status"],
+            value: data["value"],
+            last_updated: Time.zone.parse(data["last_updated"]),
+            url: data["url"],
+            badges: data["badges"]
+          }
+        end
+      rescue Errno::ENOENT
+        Rails.logger.error("Summary JSON file not found at #{json_file_path}")
+        # Fallback to empty array or sample data if file not found
+        []
+      rescue JSON::ParserError => e
+        Rails.logger.error("Error parsing summary JSON: #{e.message}")
+        # Fallback to empty array if JSON is invalid
+        []
+      end
     end
   end
 end

@@ -1,0 +1,30 @@
+<%# Quick Actions Section %>
+
+<div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-lg p-6">
+  <h3 class="text-xl font-semibold text-slate-900 dark:text-slate-100 mb-4 flex items-center">
+    <i data-feather="settings" class="w-5 h-5 mr-2"></i>
+    Quick Actions
+  </h3>
+  
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <% quick_actions.each do |action| %>
+      <button class="quick-action-btn group flex flex-col items-center p-4 rounded-xl 
+                     bg-slate-50 dark:bg-slate-700 
+                     hover:bg-<%= action[:color] %>-50 dark:hover:bg-<%= action[:color] %>-900/20 
+                     border border-slate-200 dark:border-slate-600 
+                     hover:border-<%= action[:color] %>-300 dark:hover:border-<%= action[:color] %>-600 
+                     transition-all duration-200 hover:shadow-md">
+        <div class="w-10 h-10 bg-gradient-to-r from-<%= action[:color] %>-500 to-<%= action[:color] %>-600 
+                    rounded-lg flex items-center justify-center mb-2 
+                    group-hover:scale-110 transition-transform duration-200 shadow-lg
+                    relative overflow-hidden">
+          <div class="absolute inset-0 bg-gradient-to-r from-<%= action[:color] %>-600 to-<%= action[:color] %>-700 opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
+          <i data-feather="<%= action[:icon] %>" class="w-5 h-5 text-white drop-shadow-lg relative z-10 font-bold stroke-2"></i>
+        </div>
+        <span class="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-<%= action[:color] %>-600 dark:group-hover:text-<%= action[:color] %>-400 transition-colors duration-200">
+          <%= action[:label] %>
+        </span>
+      </button>
+    <% end %>
+  </div>
+</div>

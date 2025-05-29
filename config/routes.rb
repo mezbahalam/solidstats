@@ -1,5 +1,6 @@
 Solidstats::Engine.routes.draw do
-  root to: "dashboard#index"
+  root to: "dashboard#dashboard"
+  get "dashboard", to: "dashboard#dashboard", as: :dashboard
   get "refresh", to: "dashboard#refresh", as: :refresh
 
   # Route for truncating logs - accepts filename without extension

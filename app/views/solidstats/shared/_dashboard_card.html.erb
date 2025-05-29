@@ -1,0 +1,169 @@
+<%# 
+  Dashboard Card Component
+  Props:
+  - icon: string (feather icon name)
+  - status: string ('success', 'warning', 'error', 'info')
+  - value: string/number (main metric value)
+  - name: string (card title)
+  - last_updated: datetime
+  - url: string (link destination)
+  - badges: array of hashes with {text: string, color: string}
+  - loading: boolean (optional)
+%>
+
+<%
+  # Set defaults
+  icon ||= 'activity'
+  status ||= 'info'
+  value ||= '0'
+  name ||= 'Metric'
+  last_updated ||= Time.current
+  url ||= '#'
+  badges ||= []
+  loading ||= false
+  
+  # Define status-based color mappings
+  status_bg = {
+    'success' => 'bg-emerald-50 dark:bg-emerald-900/20',
+    'warning' => 'bg-amber-50 dark:bg-amber-900/20',
+    'error' => 'bg-red-50 dark:bg-red-900/20',
+    'info' => 'bg-blue-50 dark:bg-blue-900/20'
+  }
+  
+  status_border = {
+    'success' => 'border border-emerald-200 dark:border-emerald-800',
+    'warning' => 'border border-amber-200 dark:border-amber-800',
+    'error' => 'border border-red-200 dark:border-red-800',
+    'info' => 'border border-blue-200 dark:border-blue-800'
+  }
+  
+  status_colors = {
+    'success' => 'from-emerald-500 to-green-500',
+    'warning' => 'from-amber-500 to-orange-500',
+    'error' => 'from-red-500 to-rose-500',
+    'info' => 'from-blue-500 to-indigo-500'
+  }
+  
+  # Define badge color classes
+  badge_colors = {
+    'success' => 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400',
+    'warning' => 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400',
+    'error' => 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
+    'info' => 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400'
+  }
+%>
+
+<div class="group relative">
+  <!-- Card Container -->
+  <div class="card-container <%= status_bg[status] %> <%= status_border[status] %> shadow-lg hover:shadow-xl rounded-xl backdrop-blur-md transition-all duration-300"
+       onclick="window.location.href='<%= url %>'"
+       data-card-id="<%= name.parameterize %>">
+    
+    <!-- Gradient Border Animation -->
+    <div class="absolute inset-0 bg-gradient-to-r <%= status_colors[status] %> rounded-2xl opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
+    
+    <!-- Loading Overlay -->
+    <% if defined?(loading) && loading %>
+      <div class="absolute inset-0 bg-white/75 dark:bg-slate-900/75 flex items-center justify-center rounded-xl z-10">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+      </div>
+    <% end %>
+    
+    <div class="relative p-6">
+      <!-- Header Row: Icon, Status, Refresh Button -->
+      <div class="flex items-center justify-between mb-4">
+        <!-- Icon with Status -->
+        <div class="flex items-center space-x-3">
+          <div class="icon-container w-12 h-12 rounded-xl bg-gradient-to-r <%= status_colors[status] %> 
+                      flex items-center justify-center shadow-lg transform group-hover:scale-110 transition-transform duration-200">
+            <i data-feather="<%= icon %>" class="w-6 h-6 text-white"></i>
+          </div>
+          
+          <!-- Status Indicator -->
+          <div class="flex items-center space-x-2">
+            <div class="w-2 h-2 rounded-full bg-gradient-to-r <%= status_colors[status] %> animate-pulse"></div>
+            <span class="text-xs font-medium text-slate-600 dark:text-slate-400 uppercase tracking-wider">
+              <%= status %>
+            </span>
+          </div>
+        </div>
+        
+        <!-- Refresh Button -->
+        <button class="refresh-btn p-2 rounded-lg bg-slate-100 dark:bg-slate-700 
+                       hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors duration-200"
+                onclick="refreshCard('<%= card_id if defined?(card_id) %>')">
+          <i data-feather="refresh-cw" class="w-4 h-4 text-slate-600 dark:text-slate-400"></i>
+        </button>
+      </div>
+      
+      <!-- Value -->
+      <div class="mb-3">
+        <div class="text-3xl font-bold text-slate-900 dark:text-slate-100 group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:<%= status_colors[status] %> group-hover:bg-clip-text transition-all duration-300">
+          <%= value %>
+        </div>
+      </div>
+      
+      <!-- Name/Title -->
+      <div class="mb-4">
+        <h3 class="text-lg font-semibold text-slate-800 dark:text-slate-200 group-hover:text-slate-900 dark:group-hover:text-slate-100 transition-colors duration-200">
+          <%= name %>
+        </h3>
+      </div>
+      
+      <!-- Last Updated -->
+      <div class="mb-4">
+        <div class="flex items-center space-x-2 text-sm text-slate-500 dark:text-slate-400">
+          <i data-feather="clock" class="w-4 h-4"></i>
+          <span>Updated <%= time_ago_in_words(last_updated) %> ago</span>
+        </div>
+      </div>
+      
+      <!-- Badges -->
+      <% if badges.present? && badges.any? %>
+        <div class="flex flex-wrap gap-2">
+          <% badges.each do |badge| %>
+            <%
+              # Handle both string and symbol keys, and provide better fallback
+              badge_color = badge.is_a?(Hash) ? (badge['color'] || badge[:color]) : nil
+              badge_text = badge.is_a?(Hash) ? (badge['text'] || badge[:text]) : badge.to_s
+              badge_class = badge_colors[badge_color&.to_s] || badge_colors['info']
+            %>
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium <%= badge_class %>">
+              <%= badge_text %>
+            </span>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+    
+    <!-- Hover Effect Gradient -->
+    <div class="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r <%= status_colors[status] %> 
+                transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left">
+    </div>
+  </div>
+</div>
+
+<script>
+  // Card refresh functionality
+  function refreshCard(cardId) {
+    const card = document.querySelector(`[data-card-id="${cardId}"]`);
+    const refreshBtn = card.querySelector('.refresh-btn');
+    
+    // Add loading state
+    refreshBtn.classList.add('animate-spin');
+    
+    // Simulate API call (replace with actual refresh logic)
+    setTimeout(() => {
+      refreshBtn.classList.remove('animate-spin');
+      
+      // Add success feedback
+      refreshBtn.classList.add('text-green-500');
+      setTimeout(() => {
+        refreshBtn.classList.remove('text-green-500');
+      }, 1000);
+    }, 1500);
+  }
+  
+  // Initialize feather icons for this card
+  feather.replace();
+</script>
