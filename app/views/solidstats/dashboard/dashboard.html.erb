@@ -1,14 +1,18 @@
 <%# Dashboard Index View %>
 
-<div class="dashboard-container">
+<div class="dashboard-enter">
   <!-- Welcome Section -->
-  <div class="mb-8 text-center">
-    <h2 class="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-2">
-      Welcome to Your Dashboard
-    </h2>
-    <p class="text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
-      Monitor your application's performance, security, and health metrics in real-time
-    </p>
+  <div class="hero mb-8">
+    <div class="hero-content text-center">
+      <div class="max-w-2xl">
+        <h2 class="text-3xl font-bold mb-2">
+          Welcome to Your Dashboard
+        </h2>
+        <p class="text-base-content/70">
+          Monitor your application's performance, security, and health metrics in real-time
+        </p>
+      </div>
+    </div>
   </div>
 
   <!-- Stats Grid -->
@@ -25,9 +29,9 @@
 <script>
   feather.replace();
   
-  // Auto-refresh functionality
+  // Auto-refresh functionality with DaisyUI animations
   setInterval(() => {
-    document.querySelectorAll('.card-container').forEach(card => {
+    document.querySelectorAll('.card').forEach(card => {
       card.style.transform = 'scale(1.02)';
       setTimeout(() => card.style.transform = '', 200);
     });

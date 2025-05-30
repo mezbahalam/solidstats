@@ -3,7 +3,8 @@ Solidstats::Engine.routes.draw do
   get "dashboard", to: "dashboard#dashboard", as: :dashboard
   get "refresh", to: "dashboard#refresh", as: :refresh
 
-  # Route for truncating logs - accepts filename without extension
-  post "truncate-log(/:filename)", to: "dashboard#truncate_log", as: :truncate_log,
-                                   constraints: { filename: /[^\.]+/ }
+  # Log-related routes
+  get "logs/size", to: "logs#logs_size", as: :logs_size
+  post "logs/truncate/:filename", to: "logs#truncate", as: :truncate_log, constraints: { filename: /.+/ }
+  post "logs/refresh", to: "logs#refresh", as: :refresh_logs
 end
