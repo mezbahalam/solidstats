@@ -1,0 +1,186 @@
+<% content_for :title, "Security Vulnerabilities - Bundler Audit" %>
+
+<div class="container mx-auto px-6 py-8">
+  <!-- Header Section -->
+  <div class="mb-8">
+    <div class="flex items-center justify-between mb-4">
+      <div class="flex items-center space-x-3">
+        <div class="flex items-center justify-center w-12 h-12 bg-red-100 rounded-lg">
+          <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.864-.833-2.634 0L4.182 18.5c-.77.833.192 2.5 1.732 2.5z"/>
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900">Security Vulnerabilities</h1>
+          <p class="text-gray-600">Bundler audit results for gem dependencies</p>
+        </div>
+      </div>
+      
+      <div class="flex space-x-3">
+        <%= link_to refresh_securities_bundler_audit_path, method: :post, class: "inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150" do %>
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+          </svg>
+          Refresh Scan
+        <% end %>
+        
+        <%= link_to dashboard_path, class: "inline-flex items-center px-4 py-2 bg-gray-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 focus:bg-gray-700 active:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition ease-in-out duration-150" do %>
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+          </svg>
+          Back to Dashboard
+        <% end %>
+      </div>
+    </div>
+    
+    <!-- Summary Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+      <div class="bg-white rounded-lg shadow p-6">
+        <div class="flex items-center">
+          <div class="flex-shrink-0">
+            <div class="flex items-center justify-center w-8 h-8 bg-<%= @summary[:status] == 'success' ? 'green' : @summary[:status] == 'warning' ? 'yellow' : 'red' %>-100 rounded-md">
+              <svg class="w-5 h-5 text-<%= @summary[:status] == 'success' ? 'green' : @summary[:status] == 'warning' ? 'yellow' : 'red' %>-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 0h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+              </svg>
+            </div>
+          </div>
+          <div class="ml-5 w-0 flex-1">
+            <dl>
+              <dt class="text-sm font-medium text-gray-500 truncate">Total Vulnerabilities</dt>
+              <dd class="text-lg font-medium text-gray-900"><%= @summary[:count] %></dd>
+            </dl>
+          </div>
+        </div>
+      </div>
+      
+      <% %w[critical high medium low].each do |severity| %>
+        <% count = @vulnerabilities_by_severity[severity]&.count || 0 %>
+        <div class="bg-white rounded-lg shadow p-6">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <div class="flex items-center justify-center w-8 h-8 bg-<%= severity == 'critical' ? 'red' : severity == 'high' ? 'orange' : severity == 'medium' ? 'yellow' : 'blue' %>-100 rounded-md">
+                <span class="text-<%= severity == 'critical' ? 'red' : severity == 'high' ? 'orange' : severity == 'medium' ? 'yellow' : 'blue' %>-600 font-semibold text-xs uppercase"><%= severity[0] %></span>
+              </div>
+            </div>
+            <div class="ml-5 w-0 flex-1">
+              <dl>
+                <dt class="text-sm font-medium text-gray-500 truncate"><%= severity.capitalize %></dt>
+                <dd class="text-lg font-medium text-gray-900"><%= count %></dd>
+              </dl>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Last Updated Info -->
+  <% if @last_updated %>
+    <div class="mb-6 p-4 bg-gray-50 rounded-lg">
+      <p class="text-sm text-gray-600">
+        <svg class="inline w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        Last updated: <%= @last_updated %>
+      </p>
+    </div>
+  <% end %>
+
+  <!-- Vulnerabilities List -->
+  <% if @vulnerabilities.any? %>
+    <div class="bg-white shadow rounded-lg">
+      <div class="px-6 py-4 border-b border-gray-200">
+        <h3 class="text-lg font-medium text-gray-900">Security Vulnerabilities Found</h3>
+        <p class="mt-1 text-sm text-gray-500">
+          <%= pluralize(@vulnerabilities.count, 'vulnerability') %> detected in your gem dependencies
+        </p>
+      </div>
+      
+      <div class="divide-y divide-gray-200">
+        <% @vulnerabilities.each_with_index do |vulnerability, index| %>
+          <div class="px-6 py-4">
+            <div class="flex items-start justify-between">
+              <div class="flex-1">
+                <div class="flex items-center space-x-3 mb-2">
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-<%= vulnerability.dig('advisory', 'criticality') == 'critical' ? 'red' : vulnerability.dig('advisory', 'criticality') == 'high' ? 'orange' : vulnerability.dig('advisory', 'criticality') == 'medium' ? 'yellow' : 'blue' %>-100 text-<%= vulnerability.dig('advisory', 'criticality') == 'critical' ? 'red' : vulnerability.dig('advisory', 'criticality') == 'high' ? 'orange' : vulnerability.dig('advisory', 'criticality') == 'medium' ? 'yellow' : 'blue' %>-800">
+                    <%= vulnerability.dig('advisory', 'criticality')&.capitalize || 'Unknown' %>
+                  </span>
+                  <h4 class="text-lg font-medium text-gray-900">
+                    <%= vulnerability.dig('gem', 'name') %> v<%= vulnerability.dig('gem', 'version') %>
+                  </h4>
+                </div>
+                
+                <h5 class="text-md font-semibold text-gray-800 mb-2">
+                  <%= vulnerability.dig('advisory', 'title') %>
+                </h5>
+                
+                <p class="text-sm text-gray-600 mb-3">
+                  <%= vulnerability.dig('advisory', 'description') %>
+                </p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <strong class="text-gray-700">CVE ID:</strong>
+                    <% if vulnerability.dig('advisory', 'cve') %>
+                      <span class="text-gray-900"><%= vulnerability.dig('advisory', 'cve') %></span>
+                    <% else %>
+                      <span class="text-gray-500">N/A</span>
+                    <% end %>
+                  </div>
+                  
+                  <div>
+                    <strong class="text-gray-700">Advisory Date:</strong>
+                    <span class="text-gray-900"><%= vulnerability.dig('advisory', 'date') %></span>
+                  </div>
+                  
+                  <div>
+                    <strong class="text-gray-700">Patched Versions:</strong>
+                    <span class="text-gray-900">
+                      <%= vulnerability.dig('advisory', 'patched_versions')&.join(', ') || 'None available' %>
+                    </span>
+                  </div>
+                  
+                  <div>
+                    <strong class="text-gray-700">GHSA ID:</strong>
+                    <% if vulnerability.dig('advisory', 'ghsa') %>
+                      <span class="text-gray-900"><%= vulnerability.dig('advisory', 'ghsa') %></span>
+                    <% else %>
+                      <span class="text-gray-500">N/A</span>
+                    <% end %>
+                  </div>
+                </div>
+                
+                <% if vulnerability.dig('advisory', 'url') %>
+                  <div class="mt-3">
+                    <%= link_to vulnerability.dig('advisory', 'url'), target: '_blank', class: "inline-flex items-center text-sm text-blue-600 hover:text-blue-500" do %>
+                      View Advisory
+                      <svg class="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                      </svg>
+                    <% end %>
+                  </div>
+                <% end %>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  <% else %>
+    <!-- No Vulnerabilities Found -->
+    <div class="text-center py-12">
+      <div class="flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mx-auto mb-4">
+        <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+      </div>
+      <h3 class="text-lg font-medium text-gray-900 mb-2">No Security Vulnerabilities Found</h3>
+      <p class="text-gray-500 mb-4">
+        Great news! Your gem dependencies don't have any known security vulnerabilities.
+      </p>
+      <p class="text-sm text-gray-400">
+        Keep your gems updated regularly to maintain security.
+      </p>
+    </div>
+  <% end %>
+</div>

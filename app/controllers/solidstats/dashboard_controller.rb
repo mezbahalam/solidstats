@@ -67,6 +67,7 @@ module Solidstats
         Rails.logger.error("Summary JSON file not found at #{json_file_path}")
         # Force a scan to create initial data if missing
         Solidstats::LogMonitoringService.scan_and_cache
+        Solidstats::BundlerAuditService.scan_and_cache
         # Return sample cards with badges for demo
         sample_cards_with_badges
       rescue JSON::ParserError => e
