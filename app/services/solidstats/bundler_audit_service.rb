@@ -183,9 +183,9 @@ module Solidstats
       # @return [String] Human-readable status message
       def generate_message(count)
         case count
-        when 0 then "No vulnerabilities found"
-        when 1 then "1 vulnerability found"
-        else "#{count} vulnerabilities found"
+        when 0 then "No vulnerabilities"
+        when 1 then "1 vulnerability"
+        else "#{count} vulnerabilities"
         end
       end
 
