@@ -11,4 +11,12 @@ Solidstats::Engine.routes.draw do
   # Security-related routes
   get "securities/bundler_audit", to: "securities#bundler_audit", as: :securities_bundler_audit
   post "securities/refresh_bundler_audit", to: "securities#refresh_bundler_audit", as: :refresh_securities_bundler_audit
+  
+  # Productivity-related routes
+  resources :productivity, only: [] do
+    collection do
+      get :my_todos
+      post :refresh_todos
+    end
+  end
 end

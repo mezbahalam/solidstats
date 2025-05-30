@@ -13,6 +13,15 @@ module Solidstats
       render 'dashboard'
     end
 
+    def refresh
+      # Refresh all services
+      Solidstats::LogMonitoringService.scan_and_cache
+      Solidstats::BundlerAuditService.scan_and_cache
+      Solidstats::MyTodoService.collect_todos
+      
+      redirect_to dashboard_path, notice: 'Dashboard data refreshed successfully!'
+    end
+
     private
 
     def quick_actions_data
@@ -68,6 +77,7 @@ module Solidstats
         # Force a scan to create initial data if missing
         Solidstats::LogMonitoringService.scan_and_cache
         Solidstats::BundlerAuditService.scan_and_cache
+        Solidstats::MyTodoService.collect_todos
         # Return sample cards with badges for demo
         sample_cards_with_badges
       rescue JSON::ParserError => e

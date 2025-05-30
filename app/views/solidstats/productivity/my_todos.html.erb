@@ -1,0 +1,78 @@
+<% content_for :title, "My TODOs" %>
+
+<div class="container mx-auto px-4 py-6">
+  <!-- Header -->
+  <div class="flex justify-between items-center mb-6">
+    <div>
+      <h1 class="text-3xl font-bold text-base-content">My TODOs</h1>
+      <p class="text-base-content/70 mt-1">Track TODO comments across your project</p>
+    </div>
+    
+    <div class="flex gap-2">
+      <%= link_to refresh_todos_productivity_index_path, 
+          method: :post,
+          class: "btn btn-primary btn-sm",
+          data: { confirm: "Refresh TODO cache? This may take a moment." } do %>
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+        </svg>
+        Refresh
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+    <div class="stat bg-base-200 rounded-lg">
+      <div class="stat-title">Total TODOs</div>
+      <div class="stat-value text-primary"><%= @stats[:total] %></div>
+    </div>
+    
+    <div class="stat bg-base-200 rounded-lg">
+      <div class="stat-title">Files with TODOs</div>
+      <div class="stat-value text-secondary"><%= @stats[:files_with_todos] %></div>
+    </div>
+    
+    <div class="stat bg-base-200 rounded-lg">
+      <div class="stat-title">Most Common</div>
+      <div class="stat-value text-accent">
+        <%= @stats[:by_type].max_by { |_, count| count }&.first&.upcase || 'N/A' %>
+      </div>
+    </div>
+    
+    <div class="stat bg-base-200 rounded-lg">
+      <div class="stat-title">Last Updated</div>
+      <div class="stat-value text-sm">
+        <%= @summary[:last_updated] ? time_ago_in_words(Time.parse(@summary[:last_updated].to_s)) + ' ago' : 'Never' %>
+      </div>
+    </div>
+  </div>
+
+  <!-- TODO Type Tabs -->
+  <div class="tabs tabs-lifted mb-6">
+    <input type="radio" name="todo_tabs" role="tab" class="tab" aria-label="All" checked />
+    <div role="tabpanel" class="tab-content bg-base-100 border-base-300 rounded-box p-6">
+      <%= render 'todo_list', todos: @todos, title: 'All TODOs' %>
+    </div>
+
+    <% @todos_by_type.each do |type, todos| %>
+      <input type="radio" name="todo_tabs" role="tab" class="tab" aria-label="<%= type.upcase %>" />
+      <div role="tabpanel" class="tab-content bg-base-100 border-base-300 rounded-box p-6">
+        <%= render 'todo_list', todos: todos, title: "#{type.upcase} Items" %>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<script>
+function copyToClipboard(text) {
+  navigator.clipboard.writeText(text).then(() => {
+    // Show toast notification
+    const toast = document.createElement('div');
+    toast.className = 'toast toast-top toast-end';
+    toast.innerHTML = '<div class="alert alert-success"><span>Copied to clipboard!</span></div>';
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 2000);
+  });
+}
+</script>
