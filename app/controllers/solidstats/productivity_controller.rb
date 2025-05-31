@@ -31,7 +31,7 @@ module Solidstats
       @todos = MyTodoService.collect_todos(force_refresh: true)
       
       respond_to do |format|
-        format.html { redirect_to my_todos_productivity_path, notice: 'TODOs refreshed successfully!' }
+        format.html { redirect_to my_todos_productivity_index_path, notice: 'TODOs refreshed successfully!' }
         format.json { render json: { status: 'success', message: 'TODOs refreshed', count: @todos.length } }
       end
     end

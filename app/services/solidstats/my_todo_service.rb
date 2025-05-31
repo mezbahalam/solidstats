@@ -18,7 +18,7 @@ module Solidstats
     ].freeze
     
     SCAN_EXTENSIONS = %w[.rb .js .html .erb .yml .yaml .json .css .scss .vue .jsx .tsx .ts].freeze
-    EXCLUDE_DIRS = %w[node_modules vendor tmp log public/assets .git coverage pkg].freeze
+    EXCLUDE_DIRS = %w[node_modules vendor tmp log public/assets .git coverage pkg app/assets/builds solidstats].freeze
     
     def self.collect_todos(force_refresh: false)
       return cached_todos unless force_refresh || cache_expired?
@@ -103,7 +103,13 @@ module Solidstats
       relative_path = path.sub("#{Rails.root}/", '')
       
       # Check standard exclude directories
-      return true if EXCLUDE_DIRS.any? { |dir| relative_path.include?("/#{dir}") || relative_path.start_with?("#{dir}/") }
+      EXCLUDE_DIRS.each do |dir|
+        # Check if this directory or any parent directory matches
+        path_parts = relative_path.split('/')
+        return true if path_parts.include?(dir)
+        return true if relative_path == dir
+        return true if relative_path.start_with?("#{dir}/")
+      end
       
       # Check gitignore patterns
       return true if exclude_patterns.any? { |pattern| File.fnmatch(pattern, relative_path, File::FNM_PATHNAME) }
