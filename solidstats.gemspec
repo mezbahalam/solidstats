@@ -39,4 +39,5 @@ Gem::Specification.new do |spec|
   end
 
   spec.add_dependency "bundler-audit"
+  spec.add_dependency "standard"
 end

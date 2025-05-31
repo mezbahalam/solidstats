@@ -18,6 +18,7 @@ module Solidstats
       Solidstats::LogMonitoringService.scan_and_cache
       Solidstats::BundlerAuditService.scan_and_cache
       Solidstats::MyTodoService.collect_todos
+      Solidstats::StylePatrolService.refresh_cache
       
       redirect_to dashboard_path, notice: 'Dashboard data refreshed successfully!'
     end
