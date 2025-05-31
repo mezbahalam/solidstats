@@ -196,7 +196,7 @@ module Solidstats
         "status" => status,
         "value" => generate_dashboard_message(data[:status], total_offenses, health_score),
         "last_updated" => data[:analyzed_at],
-        "url" => "/solidstats/securities/style_patrol",
+        "url" => "/solidstats/quality/style_patrol",
         "badges" => badges
       }
       
