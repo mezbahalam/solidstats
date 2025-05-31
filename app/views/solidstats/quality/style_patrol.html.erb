@@ -30,13 +30,15 @@
           Ruby Standard gem code quality enforcement
         </p>
         
-        <%= link_to refresh_quality_style_patrol_path, method: :post, 
-            class: "btn btn-accent btn-lg gap-3 shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 group",
-            data: { turbo_submits_with: "Analyzing..." } do %>
-          <svg class="w-5 h-5 group-hover:rotate-180 transition-transform duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-          </svg>
-          Refresh Analysis
+        <%= form_with url: refresh_quality_style_patrol_path, method: :post, local: true, 
+            data: { turbo_submits_with: "Analyzing..." }, class: "inline-block" do |form| %>
+          <%= form.button type: "submit", 
+              class: "btn btn-accent btn-lg gap-3 shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 group" do %>
+            <svg class="w-5 h-5 group-hover:rotate-180 transition-transform duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+            </svg>
+            Refresh Analysis
+          <% end %>
         <% end %>
       </div>
     </div>
@@ -438,11 +440,13 @@
       </div>
       <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow-2xl bg-base-100 rounded-box w-52 mb-2">
         <li>
-          <%= link_to refresh_quality_style_patrol_path, method: :post, class: "gap-3" do %>
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-            </svg>
-            Refresh Analysis
+          <%= form_with url: refresh_quality_style_patrol_path, method: :post, local: true, class: "contents" do |form| %>
+            <%= form.button type: "submit", class: "gap-3 w-full justify-start bg-transparent border-none hover:bg-base-200 text-base-content p-3 rounded-lg" do %>
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+              </svg>
+              Refresh Analysis
+            <% end %>
           <% end %>
         </li>
         <li>
