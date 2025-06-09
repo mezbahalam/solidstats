@@ -15,10 +15,11 @@ module Solidstats
 
     def refresh
       # Refresh all services
-      Solidstats::LogMonitoringService.scan_and_cache
+      Solidstats::LogSizeMonitorService.scan_and_cache
       Solidstats::BundlerAuditService.scan_and_cache
       Solidstats::MyTodoService.collect_todos
       Solidstats::StylePatrolService.refresh_cache
+      Solidstats::CoverageCompassService.refresh_cache
       
       redirect_to dashboard_path, notice: 'Dashboard data refreshed successfully!'
     end
@@ -68,24 +69,29 @@ module Solidstats
             icon: data["icon"],
             status: data["status"],
             value: data["value"],
-            last_updated: Time.zone.parse(data["last_updated"]),
+            last_updated: Time.parse(data["last_updated"]),
             url: data["url"],
             badges: data["badges"] || []
           }
         end
       rescue Errno::ENOENT
-        Rails.logger.error("Summary JSON file not found at #{json_file_path}")
-        # Force a scan to create initial data if missing
-        Solidstats::LogMonitoringService.scan_and_cache
-        Solidstats::BundlerAuditService.scan_and_cache
-        Solidstats::MyTodoService.collect_todos
-        # Return sample cards with badges for demo
-        sample_cards_with_badges
+        Rails.logger.warn("Summary JSON file not found, generating initial data...")
+        generate_initial_data
+        retry
       rescue JSON::ParserError => e
         Rails.logger.error("Error parsing summary JSON: #{e.message}")
         # Fallback to empty array if JSON is invalid
         []
       end
+    end
+
+    def generate_initial_data
+      # Force a scan to create initial data if missing
+      Solidstats::LogSizeMonitorService.scan_and_cache
+      Solidstats::BundlerAuditService.scan_and_cache
+      Solidstats::MyTodoService.collect_todos
+      Solidstats::StylePatrolService.refresh_cache
+      Solidstats::CoverageCompassService.refresh_cache
     end
   end
 end

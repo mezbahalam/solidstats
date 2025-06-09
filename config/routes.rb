@@ -15,6 +15,8 @@ Solidstats::Engine.routes.draw do
   # Quality-related routes
   get "quality/style_patrol", to: "quality#style_patrol", as: :quality_style_patrol
   post "quality/refresh_style_patrol", to: "quality#refresh_style_patrol", as: :refresh_quality_style_patrol
+  get "quality/coverage_compass", to: "quality#coverage_compass", as: :quality_coverage_compass
+  post "quality/refresh_coverage_compass", to: "quality#refresh_coverage_compass", as: :refresh_quality_coverage_compass
   
   # Productivity-related routes
   resources :productivity, only: [] do

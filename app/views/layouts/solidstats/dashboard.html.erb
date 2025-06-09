@@ -9,11 +9,11 @@
 
   <%= yield :head %>
 
-  <!-- Tailwind CSS with DaisyUI -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://cdn.jsdelivr.net/npm/daisyui@4.4.24/dist/full.css" rel="stylesheet" type="text/css" />
-  <%= stylesheet_link_tag "solidstats/dashboard", media: "all" %>
-  <script src="https://unpkg.com/feather-icons"></script>
+  <!-- Solidstats CDN Dependencies -->
+  <%= solidstats_cdn_dependencies %>
+
+  <!-- Inline Solidstats Styles -->
+  <%= solidstats_styles %>
 </head>
 <body class="min-h-screen bg-base-100 transition-all duration-300">
   
@@ -77,5 +77,8 @@
     const currentTheme = localStorage.getItem('theme') || 'dark';
     setTheme(currentTheme);
   </script>
+  
+  <!-- Inline Solidstats Scripts -->
+  <%= solidstats_scripts %>
 </body>
 </html>

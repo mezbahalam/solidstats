@@ -1,0 +1,420 @@
+<div class="min-h-screen bg-gradient-to-br from-base-200 to-base-300 p-4 lg:p-8">
+  <!-- Breadcrumbs -->
+  <div class="breadcrumbs text-sm mb-6">
+    <ul>
+      <li><a class="text-primary hover:text-primary-focus">Dashboard</a></li>
+      <li><a class="text-primary hover:text-primary-focus">Quality</a></li>
+      <li class="text-base-content/70">Coverage Compass</li>
+    </ul>
+  </div>
+
+  <!-- Hero Header -->
+  <div class="hero bg-gradient-to-r from-success via-info to-primary text-primary-content rounded-3xl mb-8 shadow-2xl overflow-hidden relative">
+    <!-- Background Pattern -->
+    <div class="absolute inset-0 opacity-10">
+      <svg class="w-full h-full" viewBox="0 0 100 100" fill="currentColor">
+        <pattern id="coverage-grid" width="8" height="8" patternUnits="userSpaceOnUse">
+          <circle cx="4" cy="4" r="0.8"/>
+        </pattern>
+        <rect width="100" height="100" fill="url(#coverage-grid)"/>
+      </svg>
+    </div>
+    
+    <div class="hero-content text-center py-16 relative z-10">
+      <div class="max-w-md">
+        <div class="text-7xl mb-6 animate-pulse">🧭</div>
+        <h1 class="text-6xl font-black mb-4 bg-gradient-to-r from-white to-primary-content bg-clip-text">
+          CoverageCompass
+        </h1>
+        <p class="text-xl opacity-90 mb-8 leading-relaxed">
+          Navigate your code coverage with precision
+        </p>
+        
+        <%= form_with url: refresh_quality_coverage_compass_path, method: :post, local: true, 
+            data: { turbo_submits_with: "Analyzing..." }, class: "inline-block" do |form| %>
+          <%= form.button type: "submit", 
+              class: "btn btn-accent btn-lg gap-3 shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 group" do %>
+            <svg class="w-5 h-5 group-hover:rotate-180 transition-transform duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+            </svg>
+            Run Coverage Analysis
+          <% end %>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Status Overview -->
+  <div class="mb-8">
+    <% case @analysis_data[:status] %>
+    <% when "success" %>
+      <% if @summary[:coverage_percent] >= 90 %>
+        <div class="alert alert-success shadow-lg">
+          <div>
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <div>
+              <h3 class="font-bold text-lg">Excellent Coverage!</h3>
+              <div class="text-sm opacity-80">Your code is well tested with <%= @summary[:coverage_percent] %>% coverage</div>
+            </div>
+          </div>
+          <div class="flex-none">
+            <div class="badge badge-success badge-lg font-mono"><%= @summary[:coverage_grade] %></div>
+          </div>
+        </div>
+      <% elsif @summary[:coverage_percent] >= 70 %>
+        <div class="alert alert-info shadow-lg">
+          <div>
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <div>
+              <h3 class="font-bold text-lg">Good Coverage</h3>
+              <div class="text-sm opacity-80"><%= @summary[:coverage_percent] %>% coverage - room for improvement</div>
+            </div>
+          </div>
+          <div class="flex-none">
+            <div class="badge badge-info badge-lg font-mono"><%= @summary[:coverage_grade] %></div>
+          </div>
+        </div>
+      <% else %>
+        <div class="alert alert-warning shadow-lg">
+          <div>
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 14.5c-.77.833.192 2.5 1.732 2.5z"></path>
+            </svg>
+            <div>
+              <h3 class="font-bold text-lg">Low Coverage</h3>
+              <div class="text-sm opacity-80"><%= @summary[:coverage_percent] %>% coverage - needs attention</div>
+            </div>
+          </div>
+          <div class="flex-none">
+            <div class="badge badge-warning badge-lg font-mono"><%= @summary[:coverage_grade] %></div>
+          </div>
+        </div>
+      <% end %>
+    <% when "error" %>
+      <div class="alert alert-error shadow-lg">
+        <div>
+          <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          <div>
+            <h3 class="font-bold text-lg">Coverage Analysis Error</h3>
+            <div class="text-sm opacity-80">Could not analyze code coverage</div>
+          </div>
+        </div>
+        <div class="flex-none">
+          <div class="badge badge-error badge-lg">Error</div>
+        </div>
+      </div>
+    <% end %>
+    
+    <!-- Coverage Metadata -->
+    <% if @analysis_data[:status] == "success" %>
+      <div class="stats stats-horizontal shadow-lg bg-base-100 mt-4 w-full">
+        <div class="stat">
+          <div class="stat-figure text-secondary">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+          </div>
+          <div class="stat-title">Last Analyzed</div>
+          <div class="stat-value text-2xl">
+            <% if @analysis_data[:analyzed_at] %>
+              <% analyzed_time = @analysis_data[:analyzed_at].is_a?(String) ? Time.parse(@analysis_data[:analyzed_at]) : @analysis_data[:analyzed_at] %>
+              <%= time_ago_in_words(analyzed_time) %>
+            <% else %>
+              Unknown
+            <% end %>
+          </div>
+          <div class="stat-desc">ago</div>
+        </div>
+        
+        <div class="stat">
+          <div class="stat-figure text-primary">
+            <div class="radial-progress text-primary border-primary border-4" style="--value:<%= @summary[:coverage_percent] %>;" role="progressbar">
+              <%= @summary[:coverage_percent] %>%
+            </div>
+          </div>
+          <div class="stat-title">Coverage</div>
+          <div class="stat-value text-3xl text-primary"><%= @summary[:coverage_percent] %>%</div>
+          <div class="stat-desc text-primary">Grade: <%= @summary[:coverage_grade] %></div>
+        </div>
+      </div>
+    <% end %>
+  </div>
+
+  <!-- Coverage Statistics -->
+  <% if @analysis_data[:status] == "success" %>
+    <div class="stats stats-vertical lg:stats-horizontal shadow-xl bg-gradient-to-r from-base-100 to-base-200 mb-8">
+      <div class="stat place-items-center">
+        <div class="stat-figure text-info">
+          <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+          </svg>
+        </div>
+        <div class="stat-title">Files Analyzed</div>
+        <div class="stat-value text-info"><%= @summary[:total_files] %></div>
+        <div class="stat-desc">Source files</div>
+      </div>
+      
+      <div class="stat place-items-center">
+        <div class="stat-figure text-success">
+          <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+        </div>
+        <div class="stat-title">Lines Covered</div>
+        <div class="stat-value text-success"><%= @summary[:covered_lines] %></div>
+        <div class="stat-desc">out of <%= @summary[:total_lines] %></div>
+      </div>
+      
+      <div class="stat place-items-center">
+        <div class="stat-figure text-error">
+          <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+        </div>
+        <div class="stat-title">Lines Missed</div>
+        <div class="stat-value text-error"><%= @summary[:missed_lines] %></div>
+        <div class="stat-desc">Need coverage</div>
+      </div>
+      
+      <div class="stat place-items-center">
+        <div class="stat-figure text-primary">
+          <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+          </svg>
+        </div>
+        <div class="stat-title">Health Score</div>
+        <div class="stat-value text-primary"><%= @summary[:health_score] %></div>
+        <div class="stat-desc">out of 100</div>
+      </div>
+    </div>
+
+    <!-- Coverage Ranges -->
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
+      <div class="card bg-gradient-to-br from-success to-success/80 text-success-content shadow-xl">
+        <div class="card-body">
+          <h2 class="card-title">
+            <div class="text-3xl">🏆</div>
+            Excellent (90%+)
+          </h2>
+          <div class="text-4xl font-bold"><%= @coverage_ranges[:excellent].count %></div>
+          <p class="opacity-80">files</p>
+        </div>
+      </div>
+
+      <div class="card bg-gradient-to-br from-info to-info/80 text-info-content shadow-xl">
+        <div class="card-body">
+          <h2 class="card-title">
+            <div class="text-3xl">👍</div>
+            Good (70-89%)
+          </h2>
+          <div class="text-4xl font-bold"><%= @coverage_ranges[:good].count %></div>
+          <p class="opacity-80">files</p>
+        </div>
+      </div>
+
+      <div class="card bg-gradient-to-br from-warning to-warning/80 text-warning-content shadow-xl">
+        <div class="card-body">
+          <h2 class="card-title">
+            <div class="text-3xl">⚠️</div>
+            Needs Work (50-69%)
+          </h2>
+          <div class="text-4xl font-bold"><%= @coverage_ranges[:needs_improvement].count %></div>
+          <p class="opacity-80">files</p>
+        </div>
+      </div>
+
+      <div class="card bg-gradient-to-br from-error to-error/80 text-error-content shadow-xl">
+        <div class="card-body">
+          <h2 class="card-title">
+            <div class="text-3xl">🚨</div>
+            Poor (<50%)
+          </h2>
+          <div class="text-4xl font-bold"><%= @coverage_ranges[:poor].count %></div>
+          <p class="opacity-80">files</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Detailed File Coverage -->
+    <% if @file_coverage.any? %>
+      <div class="card bg-base-100 shadow-xl mb-8">
+        <div class="card-body">
+          <h2 class="card-title text-2xl mb-6">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+            </svg>
+            File Coverage Details
+          </h2>
+          
+          <div class="space-y-4">
+            <% @file_coverage.reverse.each do |file| %>
+              <div class="collapse collapse-arrow bg-base-200">
+                <input type="checkbox" />
+                <div class="collapse-title text-lg font-medium flex items-center justify-between">
+                  <div class="flex items-center gap-3">
+                    <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                    <span class="font-mono text-sm text-base-content/70 break-all"><%= file[:file_path] %></span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <div class="radial-progress 
+                              <%= case file[:coverage_percent]
+                                  when 90..100 then 'text-success'
+                                  when 70..89 then 'text-info'
+                                  when 50..69 then 'text-warning'
+                                  else 'text-error'
+                                  end %> 
+                              border-4 
+                              <%= case file[:coverage_percent]
+                                  when 90..100 then 'border-success'
+                                  when 70..89 then 'border-info'
+                                  when 50..69 then 'border-warning'
+                                  else 'border-error'
+                                  end %>" 
+                         style="--value:<%= file[:coverage_percent] %>; --size:3rem;">
+                      <%= file[:coverage_percent].to_i %>%
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="collapse-content">
+                  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4">
+                    <div class="stat bg-base-300 rounded-lg">
+                      <div class="stat-title">Total Lines</div>
+                      <div class="stat-value text-primary"><%= file[:total_lines] %></div>
+                    </div>
+                    <div class="stat bg-base-300 rounded-lg">
+                      <div class="stat-title">Covered</div>
+                      <div class="stat-value text-success"><%= file[:covered_lines] %></div>
+                    </div>
+                    <div class="stat bg-base-300 rounded-lg">
+                      <div class="stat-title">Missed</div>
+                      <div class="stat-value text-error"><%= file[:missed_lines].count %></div>
+                    </div>
+                  </div>
+                  
+                  <% if file[:missed_lines].any? %>
+                    <div class="mt-4">
+                      <h4 class="font-semibold mb-2 text-error">Uncovered Lines:</h4>
+                      <div class="flex flex-wrap gap-2">
+                        <% file[:missed_lines].first(20).each do |line_num| %>
+                          <div class="badge badge-error"><%= line_num %></div>
+                        <% end %>
+                        <% if file[:missed_lines].count > 20 %>
+                          <div class="badge badge-outline">+ <%= file[:missed_lines].count - 20 %> more</div>
+                        <% end %>
+                      </div>
+                    </div>
+                  <% end %>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    <% end %>
+
+  <% else %>
+    <!-- Error Display -->
+    <div class="card bg-error text-error-content shadow-xl mb-8">
+      <div class="card-body">
+        <h2 class="card-title text-2xl">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          Coverage Analysis Error
+        </h2>
+        
+        <div class="bg-error-content/10 p-6 rounded-lg">
+          <p class="mb-4 text-lg">CoverageCompass encountered an error while analyzing your code coverage:</p>
+          <div class="mockup-code bg-base-300 text-base-content mb-6">
+            <pre class="px-4"><code><%= @analysis_data[:error_message] %></code></pre>
+          </div>
+          
+          <div class="divider"></div>
+          
+          <h3 class="text-lg font-bold mb-3">💡 Setup Instructions:</h3>
+          <div class="space-y-2">
+            <div class="flex items-start gap-3 p-3 bg-base-100 text-base-content rounded-lg">
+              <svg class="w-5 h-5 text-info mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              <div>
+                <div class="font-semibold">Add SimpleCov gems to your Gemfile:</div>
+                <div class="mockup-code bg-base-200 text-xs mt-2">
+                  <pre><code>gem 'simplecov', require: false
+gem 'simplecov-json', require: false</code></pre>
+                </div>
+              </div>
+            </div>
+            <div class="flex items-start gap-3 p-3 bg-base-100 text-base-content rounded-lg">
+              <svg class="w-5 h-5 text-info mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              <div>
+                <div class="font-semibold">Configure SimpleCov in your test helper:</div>
+                <div class="mockup-code bg-base-200 text-xs mt-2">
+                  <pre><code>require 'simplecov'
+require 'simplecov-json'
+
+# Set the output path for the coverage reports
+SimpleCov.coverage_dir('solidstats')
+
+SimpleCov.formatter = SimpleCov::Formatter::JSONFormatter
+SimpleCov.start</code></pre>
+                </div>
+              </div>
+            </div>
+            <div class="flex items-start gap-3 p-3 bg-base-100 text-base-content rounded-lg">
+              <svg class="w-5 h-5 text-info mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              <div>
+                <div class="font-semibold">Run your tests to generate coverage:</div>
+                <code class="bg-base-200 px-2 py-1 rounded text-sm">bundle exec rspec</code>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <!-- Floating Action Button -->
+  <div class="fixed bottom-6 right-6 lg:hidden">
+    <div class="dropdown dropdown-top dropdown-end">
+      <div tabindex="0" role="button" class="btn btn-circle btn-primary btn-lg shadow-2xl">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path>
+        </svg>
+      </div>
+      <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow-2xl bg-base-100 rounded-box w-52 mb-2">
+        <li>
+          <%= form_with url: refresh_quality_coverage_compass_path, method: :post, local: true, class: "contents" do |form| %>
+            <%= form.button type: "submit", class: "gap-3 w-full justify-start bg-transparent border-none hover:bg-base-200 text-base-content p-3 rounded-lg" do %>
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+              </svg>
+              Run Analysis
+            <% end %>
+          <% end %>
+        </li>
+        <li>
+          <a href="#top" class="gap-3">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 11l5-5m0 0l5 5m-5-5v12"></path>
+            </svg>
+            Back to Top
+          </a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>

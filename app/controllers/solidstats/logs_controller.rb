@@ -3,7 +3,7 @@ module Solidstats
     layout 'solidstats/dashboard'
     
     def logs_size
-      @logs_data = Solidstats::LogMonitoringService.get_logs_data
+      @logs_data = Solidstats::LogSizeMonitorService.get_logs_data
     end
 
     def truncate
@@ -33,7 +33,7 @@ module Solidstats
         }, status: :bad_request
       end
 
-      result = Solidstats::LogMonitoringService.truncate_log(filename)
+      result = Solidstats::LogSizeMonitorService.truncate_log(filename)
 
       if result[:status] == "success"
         render json: {
@@ -55,7 +55,7 @@ module Solidstats
 
     def refresh
       # Force refresh of log monitoring data
-      result = Solidstats::LogMonitoringService.scan_and_cache
+      result = Solidstats::LogSizeMonitorService.scan_and_cache
       
       render json: {
         status: "success",
