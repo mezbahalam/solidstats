@@ -1,6 +1,6 @@
 Solidstats::Engine.routes.draw do
   root to: "dashboard#dashboard"
-  get "dashboard", to: "dashboard#dashboard", as: :dashboard
+  get "dashboard", to: "dashboard#dashboard", as: :solidstats_dashboard
   get "refresh", to: "dashboard#refresh", as: :refresh
 
   # Log-related routes

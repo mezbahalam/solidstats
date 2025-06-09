@@ -21,7 +21,7 @@ module Solidstats
       Solidstats::StylePatrolService.refresh_cache
       Solidstats::CoverageCompassService.refresh_cache
       
-      redirect_to dashboard_path, notice: 'Dashboard data refreshed successfully!'
+      redirect_to solidstats_dashboard_path, notice: 'Dashboard data refreshed successfully!'
     end
 
     private
