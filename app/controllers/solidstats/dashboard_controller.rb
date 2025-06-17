@@ -20,6 +20,7 @@ module Solidstats
       Solidstats::MyTodoService.collect_todos
       Solidstats::StylePatrolService.refresh_cache
       Solidstats::CoverageCompassService.refresh_cache
+      Solidstats::LoadLensService.scan_and_cache
       
       redirect_to solidstats_dashboard_path, notice: 'Dashboard data refreshed successfully!'
     end
@@ -92,6 +93,7 @@ module Solidstats
       Solidstats::MyTodoService.collect_todos
       Solidstats::StylePatrolService.refresh_cache
       Solidstats::CoverageCompassService.refresh_cache
+      Solidstats::DevLogParserService.scan_and_cache
     end
   end
 end

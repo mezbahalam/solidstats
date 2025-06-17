@@ -1,0 +1,158 @@
+<% content_for :head do %>
+  <title>LoadLens - Performance Dashboard</title>
+<% end %>
+
+<div class="flex justify-between items-center mb-8">
+  <h1 class="text-3xl font-bold">LoadLens - Performance Dashboard</h1>
+  <%= link_to "Refresh Data", refresh_performance_index_path, 
+      class: "btn btn-primary", 
+      "data-method": :post %>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+  <!-- Total Requests -->
+  <%= render 'solidstats/shared/dashboard_card',
+      icon: 'activity',
+      status: 'info',
+      value: @metrics[:total_requests] || 0,
+      name: 'Total Requests',
+      last_updated: Time.current,
+      url: '#',
+      badges: [
+        { text: 'Last 7 Days', color: 'info' }
+      ] %>
+
+  <!-- Average Response Time -->
+  <%= render 'solidstats/shared/dashboard_card',
+      icon: 'clock',
+      status: (@metrics[:avg_response_time] || 0) > 1000 ? 'warning' : 'success',
+      value: "#{@metrics[:avg_response_time] || 0}ms",
+      name: 'Avg Response Time',
+      last_updated: Time.current,
+      url: '#',
+      badges: [
+        { text: (@metrics[:avg_response_time] || 0) > 1000 ? 'Slow' : 'Fast', 
+          color: (@metrics[:avg_response_time] || 0) > 1000 ? 'warning' : 'success' }
+      ] %>
+
+  <!-- Database Time -->
+  <%= render 'solidstats/shared/dashboard_card',
+      icon: 'database',
+      status: (@metrics[:avg_db_time] || 0) > 500 ? 'warning' : 'success',
+      value: "#{@metrics[:avg_db_time] || 0}ms",
+      name: 'Avg DB Time',
+      last_updated: Time.current,
+      url: '#',
+      badges: [
+        { text: 'ActiveRecord', color: 'primary' }
+      ] %>
+
+  <!-- View Rendering Time -->
+  <%= render 'solidstats/shared/dashboard_card',
+      icon: 'eye',
+      status: (@metrics[:avg_view_time] || 0) > 300 ? 'warning' : 'success',
+      value: "#{@metrics[:avg_view_time] || 0}ms",
+      name: 'Avg View Time',
+      last_updated: Time.current,
+      url: '#',
+      badges: [
+        { text: 'Rendering', color: 'secondary' }
+      ] %>
+
+  <!-- Slow Requests -->
+  <%= render 'solidstats/shared/dashboard_card',
+      icon: 'alert-triangle',
+      status: (@metrics[:slow_requests] || 0) > 0 ? 'warning' : 'success',
+      value: @metrics[:slow_requests] || 0,
+      name: 'Slow Requests',
+      last_updated: Time.current,
+      url: '#',
+      badges: [
+        { text: '>1000ms', color: 'warning' }
+      ] %>
+
+  <!-- Error Rate -->
+  <%= render 'solidstats/shared/dashboard_card',
+      icon: 'alert-circle',
+      status: (@metrics[:error_rate] || 0) > 5 ? 'error' : 'success',
+      value: "#{@metrics[:error_rate] || 0}%",
+      name: 'Error Rate',
+      last_updated: Time.current,
+      url: '#',
+      badges: [
+        { text: '4xx/5xx', color: (@metrics[:error_rate] || 0) > 5 ? 'error' : 'success' }
+      ] %>
+</div>
+
+<!-- Recent Requests Table -->
+<div class="card bg-base-100 shadow-lg">
+  <div class="card-body">
+    <h2 class="card-title">Recent Requests</h2>
+    
+    <% if @recent_requests.any? %>
+      <div class="overflow-x-auto">
+        <table class="table table-zebra">
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Controller#Action</th>
+              <th>Method</th>
+              <th>Status</th>
+              <th>Total (ms)</th>
+              <th>View (ms)</th>
+              <th>DB (ms)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @recent_requests.each do |request| %>
+              <tr>
+                <td>
+                  <div class="text-sm">
+                    <%= Time.parse(request['timestamp']).strftime('%H:%M:%S') rescue 'N/A' %>
+                  </div>
+                </td>
+                <td>
+                  <div class="font-medium">
+                    <%= request['controller'] %>#<%= request['action'] %>
+                  </div>
+                  <div class="text-sm opacity-50">
+                    <%= request['path'] %>
+                  </div>
+                </td>
+                <td>
+                  <div class="badge badge-sm <%= request['http_method'] == 'GET' ? 'badge-success' : 'badge-primary' %>">
+                    <%= request['http_method'] %>
+                  </div>
+                </td>
+                <td>
+                  <div class="badge badge-sm <%= (request['status'] || 200) < 400 ? 'badge-success' : 'badge-error' %>">
+                    <%= request['status'] || 200 %>
+                  </div>
+                </td>
+                <td>
+                  <span class="<%= (request['total_time_ms'] || 0) > 1000 ? 'text-warning' : 'text-success' %>">
+                    <%= ((request['total_time_ms'] || 0).round(1)) %>
+                  </span>
+                </td>
+                <td><%= ((request['view_time_ms'] || 0).round(1)) %></td>
+                <td><%= ((request['activerecord_time_ms'] || 0).round(1)) %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    <% else %>
+      <div class="text-center py-8">
+        <div class="text-base-content/60 mb-4">
+          <i data-feather="activity" class="w-12 h-12 mx-auto mb-2"></i>
+          <p class="text-lg font-medium">No LoadLens Data</p>
+          <p class="text-sm">Start using your Rails app in development to see performance metrics here.</p>
+        </div>
+        <div class="text-sm text-base-content/40">
+          <p>LoadLens data is collected automatically from your development.log file.</p>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>
+

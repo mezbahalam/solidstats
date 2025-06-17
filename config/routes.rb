@@ -25,4 +25,12 @@ Solidstats::Engine.routes.draw do
       post :refresh_todos
     end
   end
+  
+  # Performance-related routes
+  resources :performance, only: [] do
+    collection do
+      get :load_lens
+      post :refresh
+    end
+  end
 end

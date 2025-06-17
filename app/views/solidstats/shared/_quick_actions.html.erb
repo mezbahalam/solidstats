@@ -10,7 +10,7 @@
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
       <% quick_actions.each do |action| %>
         <button class="btn btn-outline btn-sm group flex flex-col items-center p-4 h-auto min-h-16 
-                       hover:btn-<%= action[:color] %> transition-all duration-200">
+                       hover:btn-<%= action[:color] %> transition-all duration-200" disabled>
           <div class="w-10 h-10 bg-gradient-to-r from-<%= action[:color] %>-500 to-<%= action[:color] %>-600 
                       rounded-lg flex items-center justify-center mb-2 
                       group-hover:scale-110 transition-transform duration-200 shadow-lg">
