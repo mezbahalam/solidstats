@@ -1,0 +1,409 @@
+<%# 
+  Log Size Monitoring Page - DaisyUI Version
+  Shows all log files with sizes and provides truncation functionality
+%>
+
+<div class="dashboard-enter">
+  <!-- Breadcrumb Navigation -->
+  <div class="breadcrumbs text-sm mb-6">
+    <ul>
+      <li>
+        <%= link_to solidstats.solidstats_dashboard_path, class: "link link-hover" do %>
+          <i data-feather="home" class="w-4 h-4 mr-1"></i>
+          Dashboard
+        <% end %>
+      </li>
+      <li>Log Files</li>
+    </ul>
+  </div>
+
+  <!-- Page Header -->
+  <div class="hero bg-base-200 rounded-xl mb-8">
+    <div class="hero-content text-center py-8">
+      <div class="max-w-2xl">
+        <h1 class="text-4xl font-bold mb-4">Log Files Monitoring</h1>
+        <p class="text-base-content/70 mb-6">
+          Monitor and manage your application log files with real-time size tracking
+        </p>
+        
+        <!-- Action Buttons -->
+        <div class="flex flex-wrap justify-center gap-3">
+          <button onclick="refreshLogs()" class="btn btn-primary">
+            <i data-feather="refresh-cw" class="w-4 h-4 mr-2"></i>
+            Refresh Data
+          </button>
+          <button onclick="downloadLogsData()" class="btn btn-outline">
+            <i data-feather="download" class="w-4 h-4 mr-2"></i>
+            Export Data
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <% if @logs_data.present? %>
+    <!-- Summary Cards using Dashboard Card Style -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <!-- Total Files Card -->
+      <div class="group relative">
+        <div class="card-container bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 shadow-lg hover:shadow-xl rounded-xl backdrop-blur-md transition-all duration-300">
+          <div class="absolute inset-0 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-2xl opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
+          <div class="relative p-4">
+            <div class="flex items-center justify-between mb-3">
+              <div class="icon-container w-10 h-10 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-500 flex items-center justify-center shadow-lg transform group-hover:scale-110 transition-transform duration-200">
+                <i data-feather="file-text" class="w-5 h-5 text-white"></i>
+              </div>
+              <div class="w-2 h-2 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 animate-pulse"></div>
+            </div>
+            <div class="text-2xl font-bold text-slate-900 dark:text-slate-100 group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-blue-500 group-hover:to-indigo-500 group-hover:bg-clip-text transition-all duration-300 mb-1">
+              <%= @logs_data.dig("summary", "total_files") %>
+            </div>
+            <h3 class="text-md font-semibold text-slate-800 dark:text-slate-200 mb-2">Total Files</h3>
+            <div class="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-indigo-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Total Size Card -->
+      <div class="group relative">
+        <div class="card-container bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 shadow-lg hover:shadow-xl rounded-xl backdrop-blur-md transition-all duration-300">
+          <div class="absolute inset-0 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
+          <div class="relative p-4">
+            <div class="flex items-center justify-between mb-3">
+              <div class="icon-container w-10 h-10 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center shadow-lg transform group-hover:scale-110 transition-transform duration-200">
+                <i data-feather="hard-drive" class="w-5 h-5 text-white"></i>
+              </div>
+              <div class="w-2 h-2 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 animate-pulse"></div>
+            </div>
+            <div class="text-2xl font-bold text-slate-900 dark:text-slate-100 group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-purple-500 group-hover:to-pink-500 group-hover:bg-clip-text transition-all duration-300 mb-1">
+              <%= @logs_data.dig("summary", "total_size") %>
+            </div>
+            <h3 class="text-md font-semibold text-slate-800 dark:text-slate-200 mb-2">Total Size</h3>
+            <div class="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 to-pink-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Largest File Card -->
+      <div class="group relative">
+        <div class="card-container bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 shadow-lg hover:shadow-xl rounded-xl backdrop-blur-md transition-all duration-300">
+          <div class="absolute inset-0 bg-gradient-to-r from-orange-500 to-red-500 rounded-2xl opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
+          <div class="relative p-4">
+            <div class="flex items-center justify-between mb-3">
+              <div class="icon-container w-10 h-10 rounded-xl bg-gradient-to-r from-orange-500 to-red-500 flex items-center justify-center shadow-lg transform group-hover:scale-110 transition-transform duration-200">
+                <i data-feather="trending-up" class="w-5 h-5 text-white"></i>
+              </div>
+              <div class="w-2 h-2 rounded-full bg-gradient-to-r from-orange-500 to-red-500 animate-pulse"></div>
+            </div>
+            <div class="text-xl font-bold text-slate-900 dark:text-slate-100 group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-orange-500 group-hover:to-red-500 group-hover:bg-clip-text transition-all duration-300 mb-1">
+              <%= @logs_data.dig("summary", "largest_file") %>
+            </div>
+            <div class="text-sm text-slate-500 dark:text-slate-400 mb-2"><%= @logs_data.dig("summary", "largest_file_size") %></div>
+            <h3 class="text-md font-semibold text-slate-800 dark:text-slate-200 mb-2">Largest File</h3>
+            <div class="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-orange-500 to-red-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Status Card -->
+      <div class="group relative">
+        <% 
+          status = @logs_data.dig('summary', 'status')
+          status_colors = {
+            'success' => { bg: 'bg-emerald-50 dark:bg-emerald-900/20', border: 'border-emerald-200 dark:border-emerald-800', gradient: 'from-emerald-500 to-green-500' },
+            'warning' => { bg: 'bg-amber-50 dark:bg-amber-900/20', border: 'border-amber-200 dark:border-amber-800', gradient: 'from-amber-500 to-orange-500' },
+            'error' => { bg: 'bg-red-50 dark:bg-red-900/20', border: 'border-red-200 dark:border-red-800', gradient: 'from-red-500 to-rose-500' }
+          }
+          current_status = status_colors[status] || status_colors['success']
+        %>
+        <div class="card-container <%= current_status[:bg] %> border <%= current_status[:border] %> shadow-lg hover:shadow-xl rounded-xl backdrop-blur-md transition-all duration-300">
+          <div class="absolute inset-0 bg-gradient-to-r <%= current_status[:gradient] %> rounded-2xl opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
+          <div class="relative p-4">
+            <div class="flex items-center justify-between mb-3">
+              <div class="icon-container w-10 h-10 rounded-xl bg-gradient-to-r <%= current_status[:gradient] %> flex items-center justify-center shadow-lg transform group-hover:scale-110 transition-transform duration-200">
+                <i data-feather="<%= status == 'success' ? 'check-circle' : 'alert-circle' %>" class="w-5 h-5 text-white"></i>
+              </div>
+              <div class="w-2 h-2 rounded-full bg-gradient-to-r <%= current_status[:gradient] %> animate-pulse"></div>
+            </div>
+            <div class="text-2xl font-bold text-slate-900 dark:text-slate-100 group-hover:text-transparent group_hover:<%= current_status[:gradient] %> group-hover:bg-clip-text transition-all duration-300 mb-1 capitalize">
+              <%= status %>
+            </div>
+            <h3 class="text-md font-semibold text-slate-800 dark:text-slate-200 mb-2">System Status</h3>
+            <div class="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r <%= current_status[:gradient] %> transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Log Files Table -->
+    <div class="group relative mb-8">
+      <div class="card-container bg-white/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 shadow-lg hover:shadow-xl rounded-xl backdrop-blur-md transition-all duration-300 overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-2xl opacity-0 group-hover:opacity-5 transition-opacity duration-300"></div>
+        <!-- Table Header -->
+        <div class="relative p-6 border-b border-slate-200 dark:border-slate-700">
+          <div class="flex flex-col lg:flex-row lg:justify-between lg:items-center space-y-4 lg:space-y-0">
+            <div>
+              <h3 class="text-xl font-bold text-slate-900 dark:text-slate-100 mb-1">Log Files</h3>
+              <p class="text-sm text-slate-500 dark:text-slate-400">Manage your application log files and monitor disk usage</p>
+            </div>
+          </div>
+        </div>
+        <% if @logs_data["files"].present? %>
+          <div class="relative overflow-x-auto px-0">
+            <table class="w-full min-w-full text-left table-auto divide-y divide-slate-700">
+              <thead class="bg-slate-900/70 border-b border-slate-800">
+                <tr>
+                  <th class="px-4 py-3 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">File Name</th>
+                  <th class="px-4 py-3 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Size</th>
+                  <th class="px-4 py-3 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Last Modified</th>
+                  <th class="px-4 py-3 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Status</th>
+                  <th class="px-4 py-3 text-right text-xs font-bold text-slate-400 uppercase tracking-wider">Actions</th>
+                </tr>
+              </thead>
+              <tbody class="bg-slate-800/80 divide-y divide-slate-700">
+                <% @logs_data["files"].each do |file| %>
+                  <tr class="hover:bg-slate-700/50 transition">
+                    <!-- File Name + Path -->
+                    <td class="py-4 px-4 align-middle">
+                      <div class="flex items-center space-x-3">
+                        <span class="flex-shrink-0 w-5 h-5 text-blue-400"><i data-feather="file-text"></i></span>
+                        <div>
+                          <div class="font-semibold text-white"><%= file["name"] %></div>
+                          <div class="text-xs text-slate-400 truncate max-w-xs" title="<%= file["path"] %>">
+                            <%= file["path"] %>
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                    <!-- Size -->
+                    <td class="py-4 px-4 align-middle">
+                      <span class="font-semibold text-slate-200"><%= file["size_human"] %></span>
+                      <div class="text-xs text-slate-500"><%= number_with_delimiter(file["size_bytes"]) %> bytes</div>
+                    </td>
+                    <!-- Last Modified -->
+                    <td class="py-4 px-4 align-middle">
+                      <span class="inline-flex items-center gap-1 text-slate-300">
+                        <i data-feather="clock" class="w-4 h-4"></i>
+                        <%= time_ago_in_words(Time.parse(file["last_modified"])) %> ago
+                      </span>
+                    </td>
+                    <!-- Status -->
+                    <td class="py-4 px-4 align-middle">
+                      <span class="inline-flex items-center px-2 py-1 bg-green-600 text-white text-xs rounded-full gap-1">
+                        <i data-feather="check-circle" class="w-3 h-3"></i>
+                        Success
+                      </span>
+                    </td>
+                    <!-- Actions -->
+                    <td class="py-4 px-4 align-middle text-right">
+                      <button
+                        class="inline-flex items-center px-3 py-1 text-xs font-semibold rounded bg-slate-700 hover:bg-red-600 text-slate-200 hover:text-white border border-transparent hover:border-red-800 transition"
+                        onclick="truncateLog('<%= file["name"] %>')"
+                        title="Truncate log"
+                      >
+                        <i data-feather="scissors" class="w-4 h-4 mr-1"></i>
+                        Truncate
+                      </button>
+                    </td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+        <% else %>
+          <!-- Empty State -->
+          <div class="relative px-6 py-16 text-center">
+            <div class="w-20 h-20 bg-gradient-to-r from-slate-200 to-slate-300 dark:from-slate-700 dark:to-slate-600 rounded-full flex items-center justify-center mx-auto mb-6">
+              <i data-feather="file-text" class="w-10 h-10 text-slate-400 dark:text-slate-500"></i>
+            </div>
+            <h4 class="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">No log files found</h4>
+            <p class="text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
+              There are currently no log files to display. Check back later or refresh the data.
+            </p>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  <% else %>
+    <!-- Error State -->
+    <div class="text-center py-16">
+      <div class="w-24 h-24 bg-gradient-to-r from-red-200 to-orange-200 dark:from-red-900/30 dark:to-orange-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
+        <i data-feather="alert-circle" class="w-12 h-12 text-red-500 dark:text-red-400"></i>
+      </div>
+      <h3 class="text-xl font-bold text-slate-900 dark:text-slate-100 mb-3">Unable to Load Log Data</h3>
+      <p class="text-slate-500 dark:text-slate-400 mb-6 max-w-md mx-auto">
+        There was an error loading the log monitoring data. Please try refreshing the data or check back later.
+      </p>
+      <button onclick="refreshLogs()" 
+              class="inline-flex items-center px-6 py-3 rounded-xl text-sm font-medium text-white bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
+        <i data-feather="refresh-cw" class="w-4 h-4 mr-2"></i>
+        Try Again
+      </button>
+    </div>
+  <% end %>
+</div>
+
+<!-- Enhanced Toast Notification -->
+<div id="toast" class="fixed top-4 right-4 z-50 hidden">
+  <div class="bg-white/90 dark:bg-slate-800/90 backdrop-blur-lg border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl p-4 max-w-sm transform transition-all duration-300">
+    <div class="flex items-center">
+      <div class="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center mr-3">
+        <i id="toast-icon" data-feather="check-circle" class="w-5 h-5"></i>
+      </div>
+      <div class="flex-1">
+        <p id="toast-message" class="text-sm font-medium text-slate-900 dark:text-slate-100"></p>
+      </div>
+      <div class="ml-3">
+        <button onclick="hideToast()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors duration-200">
+          <i data-feather="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Initialize feather icons
+  feather.replace();
+
+  function refreshLogs() {
+    showToast('Refreshing log data...', 'info');
+    
+    fetch('<%= solidstats.refresh_logs_path %>', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': document.querySelector('[name="csrf-token"]').content
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.status === 'success') {
+        showToast('Log data refreshed successfully', 'success');
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
+      } else {
+        showToast('Error refreshing log data', 'error');
+      }
+    })
+    .catch(error => {
+      showToast('Error refreshing log data', 'error');
+    });
+  }
+  
+  function truncateLog(filename) {
+    if (confirm(`Are you sure you want to truncate ${filename}? This action cannot be undone.`)) {
+      showToast('Truncating log file...', 'info');
+      
+      fetch(`<%= solidstats.truncate_log_path('FILENAME_PLACEHOLDER') %>`.replace('FILENAME_PLACEHOLDER', encodeURIComponent(filename)), {
+        method: 'POST',
+        headers: {
+          'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+          'Content-Type': 'application/json'
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          showToast(`${filename} truncated successfully`, 'success');
+          setTimeout(() => {
+            window.location.reload();
+          }, 2000);
+        } else {
+          showToast(data.error || 'Failed to truncate log file', 'error');
+        }
+      })
+      .catch(error => {
+        showToast('Error truncating log file', 'error');
+      });
+    }
+  }
+  
+  function downloadLogsData() {
+    const logsData = <%= raw @logs_data.to_json %>;
+    const blob = new Blob([JSON.stringify(logsData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `logs_data_${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast('Logs data exported successfully', 'success');
+  }
+  
+  function showToast(message, type = 'info') {
+    const toast = document.getElementById('toast');
+    const icon = document.getElementById('toast-icon');
+    const iconContainer = icon.parentElement;
+    const messageEl = document.getElementById('toast-message');
+
+    messageEl.textContent = message;
+
+    // Reset classes
+    icon.className = 'w-5 h-5';
+    iconContainer.className = 'flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center mr-3';
+
+    switch(type) {
+      case 'success':
+        icon.setAttribute('data-feather', 'check-circle');
+        icon.className += ' text-white';
+        iconContainer.className += ' bg-gradient-to-r from-emerald-500 to-green-500';
+        break;
+      case 'error':
+        icon.setAttribute('data-feather', 'alert-circle');
+        icon.className += ' text-white';
+        iconContainer.className += ' bg-gradient-to-r from-red-500 to-rose-500';
+        break;
+      case 'info':
+      default:
+        icon.setAttribute('data-feather', 'info');
+        icon.className += ' text-white';
+        iconContainer.className += ' bg-gradient-to-r from-blue-500 to-indigo-500';
+        break;
+    }
+
+    feather.replace();
+    toast.classList.remove('hidden');
+
+    setTimeout(() => {
+      hideToast();
+    }, 5000);
+  }
+
+  function hideToast() {
+    const toast = document.getElementById('toast');
+    toast.classList.add('hidden');
+  }
+
+  // Search and filter functionality
+  document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('logSearch');
+    const statusFilter = document.getElementById('logStatusFilter');
+    const tableRows = document.querySelectorAll('tbody tr');
+
+    function filterTable() {
+      const searchTerm = searchInput.value.toLowerCase();
+      const statusValue = statusFilter.value;
+
+      tableRows.forEach(row => {
+        const fileName = row.querySelector('td:first-child').textContent.toLowerCase();
+        const status = row.querySelector('td:nth-child(4)').textContent.toLowerCase().trim();
+        
+        const matchesSearch = fileName.includes(searchTerm);
+        const matchesStatus = statusValue === 'all' || status === statusValue;
+
+        if (matchesSearch && matchesStatus) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+    }
+
+    if (searchInput) searchInput.addEventListener('input', filterTable);
+    if (statusFilter) statusFilter.addEventListener('change', filterTable);
+  });
+</script>

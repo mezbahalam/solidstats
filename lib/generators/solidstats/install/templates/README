@@ -5,6 +5,11 @@ Solidstats has been successfully installed for development!
 Your Solidstats dashboard is now available at: /solidstats
 (Only in development environment)
 
+Setup completed:
+✓ Routes mounted at /solidstats
+✓ Data directory created: ./solidstats
+✓ Added solidstats/ to .gitignore
+
 To access your stats:
 1. Start your Rails server: bundle exec rails s
 2. Visit: http://localhost:3000/solidstats
@@ -14,5 +19,7 @@ Solidstats will show you:
 - Security audit information
 - Code quality metrics
 - And more!
+
+Note: The solidstats directory stores cached data and is excluded from git.
 
 ===============================================================================

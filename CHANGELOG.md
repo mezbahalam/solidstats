@@ -5,73 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.0.0] - 2025-05-26
+## [3.0.0] - 2025-06-11
 
 ### Added
-- **Complete Gem Metadata System**: Comprehensive gem dependency tracking and management
-  - Dual-view interface with grid and table layouts
-  - Real-time search and filtering by gem name, status, and other criteria
-  - Smart sorting by name, status, release date, and version information
-  - Status indicators for outdated, up-to-date, and unavailable gems
-  - Dependency visualization with runtime dependency details
-  - Version comparison showing current vs. latest versions
-  - CSV export functionality for gem data analysis
-  - Refresh capability to update gem metadata from RubyGems API
-  - Responsive design with 3-cards-per-row grid (2 on tablet, 1 on mobile)
+- **LoadLens Performance Monitor**: A new development performance monitoring feature that parses development logs to track Rails application performance. It includes metrics for response times, database performance, view rendering, and error rates.
+- **Style Patrol**: A new code quality analysis feature to enforce style guidelines and improve code health.
+- **My TODOs Feature**: A new service to manage and track TODO items within the codebase, with a dedicated UI and refresh functionality.
+- **Bundler Audit Security**: Added security auditing for Bundler, with a dedicated UI to display vulnerability details and remediation suggestions.
 
-- **View Component Architecture**: Modern component-based UI system for maintainable code
-  - BaseComponent foundation for all UI components
-  - Specialized components for different dashboard sections
-  - Component preview system for development and testing
-  - Reusable UI components (ActionButton, SummaryCard, Navigation, TabNavigation)
-  - Clean separation of concerns between HTML, CSS, and JavaScript
-
-- **Feature Generator System**: Automated development tools for rapid feature development
-  - `rails g solidstats:feature` generator for creating new dashboard sections
-  - Automatic component, controller, view, and asset generation
-  - Built-in best practices and conventions
-  - Template-based code generation with customizable options
-
-- **CSS Component Architecture**: Modular styling system with 1,631+ lines of extracted CSS
-  - Dedicated component stylesheets for maintainable styling
-  - Conflict-free CSS with proper specificity management
-  - Responsive design patterns and mobile-first approach
-  - Consistent design tokens and reusable style patterns
+### Changed
+- **Dashboard Redesign**: The Solidstats dashboard has been completely redesigned with DaisyUI, providing a modern, consistent, and themeable user interface.
+- **Refactored Services**: The `LogSizeMonitorService` has been refactored for enhanced log management and caching.
+- **Improved Installation**: The installation process has been enhanced with automatic directory creation and `.gitignore` updates.
 
 ### Fixed
-- **Gem Metadata Table Layout**: Eliminated horizontal scrolling issues
-  - Changed table wrapper from `overflow-x: auto` to `width: 100%`
-  - Removed restrictive `white-space: nowrap` from table headers
-  - Implemented percentage-based column widths for better responsiveness
-  - Added proper word-wrapping for long content
-
-- **Empty State Positioning**: Perfect centering for "No matching gems found" messages
-  - Implemented flexbox-based centering for both grid and table views
-  - Added proper fallback support for older browsers
-  - Enhanced visual hierarchy and user experience
-
-- **Navigation System**: Fixed section-based navigation throughout the application
-  - Removed external routing in favor of seamless section switching
-  - Updated all navigation components to use `data-section` attributes
-  - Eliminated page reloads when switching between dashboard sections
-  - Consistent navigation behavior across all components
-
-- **CSS Conflicts**: Resolved styling conflicts between component stylesheets
-  - Fixed security.css interference with gem metadata styling
-  - Implemented proper CSS specificity to prevent style bleeding
-  - Added scoped styling for component isolation
-
-### Improved
-- **Performance Optimizations**: Enhanced user experience with better responsiveness
-  - Debounced search functionality to reduce unnecessary API calls
-  - Efficient DOM manipulation and rendering
-  - Optimized CSS delivery and reduced file sizes
-
-- **Cross-Browser Compatibility**: Enhanced support for different browsers and devices
-  - Fallback CSS for older browser versions
-  - Progressive enhancement patterns
-  - Improved mobile experience and touch interactions
-
+- Updated route aliases and paths for better consistency across the application.
+- Replaced static dashboard titles with dynamic links for improved navigation.
 
 ## [1.1.0] - 2025-05-23
 

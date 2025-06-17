@@ -24,6 +24,7 @@ Solidstats is a local-only Rails engine that shows your project's health at `/so
 ### System Monitoring
 - Log Size Monitor for tracking and managing application log files
 - Log file truncation tool for individual or all log files
+- LoadLens - Development performance monitoring with request tracking
 - Rubocop offense count and quality metrics
 - TODO/FIXME tracker with file hotspots
 - Test coverage summary
@@ -109,6 +110,32 @@ Comprehensive gem analysis and management platform featuring:
 
 ### Code Quality
 Displays code quality metrics, test coverage, and code health indicators.
+
+### LoadLens Performance
+Monitors your Rails app's performance in development by parsing `log/development.log`:
+- **Response Times**: Average response time across all requests
+- **Database Performance**: ActiveRecord query timing analysis  
+- **View Rendering**: Template rendering performance metrics
+- **Error Tracking**: HTTP status code analysis and error rates
+- **Slow Request Detection**: Identifies requests taking >1000ms
+- **Request History**: Recent request details with timing breakdown
+
+LoadLens automatically tracks performance data and provides manual refresh capability. Data is stored in daily rotating JSON files and cleaned up after 7 days.
+
+**CLI Commands:**
+```bash
+# Parse development logs manually
+rake solidstats:load_lens:parse_logs
+
+# Refresh performance data
+rake solidstats:load_lens:refresh
+
+# View performance summary
+rake solidstats:load_lens:summary
+
+# Clean old data files
+rake solidstats:load_lens:clean_old_data
+```
 
 ### Tasks
 Shows a breakdown of TODO, FIXME, and HACK annotations found in your codebase, with file hotspots and expandable details.

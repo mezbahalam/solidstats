@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html data-theme="dark" class="transition-colors duration-300">
+<head>
+  <title>Solidstats Dashboard</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <%= csrf_meta_tags %>
+  <%= csp_meta_tag %>
+
+  <%= yield :head %>
+
+  <!-- Solidstats CDN Dependencies -->
+  <%= solidstats_cdn_dependencies %>
+
+  <!-- Inline Solidstats Styles -->
+  <%= solidstats_styles %>
+</head>
+<body class="min-h-screen bg-base-100 transition-all duration-300">
+  
+  <!-- DaisyUI Navbar -->
+  <div class="navbar bg-base-100 shadow-lg border-b border-base-300">
+    <div class="navbar-start">
+      <div class="flex items-center space-x-4">
+        <div class="avatar">
+          <div class="w-8 rounded-lg bg-gradient-to-r from-primary to-secondary flex items-center justify-center">
+            <i data-feather="activity" class="w-5 h-5 text-white"></i>
+          </div>
+        </div>
+        <%= link_to solidstats.solidstats_dashboard_path, class: "text-xl font-bold gradient-text hover:opacity-80 transition-opacity" do %>
+          Solidstats 
+        <% end %>
+      </div>
+    </div>
+    
+    <div class="navbar-end">
+      <!-- Simple Theme Toggle -->
+      <button class="btn btn-ghost btn-circle" onclick="toggleTheme()">
+        <i data-feather="sun" class="w-5 h-5 hidden dark:inline"></i>
+        <i data-feather="moon" class="w-5 h-5 dark:hidden"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <main class="container mx-auto px-4 py-8">
+    <%= yield %>
+  </main>
+
+  <!-- Simple Theme Toggle Script -->
+  <script>
+    // Initialize Feather icons
+    feather.replace();
+    
+    // Simple theme toggle between dark and light
+    function toggleTheme() {
+      const currentTheme = localStorage.getItem('theme') || 'dark';
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      setTheme(newTheme);
+    }
+    
+    function setTheme(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      localStorage.setItem('theme', theme);
+      
+      // Update dark class for custom CSS compatibility
+      if (theme === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+      
+      // Re-initialize icons after theme change
+      setTimeout(() => feather.replace(), 100);
+    }
+    
+    // Check for saved theme preference or default to 'dark'
+    const currentTheme = localStorage.getItem('theme') || 'dark';
+    setTheme(currentTheme);
+  </script>
+  
+  <!-- Inline Solidstats Scripts -->
+  <%= solidstats_scripts %>
+</body>
+</html>

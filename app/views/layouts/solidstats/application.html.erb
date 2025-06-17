@@ -5,14 +5,20 @@
   <%= csrf_meta_tags %>
   <%= csp_meta_tag %>
 
+  <!-- Solidstats CDN Dependencies -->
+  <%= solidstats_cdn_dependencies %>
+
   <%= yield :head %>
 
+  <!-- Inline Solidstats Styles -->
   <%= solidstats_styles %>
-  <%= solidstats_scripts %>
 </head>
-<body>
+<body data-theme="light" class="min-h-screen bg-base-200">
 
 <%= yield %>
+
+<!-- Inline Solidstats Scripts -->
+<%= solidstats_scripts %>
 
 </body>
 </html>
