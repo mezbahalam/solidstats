@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.0] - 2025-06-11
+
+### Added
+- **LoadLens Performance Monitor**: A new development performance monitoring feature that parses development logs to track Rails application performance. It includes metrics for response times, database performance, view rendering, and error rates.
+- **Style Patrol**: A new code quality analysis feature to enforce style guidelines and improve code health.
+- **My TODOs Feature**: A new service to manage and track TODO items within the codebase, with a dedicated UI and refresh functionality.
+- **Bundler Audit Security**: Added security auditing for Bundler, with a dedicated UI to display vulnerability details and remediation suggestions.
+
+### Changed
+- **Dashboard Redesign**: The Solidstats dashboard has been completely redesigned with DaisyUI, providing a modern, consistent, and themeable user interface.
+- **Refactored Services**: The `LogSizeMonitorService` has been refactored for enhanced log management and caching.
+- **Improved Installation**: The installation process has been enhanced with automatic directory creation and `.gitignore` updates.
+
+### Fixed
+- Updated route aliases and paths for better consistency across the application.
+- Replaced static dashboard titles with dynamic links for improved navigation.
+
 ## [1.1.0] - 2025-05-23
 
 ### Added
