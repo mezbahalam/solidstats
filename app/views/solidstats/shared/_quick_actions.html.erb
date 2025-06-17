@@ -1,0 +1,26 @@
+<%# Quick Actions Section with DaisyUI %>
+
+<div class="card bg-base-100 shadow-lg">
+  <div class="card-body">
+    <h3 class="card-title flex items-center mb-4">
+      <i data-feather="settings" class="w-5 h-5 mr-2"></i>
+      Quick Actions
+    </h3>
+    
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <% quick_actions.each do |action| %>
+        <button class="btn btn-outline btn-sm group flex flex-col items-center p-4 h-auto min-h-16 
+                       hover:btn-<%= action[:color] %> transition-all duration-200" disabled>
+          <div class="w-10 h-10 bg-gradient-to-r from-<%= action[:color] %>-500 to-<%= action[:color] %>-600 
+                      rounded-lg flex items-center justify-center mb-2 
+                      group-hover:scale-110 transition-transform duration-200 shadow-lg">
+            <i data-feather="<%= action[:icon] %>" class="w-5 h-5 text-white stroke-2"></i>
+          </div>
+          <span class="text-sm font-medium">
+            <%= action[:label] %>
+          </span>
+        </button>
+      <% end %>
+    </div>
+  </div>
+</div>

@@ -1,80 +1,99 @@
 module Solidstats
   class DashboardController < ApplicationController
+    layout 'solidstats/dashboard'
+
     TODO_CACHE_FILE = Rails.root.join("tmp", "solidstats_todos.json")
     AUDIT_CACHE_HOURS = 12 # Configure how many hours before refreshing
 
-    def index
-      # Use new services for data collection
-      audit_service = AuditService.new
-      todo_service = TodoService.new
-      log_monitor_service = LogSizeMonitorService.new
 
-      # Get full data for detailed views
-      @audit_output = audit_service.fetch
-      @todo_items = todo_service.fetch
-      @log_data = log_monitor_service.collect_data
-      @gems = Solidstats::GemMetadata::FetcherService.call
-
-      # Get summary data for dashboard cards
-      @audit_summary = audit_service.summary
-      @todo_summary = todo_service.summary
-
-      # TODO: Refactor these to use services as well
-      @rubocop_output = "JSON.parse(`rubocop --format json`)"
-      @coverage = "100"
+    def dashboard
+      # Load dashboard cards from JSON file
+      @dashboard_cards = load_dashboard_cards
+      @quick_actions = quick_actions_data
+      render 'dashboard'
     end
 
-    # Force refresh all dashboard data
     def refresh
-      # Create services
-      audit_service = AuditService.new
-      todo_service = TodoService.new
-      log_monitor_service = LogSizeMonitorService.new
+      # Refresh all services
+      Solidstats::LogSizeMonitorService.scan_and_cache
+      Solidstats::BundlerAuditService.scan_and_cache
+      Solidstats::MyTodoService.collect_todos
+      Solidstats::StylePatrolService.refresh_cache
+      Solidstats::CoverageCompassService.refresh_cache
+      Solidstats::LoadLensService.scan_and_cache
 
-      # Force refresh of data
-      audit_output = audit_service.fetch(true) # Force refresh
-      todo_items = todo_service.fetch(true)    # Force refresh
-      log_data = log_monitor_service.collect_data
-      gem_metadata = GemMetadata::FetcherService.call(nil, true) # Force refresh
-
-      # Get updated summaries
-      audit_summary = audit_service.summary
-      todo_summary = todo_service.summary
-
-      # Get current time for last updated display
-      last_updated = Time.now.strftime("%B %d, %Y at %H:%M")
-
-      # Return JSON response with refreshed data
-      render json: {
-        audit_output: audit_output,
-        todo_items: todo_items,
-        audit_summary: audit_summary,
-        todo_summary: todo_summary,
-        log_data: log_data,
-        gem_metadata: gem_metadata,
-        last_updated: last_updated,
-        status: "success"
-      }
-    rescue StandardError => e
-      # Return error information
-      render json: {
-        status: "error",
-        message: "Failed to refresh data: #{e.message}"
-      }, status: :internal_server_error
+      redirect_to solidstats_dashboard_path, notice: 'Dashboard data refreshed successfully!'
     end
 
-    def truncate_log
-      log_monitor_service = LogSizeMonitorService.new
-      filename = params[:filename]
+    private
 
-      # Add .log extension if not included in the filename
-      if filename.present? && !filename.end_with?(".log")
-        filename = "#{filename}.log"
+    def quick_actions_data
+      [
+        {
+          icon: 'refresh-cw',
+          label: 'Refresh Data',
+          color: 'blue',
+          action: 'refresh_dashboard'
+        },
+        {
+          icon: 'settings',
+          label: 'Configure',
+          color: 'purple',
+          action: 'open_settings'
+        },
+        {
+          icon: 'download',
+          label: 'Export',
+          color: 'green',
+          action: 'export_data'
+        },
+        {
+          icon: 'bell',
+          label: 'Alerts',
+          color: 'orange',
+          action: 'view_alerts'
+        }
+      ]
+    end
+
+    def load_dashboard_cards
+      json_file_path = Rails.root.join("solidstats", "summary.json")
+
+      begin
+        # Read and parse the JSON file
+        json_data = JSON.parse(File.read(json_file_path))
+
+        # Transform the JSON data into the format expected by the view
+        json_data.map do |name, data|
+          {
+            name: name,
+            icon: data["icon"],
+            status: data["status"],
+            value: data["value"],
+            last_updated: Time.parse(data["last_updated"]),
+            url: data["url"],
+            badges: data["badges"] || []
+          }
+        end
+      rescue Errno::ENOENT
+        Rails.logger.warn("Summary JSON file not found, generating initial data...")
+        generate_initial_data
+        retry
+      rescue JSON::ParserError => e
+        Rails.logger.error("Error parsing summary JSON: #{e.message}")
+        # Fallback to empty array if JSON is invalid
+        []
       end
+    end
 
-      result = log_monitor_service.truncate_log(filename)
-
-      render json: result
+    def generate_initial_data
+      # Force a scan to create initial data if missing
+      Solidstats::LogSizeMonitorService.scan_and_cache
+      Solidstats::BundlerAuditService.scan_and_cache
+      Solidstats::MyTodoService.collect_todos
+      Solidstats::StylePatrolService.refresh_cache
+      Solidstats::CoverageCompassService.refresh_cache
+      Solidstats::DevLogParserService.scan_and_cache
     end
   end
 end

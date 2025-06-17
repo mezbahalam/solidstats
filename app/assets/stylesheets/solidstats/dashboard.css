@@ -1,0 +1,48 @@
+/* Solidstats Dashboard with DaisyUI */
+
+/* Custom animations for dashboard */
+.dashboard-enter {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Gradient text for brand */
+.gradient-text {
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Light mode improvements */
+[data-theme="light"] .card {
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+}
+
+[data-theme="light"] .card:hover {
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="light"] .stat-value {
+  color: #1f2937;
+}
+
+[data-theme="light"] .card-title {
+  color: #1f2937;
+}
+
+[data-theme="light"] .navbar {
+  background-color: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+}

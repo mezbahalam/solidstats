@@ -1,0 +1,160 @@
+<%# 
+  Dashboard Card Component with DaisyUI
+  Props:
+  - icon: string (feather icon name)
+  - status: string ('success', 'warning', 'error', 'info')
+  - value: string/number (main metric value)
+  - name: string (card title)
+  - last_updated: datetime
+  - url: string (link destination)
+  - badges: array of hashes with {text: string, color: string}
+  - loading: boolean (optional)
+%>
+
+<%
+  # Set defaults
+  icon ||= 'activity'
+  status ||= 'info'
+  value ||= '0'
+  name ||= 'Metric'
+  last_updated ||= Time.current
+  url ||= '#'
+  badges ||= []
+  loading ||= false
+  
+  # Define status-based DaisyUI color mappings
+  status_colors = {
+    'success' => 'text-success',
+    'warning' => 'text-warning',
+    'error' => 'text-error',
+    'info' => 'text-info'
+  }
+  
+  # Define badge color classes using DaisyUI
+  badge_colors = {
+    'success' => 'badge-success',
+    'warning' => 'badge-warning',
+    'error' => 'badge-error',
+    'info' => 'badge-info',
+    'primary' => 'badge-primary',
+    'secondary' => 'badge-secondary',
+    'accent' => 'badge-accent',
+    'neutral' => 'badge-neutral',
+    'ghost' => 'badge-ghost',
+    'outline' => 'badge-outline'
+  }
+%>
+
+<div class="card bg-base-100 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer"
+     onclick="window.location.href='<%= url %>'"
+     data-card-id="<%= name.parameterize %>">
+  
+  <!-- Loading Overlay -->
+  <% if defined?(loading) && loading %>
+    <div class="absolute inset-0 bg-base-100/75 flex items-center justify-center rounded-2xl z-10">
+      <span class="loading loading-spinner loading-lg <%= status_colors[status] %>"></span>
+    </div>
+  <% end %>
+  
+  <div class="card-body">
+    <!-- Header Row: Icon, Status, Refresh Button -->
+    <div class="flex items-center justify-between mb-4">
+      <!-- Icon with Status -->
+      <div class="flex items-center space-x-3">
+        <div class="avatar">
+          <div class="w-12 rounded-xl bg-gradient-to-r from-primary to-secondary shadow-lg">
+            <div class="flex items-center justify-center w-full h-full">
+              <i data-feather="<%= icon %>" class="w-6 h-6 text-white"></i>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Status Indicator -->
+        <div class="badge <%= badge_colors[status] %> badge-sm">
+          <%= status.capitalize %>
+        </div>
+      </div>
+      
+      <!-- Refresh Button -->
+      <button class="btn btn-ghost btn-circle btn-sm hover:bg-base-200"
+              onclick="refreshCard('<%= name.parameterize %>')">
+        <i data-feather="refresh-cw" class="w-4 h-4"></i>
+      </button>
+    </div>
+    
+    <!-- Value -->
+    <div class="mb-3">
+      <div class="stat-value text-3xl font-bold transition-colors duration-300">
+        <%= value %>
+      </div>
+    </div>
+    
+    <!-- Name/Title -->
+    <div class="mb-4">
+      <h3 class="card-title text-lg">
+        <%= name %>
+      </h3>
+    </div>
+    
+    <!-- Last Updated -->
+    <div class="mb-4">
+      <div class="flex items-center space-x-2 text-sm opacity-70">
+        <i data-feather="clock" class="w-4 h-4"></i>
+        <span>Updated <%= time_ago_in_words(last_updated) %> ago</span>
+      </div>
+    </div>
+    
+    <!-- Badges -->
+    <% if badges.present? && badges.any? %>
+      <div class="card-actions justify-start">
+        <% badges.each do |badge| %>
+          <% 
+            # Handle both string and symbol keys, and ensure we have a badge object
+            next unless badge.is_a?(Hash) || badge.respond_to?(:has_key?)
+            badge_color = badge[:color] || badge['color'] || 'neutral'
+            badge_text = badge[:text] || badge['text'] || 'Badge'
+          %>
+          <div class="badge <%= badge_colors[badge_color] || 'badge-neutral' %> badge-sm">
+            <%= badge_text %>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<script>
+  // Card refresh functionality
+  function refreshCard(cardId) {
+    const card = document.querySelector(`[data-card-id="${cardId}"]`);
+    const refreshBtn = card.querySelector('.btn-circle');
+    
+    // Add loading state
+    refreshBtn.innerHTML = '<span class="loading loading-spinner loading-xs"></span>';
+    
+    // Simulate API call (replace with actual refresh logic)
+    setTimeout(() => {
+      refreshBtn.innerHTML = '<i data-feather="refresh-cw" class="w-4 h-4"></i>';
+      feather.replace();
+      
+      // Add success feedback with DaisyUI toast
+      const toast = document.createElement('div');
+      toast.className = 'toast toast-top toast-end z-50';
+      toast.innerHTML = `
+        <div class="alert alert-success">
+          <i data-feather="check-circle" class="w-4 h-4"></i>
+          <span>Card refreshed successfully!</span>
+        </div>
+      `;
+      document.body.appendChild(toast);
+      feather.replace();
+      
+      setTimeout(() => {
+        document.body.removeChild(toast);
+      }, 3000);
+    }, 1500);
+  }
+  
+  // Initialize feather icons for this card
+  feather.replace();
+</script>

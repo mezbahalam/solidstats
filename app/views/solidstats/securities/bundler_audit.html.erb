@@ -1,0 +1,345 @@
+<%# 
+  Security Vulnerabilities - Bundler Audit Page
+  Shows all security vulnerabilities found by bundler audit with details
+%>
+
+<div class="dashboard-enter">
+  <!-- Breadcrumb Navigation -->
+  <div class="breadcrumbs text-sm mb-6">
+    <ul>
+      <li>
+        <%= link_to solidstats.solidstats_dashboard_path, class: "link link-hover" do %>
+          <i data-feather="home" class="w-4 h-4 mr-1"></i>
+          Dashboard
+        <% end %>
+      </li>
+      <li>Security Vulnerabilities</li>
+    </ul>
+  </div>
+
+  <!-- Page Header -->
+  <div class="hero bg-base-200 rounded-xl mb-8">
+    <div class="hero-content text-center py-8">
+      <div class="max-w-2xl">
+        <h1 class="text-4xl font-bold mb-4">Security Vulnerabilities</h1>
+        <p class="text-base-content/70 mb-6">
+          Monitor and manage security vulnerabilities in your gem dependencies
+        </p>
+        
+        <!-- Action Buttons -->
+        <div class="flex flex-wrap justify-center gap-3">
+          <%= button_to refresh_securities_bundler_audit_path, 
+              method: :post,
+              class: "btn btn-primary",
+              data: { confirm: "Refresh security scan? This may take a moment." } do %>
+            <i data-feather="refresh-cw" class="w-4 h-4 mr-2"></i>
+            Refresh Scan
+          <% end %>
+          <button onclick="downloadVulnerabilitiesData()" class="btn btn-outline">
+            <i data-feather="download" class="w-4 h-4 mr-2"></i>
+            Export Data
+          </button>
+          <%= link_to solidstats.solidstats_dashboard_path, class: "btn btn-ghost" do %>
+            <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
+            Back to Dashboard
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <% if @vulnerabilities_data.present? %>
+    
+    <!-- Summary Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+      <div class="card bg-base-100 shadow-xl border border-base-300">
+        <div class="card-body p-6">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <div class="flex items-center justify-center w-8 h-8 bg-<%= @summary[:status] == 'success' ? 'success' : @summary[:status] == 'warning' ? 'warning' : 'error' %>/20 rounded-md">
+                <svg class="w-5 h-5 text-<%= @summary[:status] == 'success' ? 'success' : @summary[:status] == 'warning' ? 'warning' : 'error' %>" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 0h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                </svg>
+              </div>
+            </div>
+            <div class="ml-5 w-0 flex-1">
+              <dl>
+                <dt class="text-sm font-medium text-base-content/70 truncate">Total Vulnerabilities</dt>
+                <dd class="text-lg font-medium text-base-content"><%= @summary[:count] %></dd>
+              </dl>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <% %w[critical high medium low].each do |severity| %>
+        <% count = @vulnerabilities_by_severity[severity]&.count || 0 %>
+        <div class="card bg-base-100 shadow-xl border border-base-300">
+          <div class="card-body p-6">
+            <div class="flex items-center">
+              <div class="flex-shrink-0">
+                <div class="flex items-center justify-center w-8 h-8 bg-<%= severity == 'critical' ? 'error' : severity == 'high' ? 'warning' : severity == 'medium' ? 'info' : 'success' %>/20 rounded-md">
+                  <span class="text-<%= severity == 'critical' ? 'error' : severity == 'high' ? 'warning' : severity == 'medium' ? 'info' : 'success' %> font-semibold text-xs uppercase"><%= severity[0] %></span>
+                </div>
+              </div>
+              <div class="ml-5 w-0 flex-1">
+                <dl>
+                  <dt class="text-sm font-medium text-base-content/70 truncate"><%= severity.capitalize %></dt>
+                  <dd class="text-lg font-medium text-base-content"><%= count %></dd>
+                </dl>
+              </div>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  <% else %>
+    <div class="alert alert-info">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-info shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+      <span>No vulnerability data available. Please run a security scan first.</span>
+    </div>
+  <% end %>
+
+  <!-- Last Updated Info -->
+  <% if @last_updated %>
+    <div class="mb-6 p-4 bg-gradient-to-r from-base-200 to-base-300 border border-base-300 rounded-lg shadow-sm">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+          <div class="flex-shrink-0">
+            <div class="flex items-center justify-center w-8 h-8 bg-info/20 rounded-full">
+              <svg class="w-4 h-4 text-info" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+            </div>
+          </div>
+          <div>
+            <p class="text-sm font-medium text-base-content">Security Scan Status</p>
+            <p class="text-xs text-base-content/70">
+              Last scanned: 
+              <span class="font-semibold text-base-content">
+                <%= time_ago_in_words(Time.parse(@last_updated.to_s)) %> ago
+              </span>
+              <span class="text-base-content/50 ml-2">
+                (<%= Time.parse(@last_updated.to_s).strftime("%B %d, %Y at %I:%M %p") %>)
+              </span>
+            </p>
+          </div>
+        </div>
+        <div class="flex items-center space-x-2">
+          <% scan_age_hours = ((Time.current - Time.parse(@last_updated.to_s)) / 1.hour).round %>
+          <% if scan_age_hours < 1 %>
+            <span class="badge badge-success badge-sm">Fresh</span>
+          <% elsif scan_age_hours < 24 %>
+            <span class="badge badge-info badge-sm">Recent</span>
+          <% elsif scan_age_hours < 168 %>
+            <span class="badge badge-warning badge-sm">Aging</span>
+          <% else %>
+            <span class="badge badge-error badge-sm">Stale</span>
+          <% end %>
+        </div>
+      </div>
+      
+      <% if scan_age_hours >= 24 %>
+        <div class="mt-3 p-3 bg-warning/10 border border-warning/30 rounded-md">
+          <div class="flex items-start space-x-2">
+            <svg class="w-4 h-4 text-warning mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16c-.77.833.192 2.5 1.732 2.5z"/>
+            </svg>
+            <div>
+              <p class="text-sm font-medium text-warning">Consider refreshing the security scan</p>
+              <p class="text-xs text-warning/80 mt-1">
+                Data is <%= scan_age_hours >= 168 ? "over a week" : "over a day" %> old. 
+                New vulnerabilities may have been discovered since the last scan.
+              </p>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  <% else %>
+    <div class="mb-6 p-4 bg-warning/10 border border-warning/30 rounded-lg">
+      <div class="flex items-center space-x-3">
+        <div class="flex-shrink-0">
+          <div class="flex items-center justify-center w-8 h-8 bg-warning/20 rounded-full">
+            <svg class="w-4 h-4 text-warning" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16c-.77.833.192 2.5 1.732 2.5z"/>
+            </svg>
+          </div>
+        </div>
+        <div>
+          <p class="text-sm font-medium text-warning">No scan data available</p>
+          <p class="text-xs text-warning/80">
+            Please run your first security scan to check for vulnerabilities in your dependencies.
+          </p>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <!-- Vulnerabilities List -->
+  <% if @vulnerabilities.any? %>
+    <div class="card bg-base-100 shadow-xl border border-base-300">
+      <div class="card-header px-6 py-4 border-b border-base-300">
+        <h3 class="text-lg font-medium text-base-content">Security Vulnerabilities Found</h3>
+        <p class="mt-1 text-sm text-base-content/70">
+          <%= pluralize(@vulnerabilities.count, 'vulnerability') %> detected in your gem dependencies
+        </p>
+      </div>
+      
+      <div class="divide-y divide-base-300">
+        <% @vulnerabilities.each_with_index do |vulnerability, index| %>
+          <div class="px-6 py-4 hover:bg-base-200/50 transition-colors">
+            <div class="flex items-start justify-between">
+              <div class="flex-1">
+                <div class="flex items-center space-x-3 mb-2">
+                  <span class="badge badge-<%= vulnerability.dig('advisory', 'criticality') == 'critical' ? 'error' : vulnerability.dig('advisory', 'criticality') == 'high' ? 'warning' : vulnerability.dig('advisory', 'criticality') == 'medium' ? 'info' : 'success' %> badge-outline">
+                    <%= vulnerability.dig('advisory', 'criticality')&.capitalize || 'Unknown' %>
+                  </span>
+                  <h4 class="text-lg font-medium text-base-content">
+                    <%= vulnerability.dig('gem', 'name') %> v<%= vulnerability.dig('gem', 'version') %>
+                  </h4>
+                </div>
+                
+                <h5 class="text-md font-semibold text-base-content mb-2">
+                  <%= vulnerability.dig('advisory', 'title') %>
+                </h5>
+                
+                <p class="text-sm text-base-content/70 mb-3">
+                  <%= vulnerability.dig('advisory', 'description') %>
+                </p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <strong class="text-base-content/80">CVE ID:</strong>
+                    <% if vulnerability.dig('advisory', 'cve') %>
+                      <span class="text-base-content"><%= vulnerability.dig('advisory', 'cve') %></span>
+                    <% else %>
+                      <span class="text-base-content/50">N/A</span>
+                    <% end %>
+                  </div>
+                  
+                  <div>
+                    <strong class="text-base-content/80">Advisory Date:</strong>
+                    <span class="text-base-content"><%= vulnerability.dig('advisory', 'date') %></span>
+                  </div>
+                  
+                  <div>
+                    <strong class="text-base-content/80">Patched Versions:</strong>
+                    <% patched_versions = vulnerability.dig('advisory', 'patched_versions') %>
+                    <% if patched_versions&.any? %>
+                      <div class="flex items-center gap-2 mt-1">
+                        <span class="text-success font-medium">
+                          <%= patched_versions.join(', ') %>
+                        </span>
+                        <button 
+                          onclick="copyToClipboard('<%= patched_versions.join(', ').gsub("'", "\\'") %>', this)" 
+                          class="btn btn-xs btn-ghost text-base-content/60 hover:text-base-content"
+                          title="Copy patched versions">
+                          <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                          </svg>
+                        </button>
+                      </div>
+                    <% else %>
+                      <span class="text-base-content/50">None available</span>
+                    <% end %>
+                  </div>
+                  
+                  <div>
+                    <strong class="text-base-content/80">GHSA ID:</strong>
+                    <% if vulnerability.dig('advisory', 'ghsa') %>
+                      <span class="text-base-content"><%= vulnerability.dig('advisory', 'ghsa') %></span>
+                    <% else %>
+                      <span class="text-base-content/50">N/A</span>
+                    <% end %>
+                  </div>
+                </div>
+                
+                <% if vulnerability.dig('advisory', 'url') %>
+                  <div class="mt-3">
+                    <%= link_to vulnerability.dig('advisory', 'url'), target: '_blank', class: "link link-primary inline-flex items-center text-sm" do %>
+                      View Advisory
+                      <svg class="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                      </svg>
+                    <% end %>
+                  </div>
+                <% end %>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  <% else %>
+    <!-- No Vulnerabilities Found -->
+    <div class="card bg-base-100 shadow-xl border border-base-300">
+      <div class="card-body text-center py-12">
+        <div class="flex items-center justify-center w-16 h-16 bg-success/20 rounded-full mx-auto mb-4">
+          <svg class="w-8 h-8 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+        </div>
+        <h3 class="text-lg font-medium text-base-content mb-2">No Security Vulnerabilities Found</h3>
+        <p class="text-base-content/70 mb-4">
+          Great news! Your gem dependencies don't have any known security vulnerabilities.
+        </p>
+        <p class="text-sm text-base-content/50">
+          Keep your gems updated regularly to maintain security.
+        </p>
+      </div>
+    </div>
+  <% end %>
+</div>
+
+<script>
+function downloadVulnerabilitiesData() {
+  // Convert vulnerabilities data to JSON and download
+  const data = <%= raw @vulnerabilities.to_json %>;
+  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2));
+  const downloadAnchorNode = document.createElement('a');
+  downloadAnchorNode.setAttribute("href", dataStr);
+  downloadAnchorNode.setAttribute("download", "vulnerabilities_" + new Date().toISOString().split('T')[0] + ".json");
+  document.body.appendChild(downloadAnchorNode); // required for firefox
+  downloadAnchorNode.click();
+  downloadAnchorNode.remove();
+}
+
+function copyToClipboard(text, button) {
+  // Create a temporary input element
+  const tempInput = document.createElement('input');
+  tempInput.style.position = 'absolute';
+  tempInput.style.left = '-9999px';
+  tempInput.value = text;
+  document.body.appendChild(tempInput);
+  
+  // Select and copy the text
+  tempInput.select();
+  tempInput.setSelectionRange(0, 99999); // For mobile devices
+  
+  try {
+    const successful = document.execCommand('copy');
+    if (successful) {
+      // Visual feedback - change icon temporarily
+      const originalIcon = button.innerHTML;
+      button.innerHTML = `
+        <svg class="w-3 h-3 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+        </svg>
+      `;
+      button.classList.add('text-success');
+      
+      // Reset after 2 seconds
+      setTimeout(() => {
+        button.innerHTML = originalIcon;
+        button.classList.remove('text-success');
+      }, 2000);
+    }
+  } catch (err) {
+    console.error('Failed to copy text: ', err);
+  }
+  
+  // Remove temporary input
+  document.body.removeChild(tempInput);
+}
+</script>

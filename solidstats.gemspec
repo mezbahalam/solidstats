@@ -39,5 +39,5 @@ Gem::Specification.new do |spec|
   end
 
   spec.add_dependency "bundler-audit"
-  spec.add_dependency "view_component", ">= 3.8"
+  spec.add_dependency "standard"
 end

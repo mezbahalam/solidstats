@@ -1,0 +1,463 @@
+<div class="min-h-screen bg-gradient-to-br from-base-200 to-base-300 p-4 lg:p-8">
+  <!-- Breadcrumbs -->
+  <div class="breadcrumbs text-sm mb-6">
+    <ul>
+      <li><a class="text-primary hover:text-primary-focus">Dashboard</a></li>
+      <li><a class="text-primary hover:text-primary-focus">Quality</a></li>
+      <li class="text-base-content/70">Style Patrol</li>
+    </ul>
+  </div>
+
+  <!-- Hero Header -->
+  <div class="hero bg-gradient-to-r from-primary via-primary-focus to-secondary text-primary-content rounded-3xl mb-8 shadow-2xl overflow-hidden relative">
+    <!-- Background Pattern -->
+    <div class="absolute inset-0 opacity-10">
+      <svg class="w-full h-full" viewBox="0 0 100 100" fill="currentColor">
+        <pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse">
+          <circle cx="5" cy="5" r="1"/>
+        </pattern>
+        <rect width="100" height="100" fill="url(#grid)"/>
+      </svg>
+    </div>
+    
+    <div class="hero-content text-center py-16 relative z-10">
+      <div class="max-w-md">
+        <div class="text-7xl mb-6 animate-bounce">🚨</div>
+        <h1 class="text-6xl font-black mb-4 bg-gradient-to-r from-white to-primary-content bg-clip-text">
+          StylePatrol
+        </h1>
+        <p class="text-xl opacity-90 mb-8 leading-relaxed">
+          Ruby Standard gem code quality enforcement
+        </p>
+        
+        <%= form_with url: refresh_quality_style_patrol_path, method: :post, local: true, 
+            data: { turbo_submits_with: "Analyzing..." }, class: "inline-block" do |form| %>
+          <%= form.button type: "submit", 
+              class: "btn btn-accent btn-lg gap-3 shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 group" do %>
+            <svg class="w-5 h-5 group-hover:rotate-180 transition-transform duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+            </svg>
+            Refresh Analysis
+          <% end %>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Status Overview -->
+  <div class="mb-8">
+    <% case @summary[:status] %>
+    <% when "clean" %>
+      <div class="alert alert-success shadow-lg">
+        <div>
+          <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          <div>
+            <h3 class="font-bold text-lg">All Clear!</h3>
+            <div class="text-sm opacity-80">Your code meets all standards</div>
+          </div>
+        </div>
+        <div class="flex-none">
+          <div class="badge badge-success badge-lg font-mono"><%= @summary[:health_score] %>/100</div>
+        </div>
+      </div>
+    <% when "issues_found" %>
+      <div class="alert alert-warning shadow-lg">
+        <div>
+          <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 14.5c-.77.833.192 2.5 1.732 2.5z"></path>
+          </svg>
+          <div>
+            <h3 class="font-bold text-lg">Issues Detected</h3>
+            <div class="text-sm opacity-80"><%= @summary[:total_offenses] %> violations found</div>
+          </div>
+        </div>
+        <div class="flex-none">
+          <div class="badge badge-warning badge-lg font-mono"><%= @summary[:health_score] %>/100</div>
+        </div>
+      </div>
+    <% when "error" %>
+      <div class="alert alert-error shadow-lg">
+        <div>
+          <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          <div>
+            <h3 class="font-bold text-lg">Analysis Error</h3>
+            <div class="text-sm opacity-80">Could not complete analysis</div>
+          </div>
+        </div>
+        <div class="flex-none">
+          <div class="badge badge-error badge-lg">Error</div>
+        </div>
+      </div>
+    <% end %>
+    
+    <!-- Analysis Metadata -->
+    <div class="stats stats-horizontal shadow-lg bg-base-100 mt-4 w-full">
+      <div class="stat">
+        <div class="stat-figure text-secondary">
+          <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+        </div>
+        <div class="stat-title">Last Analyzed</div>
+        <div class="stat-value text-2xl"><%= time_ago_in_words(Time.parse(@summary[:last_analyzed])) %></div>
+        <div class="stat-desc">ago</div>
+      </div>
+      
+      <div class="stat">
+        <div class="stat-figure text-primary">
+          <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+          </svg>
+        </div>
+        <div class="stat-title">Health Score</div>
+        <div class="stat-value text-3xl text-primary"><%= @summary[:health_score] %></div>
+        <div class="stat-desc text-primary">out of 100</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Summary Statistics -->
+  <% if @summary[:status] == "issues_found" %>
+    <div class="stats stats-vertical lg:stats-horizontal shadow-xl bg-gradient-to-r from-base-100 to-base-200 mb-8">
+      <div class="stat place-items-center">
+        <div class="stat-figure text-info">
+          <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+          </svg>
+        </div>
+        <div class="stat-title">Files Inspected</div>
+        <div class="stat-value text-info"><%= @analysis_data.dig(:summary, :inspected_file_count) || @summary[:total_files] %></div>
+        <div class="stat-desc">Source files analyzed</div>
+      </div>
+      
+      <div class="stat place-items-center">
+        <div class="stat-figure text-error">
+          <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 14.5c-.77.833.192 2.5 1.732 2.5z"></path>
+          </svg>
+        </div>
+        <div class="stat-title">Total Violations</div>
+        <div class="stat-value text-error"><%= @summary[:total_offenses] %></div>
+        <div class="stat-desc">Issues found</div>
+      </div>
+      
+      <div class="stat place-items-center">
+        <div class="stat-figure text-success">
+          <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+          </svg>
+        </div>
+        <div class="stat-title">Auto-Fixable</div>
+        <div class="stat-value text-success"><%= @summary[:correctable_count] %></div>
+        <div class="stat-desc">Can be auto-fixed</div>
+      </div>
+      
+      <div class="stat place-items-center">
+        <div class="stat-figure text-primary">
+          <div class="radial-progress text-primary border-primary border-4" style="--value:<%= @summary[:health_score] %>;" role="progressbar"><%= @summary[:health_score] %>%</div>
+        </div>
+        <div class="stat-title">Health Score</div>
+        <div class="stat-value text-primary"><%= @summary[:health_score] %>%</div>
+        <div class="stat-desc">Code quality</div>
+      </div>
+    </div>
+
+    <!-- Ruby Environment Info -->
+    <% if @analysis_data.dig(:raw_data, "metadata").present? %>
+      <div class="card bg-base-100 shadow-xl mb-8">
+        <div class="card-body">
+          <h2 class="card-title text-2xl">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+            </svg>
+            Environment Information
+          </h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <% metadata = @analysis_data.dig(:raw_data, "metadata") %>
+            <div class="flex items-center justify-between p-4 bg-base-200 rounded-lg">
+              <span class="font-semibold text-base-content">Ruby Version:</span>
+              <div class="badge badge-primary badge-lg font-mono"><%= metadata["ruby_version"] %> (<%= metadata["ruby_patchlevel"] %>)</div>
+            </div>
+            <div class="flex items-center justify-between p-4 bg-base-200 rounded-lg">
+              <span class="font-semibold text-base-content">Ruby Engine:</span>
+              <div class="badge badge-secondary badge-lg font-mono"><%= metadata["ruby_engine"] %></div>
+            </div>
+            <div class="flex items-center justify-between p-4 bg-base-200 rounded-lg">
+              <span class="font-semibold text-base-content">Platform:</span>
+              <div class="badge badge-accent badge-lg font-mono"><%= metadata["ruby_platform"] %></div>
+            </div>
+            <div class="flex items-center justify-between p-4 bg-base-200 rounded-lg">
+              <span class="font-semibold text-base-content">RuboCop Version:</span>
+              <div class="badge badge-info badge-lg font-mono"><%= metadata["rubocop_version"] %></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    <% end %>
+
+    <!-- Violations by Severity -->
+    <% if @issues_by_severity.any? %>
+      <div class="card bg-base-100 shadow-xl mb-8">
+        <div class="card-body">
+          <h2 class="card-title text-2xl">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+            </svg>
+            Violations by Severity
+          </h2>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <% @issues_by_severity.each do |severity, issues| %>
+              <div class="stat bg-base-200 rounded-xl p-6 border-l-4 
+                         <%= case severity
+                             when 'error'
+                               'border-error'
+                             when 'warning'
+                               'border-warning'
+                             else
+                               'border-info'
+                             end %>">
+                <div class="stat-figure <%= case severity
+                                           when 'error'
+                                             'text-error'
+                                           when 'warning'
+                                             'text-warning'
+                                           else
+                                             'text-info'
+                                           end %>">
+                  <%= case severity
+                      when 'error'
+                        '🔴'
+                      when 'warning'
+                        '🟡'
+                      else
+                        '🔵'
+                      end %>
+                </div>
+                <div class="stat-value <%= case severity
+                                          when 'error'
+                                            'text-error'
+                                          when 'warning'
+                                            'text-warning'
+                                          else
+                                            'text-info'
+                                          end %>"><%= issues.count %></div>
+                <div class="stat-title"><%= severity.capitalize %></div>
+                <div class="stat-desc">violations</div>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    <% end %>
+
+    <!-- Detailed Violations -->
+    <div class="card bg-base-100 shadow-xl mb-8">
+      <div class="card-body">
+        <h2 class="card-title text-2xl mb-6">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+          </svg>
+          Detailed Violations
+        </h2>
+        
+        <div class="space-y-6">
+          <% @issues_by_file.each do |file, file_issues| %>
+            <div class="collapse collapse-arrow bg-base-200">
+              <input type="checkbox" />
+              <div class="collapse-title text-lg font-medium flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                  </svg>
+                  <span class="font-mono text-sm text-base-content/70 break-all"><%= file %></span>
+                </div>
+                <div class="badge badge-error"><%= pluralize(file_issues.count, 'issue') %></div>
+              </div>
+              
+              <div class="collapse-content">
+                <div class="space-y-3 pt-4">
+                  <% file_issues.each do |issue| %>
+                    <div class="alert 
+                              <%= case issue[:severity]
+                                  when 'error'
+                                    'alert-error'
+                                  when 'warning' 
+                                    'alert-warning'
+                                  else
+                                    'alert-info'
+                                  end %> 
+                              shadow-sm">
+                      <div class="flex-1">
+                        <div class="flex items-start justify-between mb-2">
+                          <div class="flex items-center gap-2">
+                            <div class="badge badge-neutral font-mono text-xs">L<%= issue[:line] %>:<%= issue[:column] %></div>
+                            <div class="badge badge-outline"><%= issue[:cop_name] %></div>
+                            <% if issue[:correctable] %>
+                              <div class="badge badge-success gap-1">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                </svg>
+                                Auto-fixable
+                              </div>
+                            <% end %>
+                          </div>
+                        </div>
+                        <p class="text-sm leading-relaxed"><%= issue[:message] %></p>
+                      </div>
+                    </div>
+                  <% end %>
+                </div>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+  <% elsif @summary[:status] == "error" %>
+    <!-- Error Display -->
+    <div class="card bg-error text-error-content shadow-xl mb-8">
+      <div class="card-body">
+        <h2 class="card-title text-2xl">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          Analysis Error
+        </h2>
+        
+        <div class="bg-error-content/10 p-6 rounded-lg">
+          <p class="mb-4 text-lg">StylePatrol encountered an error while analyzing your code:</p>
+          <div class="mockup-code bg-base-300 text-base-content mb-6">
+            <pre class="px-4"><code><%= @analysis_data[:error_message] %></code></pre>
+          </div>
+          
+          <div class="divider"></div>
+          
+          <h3 class="text-lg font-bold mb-3">💡 Possible solutions:</h3>
+          <div class="space-y-2">
+            <div class="flex items-center gap-3 p-3 bg-base-100 text-base-content rounded-lg">
+              <svg class="w-5 h-5 text-info" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              <span>Ensure the Standard gem is installed: <code class="bg-base-200 px-2 py-1 rounded">gem install standard</code></span>
+            </div>
+            <div class="flex items-center gap-3 p-3 bg-base-100 text-base-content rounded-lg">
+              <svg class="w-5 h-5 text-info" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              <span>Check that your project has Ruby files to analyze</span>
+            </div>
+            <div class="flex items-center gap-3 p-3 bg-base-100 text-base-content rounded-lg">
+              <svg class="w-5 h-5 text-info" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              <span>Verify that <code class="bg-base-200 px-2 py-1 rounded">standardrb</code> command is available in your PATH</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  <% else %>
+    <!-- Clean Code Display -->
+    <div class="card bg-gradient-to-r from-success to-success/80 text-success-content shadow-xl mb-8">
+      <div class="card-body text-center">
+        <div class="text-6xl mb-4">🎉</div>
+        <h2 class="card-title text-3xl justify-center mb-4">Excellent Code Quality!</h2>
+        <p class="text-xl opacity-90 mb-6">Your code passes all Standard gem checks. Keep up the great work!</p>
+        
+        <div class="stats stats-horizontal bg-success-content/10 text-success-content shadow-lg">
+          <div class="stat">
+            <div class="stat-title text-success-content/70">Files Inspected</div>
+            <div class="stat-value text-2xl"><%= @analysis_data.dig(:summary, :inspected_file_count) || @summary[:total_files] %></div>
+            <div class="stat-desc text-success-content/70">Source files</div>
+          </div>
+          
+          <div class="stat">
+            <div class="stat-title text-success-content/70">Health Score</div>
+            <div class="stat-value text-3xl"><%= @summary[:health_score] %>/100</div>
+            <div class="stat-desc text-success-content/70">Perfect score</div>
+          </div>
+          
+          <div class="stat">
+            <div class="stat-title text-success-content/70">Last Check</div>
+            <div class="stat-value text-2xl"><%= time_ago_in_words(Time.parse(@summary[:last_analyzed])) %></div>
+            <div class="stat-desc text-success-content/70">ago</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Ruby Environment Info for Clean Code -->
+    <% if @analysis_data.dig(:raw_data, "metadata").present? %>
+      <div class="card bg-base-100 shadow-xl mb-8">
+        <div class="card-body">
+          <h2 class="card-title text-2xl">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+            </svg>
+            Environment Information
+          </h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <% metadata = @analysis_data.dig(:raw_data, "metadata") %>
+            <div class="flex items-center justify-between p-4 bg-base-200 rounded-lg">
+              <span class="font-semibold text-base-content">Ruby Version:</span>
+              <div class="badge badge-primary badge-lg font-mono"><%= metadata["ruby_version"] %> (<%= metadata["ruby_patchlevel"] %>)</div>
+            </div>
+            <div class="flex items-center justify-between p-4 bg-base-200 rounded-lg">
+              <span class="font-semibold text-base-content">Ruby Engine:</span>
+              <div class="badge badge-secondary badge-lg font-mono"><%= metadata["ruby_engine"] %></div>
+            </div>
+            <div class="flex items-center justify-between p-4 bg-base-200 rounded-lg">
+              <span class="font-semibold text-base-content">Platform:</span>
+              <div class="badge badge-accent badge-lg font-mono"><%= metadata["ruby_platform"] %></div>
+            </div>
+            <div class="flex items-center justify-between p-4 bg-base-200 rounded-lg">
+              <span class="font-semibold text-base-content">RuboCop Version:</span>
+              <div class="badge badge-info badge-lg font-mono"><%= metadata["rubocop_version"] %></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    <% end %>
+  <% end %>
+
+  <!-- Floating Action Button for mobile -->
+  <div class="fixed bottom-6 right-6 lg:hidden">
+    <div class="dropdown dropdown-top dropdown-end">
+      <div tabindex="0" role="button" class="btn btn-circle btn-primary btn-lg shadow-2xl">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path>
+        </svg>
+      </div>
+      <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow-2xl bg-base-100 rounded-box w-52 mb-2">
+        <li>
+          <%= form_with url: refresh_quality_style_patrol_path, method: :post, local: true, class: "contents" do |form| %>
+            <%= form.button type: "submit", class: "gap-3 w-full justify-start bg-transparent border-none hover:bg-base-200 text-base-content p-3 rounded-lg" do %>
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+              </svg>
+              Refresh Analysis
+            <% end %>
+          <% end %>
+        </li>
+        <li>
+          <a href="#top" class="gap-3">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 11l5-5m0 0l5 5m-5-5v12"></path>
+            </svg>
+            Back to Top
+          </a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>

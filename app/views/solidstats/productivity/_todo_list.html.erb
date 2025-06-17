@@ -1,0 +1,49 @@
+<div class="space-y-4">
+  <h3 class="text-lg font-semibold mb-4"><%= title %> (<%= todos.length %>)</h3>
+  
+  <% if todos.empty? %>
+    <div class="text-center py-8">
+      <div class="text-6xl mb-4">🎉</div>
+      <p class="text-base-content/70">No TODOs found!</p>
+    </div>
+  <% else %>
+    <div class="space-y-3">
+      <% todos.each do |todo| %>
+        <div class="card bg-base-200 shadow-sm">
+          <div class="card-body p-4">
+            <div class="flex items-start justify-between">
+              <div class="flex-1">
+                <div class="flex items-center gap-2 mb-2">
+                  <span class="badge badge-<%= todo_type_color(todo[:type]) %> badge-sm">
+                    <%= todo[:type].upcase %>
+                  </span>
+                  <span class="text-sm text-base-content/60">
+                    <%= todo[:file] %>:<%= todo[:line_number] %>
+                  </span>
+                </div>
+                
+                <p class="text-sm font-mono bg-base-300 p-2 rounded">
+                  <%= todo[:full_line] %>
+                </p>
+                
+                <% if todo[:content] != todo[:full_line] %>
+                  <p class="text-sm mt-2 text-base-content/80">
+                    <%= todo[:content] %>
+                  </p>
+                <% end %>
+              </div>
+              
+              <div class="ml-4">
+                <button class="btn btn-ghost btn-xs" onclick="copyToClipboard('<%= todo[:file] %>:<%= todo[:line_number] %>')">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+</div>
