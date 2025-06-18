@@ -1,9 +1,0 @@
-<%# filepath: /Users/mezbah/microstartup/infolily_organizer/gems/solidstats/previews/summary_card_component_preview/dashboard_layout.html.erb %>
-<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; padding: 1rem; background-color: #f9fafb; border-radius: 0.5rem;">
-  <% metrics.each do |metric_config| %>
-    <%= render(Solidstats::Ui::SummaryCardComponent.new(**metric_config)) %>
-  <% end %>
-</div>
-<p style="padding: 1rem; font-size: 0.875rem; color: #6b7280;">
-  Example dashboard layout showing how summary cards work together to provide a comprehensive overview.
-</p>

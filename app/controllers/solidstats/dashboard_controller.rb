@@ -93,7 +93,7 @@ module Solidstats
       Solidstats::MyTodoService.collect_todos
       Solidstats::StylePatrolService.refresh_cache
       Solidstats::CoverageCompassService.refresh_cache
-      Solidstats::DevLogParserService.scan_and_cache
+      Solidstats::LoadLensService.scan_and_cache
     end
   end
 end
