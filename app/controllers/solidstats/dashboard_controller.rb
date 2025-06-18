@@ -77,23 +77,13 @@ module Solidstats
         end
       rescue Errno::ENOENT
         Rails.logger.warn("Summary JSON file not found, generating initial data...")
-        generate_initial_data
-        retry
+        # Fallback to empty array if JSON is invalid
+        []
       rescue JSON::ParserError => e
         Rails.logger.error("Error parsing summary JSON: #{e.message}")
         # Fallback to empty array if JSON is invalid
         []
       end
-    end
-
-    def generate_initial_data
-      # Force a scan to create initial data if missing
-      Solidstats::LogSizeMonitorService.scan_and_cache
-      Solidstats::BundlerAuditService.scan_and_cache
-      Solidstats::MyTodoService.collect_todos
-      Solidstats::StylePatrolService.refresh_cache
-      Solidstats::CoverageCompassService.refresh_cache
-      Solidstats::LoadLensService.scan_and_cache
     end
   end
 end

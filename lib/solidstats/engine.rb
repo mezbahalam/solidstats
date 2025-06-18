@@ -31,11 +31,6 @@ module Solidstats
       app.config.autoload_paths += Dir[Engine.root.join("app", "services", "**")]
     end
 
-    # Load custom rake tasks
-    rake_tasks do
-      load_rake_tasks
-    end
-
     # Add custom generators path
     config.generators do |g|
       g.test_framework :minitest, spec: false, fixture: false
@@ -49,33 +44,7 @@ module Solidstats
       app.config.assets.precompile += %w[solidstats/application.css]
     end
 
-    # Automatically run DevLogParserService in the background in development
-    initializer "solidstats.dev_log_parser" do |app|
-      if Rails.env.development?
-        # Ensure this runs after initializers are complete
-        app.config.after_initialize do
-          # Use a separate thread to avoid blocking server startup
-          Thread.new do
-            loop do
-              Solidstats::LoadLensService.parse_log_and_save
-              sleep 1200 # Check every 20 minutes
-            end
-          end
-        end
-      end
-    end
-
     private
-
-    # Load custom rake tasks
-    def load_rake_tasks
-      task_files = Dir[Engine.root.join("lib", "tasks", "**", "*.rake")]
-      task_files.each { |file| load file }
-
-      log_info "📋 Loaded #{task_files.size} rake task(s)" if task_files.any?
-    rescue StandardError => e
-      log_error "Failed to load rake tasks: #{e.message}"
-    end
 
     # Logging helpers with consistent formatting
     def log_info(message)
