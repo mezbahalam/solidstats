@@ -58,27 +58,4 @@ namespace :solidstats do
       puts "Cleaned #{deleted_count} old LoadLens performance data files"
     end
   end
-  
-  # Keep performance namespace for backward compatibility
-  namespace :performance do
-    desc "Parse development log and extract performance metrics (alias for load_lens:parse_logs)"
-    task parse_logs: :environment do
-      Rake::Task["solidstats:load_lens:parse_logs"].invoke
-    end
-
-    desc "Refresh performance data cache (alias for load_lens:refresh)"
-    task refresh: :environment do
-      Rake::Task["solidstats:load_lens:refresh"].invoke
-    end
-
-    desc "Show performance data summary (alias for load_lens:summary)"
-    task summary: :environment do
-      Rake::Task["solidstats:load_lens:summary"].invoke
-    end
-
-    desc "Clean old performance data files (alias for load_lens:clean_old_data)"
-    task clean_old_data: :environment do
-      Rake::Task["solidstats:load_lens:clean_old_data"].invoke
-    end
-  end
 end
