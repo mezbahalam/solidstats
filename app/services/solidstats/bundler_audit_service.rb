@@ -21,7 +21,7 @@ module Solidstats
       # @return [Hash] Fresh vulnerability data
       def scan_and_cache
         Rails.logger.info("Running bundler audit scan...")
-        
+
         begin
           vulnerabilities_data = collect_bundler_audit_data
           save_to_cache(vulnerabilities_data)
@@ -54,7 +54,7 @@ module Solidstats
       # @return [Boolean] true if cache is stale or missing
       def cache_stale?
         return true unless File.exist?(CACHE_FILE)
-        
+
         file_age = Time.current - File.mtime(CACHE_FILE)
         file_age > CACHE_HOURS.hours
       end
@@ -63,7 +63,7 @@ module Solidstats
       # @return [Hash] Cached vulnerability data
       def load_cached_data
         return { "output" => { "results" => [] } } unless File.exist?(CACHE_FILE)
-        
+
         JSON.parse(File.read(CACHE_FILE))
       rescue JSON::ParserError => e
         Rails.logger.error("Error parsing bundler audit cache: #{e.message}")
@@ -75,17 +75,17 @@ module Solidstats
       def collect_bundler_audit_data
         # Run bundler audit with JSON format
         result = `bundle audit check --update --format json 2>&1`
-        
+
         # Check if bundler-audit is installed
         if $?.exitstatus == 127 || result.include?("command not found")
           raise "bundler-audit gem is not installed. Please run: gem install bundler-audit"
         end
-        
+
         # Extract JSON part from output (bundler-audit may include extra text)
         json_match = result.match(/(\{.*\})/m)
         if json_match
           parsed_data = JSON.parse(json_match[1])
-          
+
           # Add metadata
           {
             "output" => {
@@ -120,26 +120,26 @@ module Solidstats
       # @param data [Hash] Vulnerability data
       def update_summary_json(data)
         summary_file = Rails.root.join("solidstats", "summary.json")
-        
+
         # Ensure directory exists
         FileUtils.mkdir_p(File.dirname(summary_file))
-        
+
         # Load existing summary or create new
         existing_summary = if File.exist?(summary_file)
           JSON.parse(File.read(summary_file))
         else
           {}
         end
-        
+
         # Get vulnerability count and status
         results = data.dig("output", "results") || []
         vuln_count = results.count
         status = determine_status(vuln_count)
-        
+
         # Calculate severity distribution
         severity_counts = results.group_by { |r| r.dig("advisory", "criticality") || "unknown" }
                                  .transform_values(&:count)
-        
+
         # Create badges for severity levels
         badges = []
         %w[critical high medium low].each do |severity|
@@ -151,7 +151,7 @@ module Solidstats
             }
           end
         end
-        
+
         # Update summary
         existing_summary["Security Vulnerabilities"] = {
           "icon" => "shield-alert",
@@ -161,7 +161,7 @@ module Solidstats
           "url" => "/solidstats/securities/bundler_audit",
           "badges" => badges
         }
-        
+
         # Save updated summary
         File.write(summary_file, JSON.pretty_generate(existing_summary))
         Rails.logger.info("Updated summary.json with security vulnerabilities")

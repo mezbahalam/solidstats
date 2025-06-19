@@ -2,13 +2,13 @@
 
 module Solidstats
   class QualityController < ApplicationController
-    layout 'solidstats/dashboard'
-    
+    layout "solidstats/dashboard"
+
     # Display Standard gem code quality analysis
     def style_patrol
       @analysis_data = Solidstats::StylePatrolService.collect_data
       @summary = Solidstats::StylePatrolService.get_summary
-      
+
       # Group issues by file for better display
       if @analysis_data[:issues].present?
         @issues_by_file = @analysis_data[:issues].group_by { |issue| issue[:file] }
@@ -17,56 +17,56 @@ module Solidstats
         @issues_by_file = {}
         @issues_by_severity = {}
       end
-      
-      render 'style_patrol'
+
+      render "style_patrol"
     end
-    
+
     # Force refresh of style patrol data
     def refresh_style_patrol
       @analysis_data = Solidstats::StylePatrolService.refresh_cache
-      redirect_to quality_style_patrol_path, notice: 'Code quality analysis refreshed successfully.'
+      redirect_to quality_style_patrol_path, notice: "Code quality analysis refreshed successfully."
     rescue => e
       redirect_to quality_style_patrol_path, alert: "Error refreshing analysis: #{e.message}"
     end
-    
+
     # Display SimpleCov code coverage analysis
     def coverage_compass
       # Get coverage data using the correct method
       @analysis_data = Solidstats::CoverageCompassService.collect_data
-      
+
       # Handle different response types from service
       if @analysis_data
         if @analysis_data[:setup_required]
           @setup_instructions = @analysis_data[:instructions]
           @show_setup = true
-          @analysis_data[:status] = 'setup_required'
+          @analysis_data[:status] = "setup_required"
         elsif @analysis_data[:stale_data]
           @stale_warning = true
           @data_age_hours = @analysis_data[:data_age_hours]
           @suggestions = @analysis_data[:suggestions]
           @analysis_data = @analysis_data[:last_coverage] || @analysis_data
-          @analysis_data[:status] = 'stale'
+          @analysis_data[:status] = "stale"
         elsif @analysis_data[:error]
           @error_message = @analysis_data[:error]
-          @analysis_data[:status] = 'error'
+          @analysis_data[:status] = "error"
         else
-          @analysis_data[:status] = 'success'
+          @analysis_data[:status] = "success"
         end
-        
+
         # Organize file coverage data for better display
         organize_coverage_data
       else
         set_error_state
-        @analysis_data = { status: 'error' }
+        @analysis_data = { status: "error" }
       end
-      
-      render 'coverage_compass'
+
+      render "coverage_compass"
     end
-    
+
     # Force refresh of coverage compass data
     def refresh_coverage_compass
       Solidstats::CoverageCompassService.refresh_cache
-      redirect_to quality_coverage_compass_path, notice: 'Code coverage analysis refreshed successfully.'
+      redirect_to quality_coverage_compass_path, notice: "Code coverage analysis refreshed successfully."
     rescue => e
       redirect_to quality_coverage_compass_path, alert: "Error refreshing coverage analysis: #{e.message}"
     end
@@ -85,7 +85,7 @@ module Solidstats
             missed_lines: data[:missed_lines] || []
           }
         end
-        
+
         # Group files by coverage ranges for better visualization
         @coverage_ranges = {
           excellent: @file_coverage.select { |f| f[:coverage_percent] >= 90 },
@@ -97,7 +97,7 @@ module Solidstats
         @file_coverage = []
         @coverage_ranges = { excellent: [], good: [], needs_improvement: [], poor: [] }
       end
-      
+
       # Set summary data
       @summary = {
         overall_coverage: @analysis_data[:overall_coverage] || 0,
@@ -115,15 +115,15 @@ module Solidstats
       @error_message = "Failed to retrieve coverage data"
       @file_coverage = []
       @coverage_ranges = { excellent: [], good: [], needs_improvement: [], poor: [] }
-      @summary = { 
-        overall_coverage: 0, 
+      @summary = {
+        overall_coverage: 0,
         coverage_percent: 0,
-        total_lines: 0, 
-        covered_lines: 0, 
+        total_lines: 0,
+        covered_lines: 0,
         missed_lines: 0,
         total_files: 0,
         health_score: 0,
-        coverage_grade: 'F'
+        coverage_grade: "F"
       }
     end
 
@@ -140,12 +140,12 @@ module Solidstats
 
     def determine_coverage_grade(coverage_percent)
       case coverage_percent
-      when 90..100 then 'A+'
-      when 80..89 then 'A'
-      when 70..79 then 'B'
-      when 60..69 then 'C'
-      when 50..59 then 'D'
-      else 'F'
+      when 90..100 then "A+"
+      when 80..89 then "A"
+      when 70..79 then "B"
+      when 60..69 then "C"
+      when 50..59 then "D"
+      else "F"
       end
     end
   end

@@ -1,9 +1,10 @@
 # frozen_string_literal: true
+
 require "rails/generators"
 
 namespace :solidstats do
   desc "Install Solidstats in your Rails application"
-  task :install => :environment do
+  task install: :environment do
     puts "🚀 Running Solidstats installer..."
     Rails::Generators.invoke("solidstats:install")
   end
@@ -63,4 +64,4 @@ namespace :solidstats do
       puts "-> Load Lens data primed."
     end
   end
-end 
+end

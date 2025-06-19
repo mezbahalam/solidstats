@@ -23,7 +23,7 @@ module Solidstats
 
   # Load and initialize Solidstats in a Rails environment
   def self.load!
-    return unless defined?(Rails)
+    nil unless defined?(Rails)
   end
 end
 

@@ -1,6 +1,6 @@
 module Solidstats
   class DashboardController < ApplicationController
-    layout 'solidstats/dashboard'
+    layout "solidstats/dashboard"
 
     TODO_CACHE_FILE = Rails.root.join("tmp", "solidstats_todos.json")
     AUDIT_CACHE_HOURS = 12 # Configure how many hours before refreshing
@@ -10,7 +10,7 @@ module Solidstats
       # Load dashboard cards from JSON file
       @dashboard_cards = load_dashboard_cards
       @quick_actions = quick_actions_data
-      render 'dashboard'
+      render "dashboard"
     end
 
     def refresh
@@ -23,8 +23,8 @@ module Solidstats
       Solidstats::LoadLensService.scan_and_cache
 
       respond_to do |format|
-        format.html { redirect_to solidstats_dashboard_path, notice: 'Dashboard data refreshed successfully!' }
-        format.json { render json: { status: 'success', message: 'Dashboard data refreshed successfully!' } }
+        format.html { redirect_to solidstats_dashboard_path, notice: "Dashboard data refreshed successfully!" }
+        format.json { render json: { status: "success", message: "Dashboard data refreshed successfully!" } }
       end
     end
 
@@ -33,28 +33,28 @@ module Solidstats
     def quick_actions_data
       [
         {
-          icon: 'refresh-cw',
-          label: 'Refresh Data',
-          color: 'blue',
-          action: 'refresh_path'
+          icon: "refresh-cw",
+          label: "Refresh Data",
+          color: "blue",
+          action: "refresh_path"
         },
         {
-          icon: 'settings',
-          label: 'Configure',
-          color: 'purple',
-          action: '#'
+          icon: "settings",
+          label: "Configure",
+          color: "purple",
+          action: "#"
         },
         {
-          icon: 'download',
-          label: 'Export',
-          color: 'green',
-          action: '#'
+          icon: "download",
+          label: "Export",
+          color: "green",
+          action: "#"
         },
         {
-          icon: 'bell',
-          label: 'Alerts',
-          color: 'orange',
-          action: '#'
+          icon: "bell",
+          label: "Alerts",
+          color: "orange",
+          action: "#"
         }
       ]
     end

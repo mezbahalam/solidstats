@@ -41,7 +41,7 @@ module Solidstats
       def add_to_gitignore
         gitignore_path = File.join(destination_root, ".gitignore")
         gitignore_content = "\n# Solidstats data directory\nsolidstats/\n"
-        
+
         if File.exist?(gitignore_path)
           append_to_file ".gitignore", gitignore_content unless File.read(gitignore_path).include?("solidstats/")
         else

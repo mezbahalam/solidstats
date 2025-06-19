@@ -1,17 +1,17 @@
 # frozen_string_literal: true
 
-require 'fileutils'
-require 'json'
+require "fileutils"
+require "json"
 
 module Solidstats
   class StylePatrolService
     CACHE_KEY = "style_patrol_data"
     CACHE_DURATION = 6.hours
-    STANDARD_JSON_FILE = Rails.root.join('solidstats', 'standard.json')
+    STANDARD_JSON_FILE = Rails.root.join("solidstats", "standard.json")
 
     def self.collect_data(force_refresh: false)
       return cached_data unless force_refresh || cache_expired?
-      
+
       analysis_data = analyze_code_quality
       cache_data(analysis_data)
       save_to_standard_json(analysis_data)
@@ -40,10 +40,10 @@ module Solidstats
 
     def self.analyze_code_quality
       result = `standardrb --format json 2>&1`
-      
+
       # Extract JSON from output (may contain debug info or other text)
       json_content = extract_json_from_output(result)
-      
+
       if json_content.nil?
         # No JSON found - could be clean result or error
         if $?.success?
@@ -51,9 +51,9 @@ module Solidstats
           {
             status: "clean",
             issues: [],
-            summary: { 
-              total_files: 0, 
-              total_offenses: 0, 
+            summary: {
+              total_files: 0,
+              total_offenses: 0,
               correctable_count: 0,
               target_file_count: 0,
               inspected_file_count: 0
@@ -90,10 +90,10 @@ module Solidstats
 
     def self.process_standard_output(json_data)
       issues = []
-      
+
       # Handle StandardRB JSON format
       files = json_data["files"] || []
-      
+
       files.each do |file_data|
         file_data["offenses"]&.each do |offense|
           issues << {
@@ -110,7 +110,7 @@ module Solidstats
 
       # Get summary from StandardRB output
       summary_data = json_data["summary"] || {}
-      
+
       {
         status: issues.any? ? "issues_found" : "clean",
         issues: issues,
@@ -140,7 +140,7 @@ module Solidstats
     def self.cache_expired?
       cached_entry = Rails.cache.read(CACHE_KEY)
       return true if cached_entry.nil?
-      
+
       cached_time = Time.parse(cached_entry[:analyzed_at])
       Time.current > cached_time + CACHE_DURATION
     rescue
@@ -150,46 +150,46 @@ module Solidstats
     def self.calculate_health_score(data)
       return 100 if data[:status] == "clean"
       return 0 if data[:status] == "error"
-      
+
       total_offenses = data.dig(:summary, :total_offenses) || 0
       total_files = data.dig(:summary, :total_files) || 1
-      
+
       # Health score: 100 - (offenses per file * 10), minimum 0
       score = 100 - ((total_offenses.to_f / total_files) * 10).round
-      [score, 0].max
+      [ score, 0 ].max
     end
 
     def self.update_summary_json(data)
-      summary_file_path = Rails.root.join('solidstats', 'summary.json')
-      
+      summary_file_path = Rails.root.join("solidstats", "summary.json")
+
       # Ensure directory exists
       FileUtils.mkdir_p(File.dirname(summary_file_path))
-      
+
       # Read existing summary or create new one
       begin
         existing_summary = File.exist?(summary_file_path) ? JSON.parse(File.read(summary_file_path)) : {}
       rescue JSON::ParserError
         existing_summary = {}
       end
-      
+
       # Calculate style patrol statistics
       total_offenses = data.dig(:summary, :total_offenses) || 0
       correctable_count = data.dig(:summary, :correctable_count) || 0
       status = determine_dashboard_status(data[:status], total_offenses)
       health_score = calculate_health_score(data)
-      
+
       # Create badges based on code quality metrics
       badges = []
       badges << { "text" => "Health: #{health_score}%", "color" => health_badge_color(health_score) }
-      
+
       if total_offenses > 0
         badges << { "text" => "#{total_offenses} Issues", "color" => "warning" }
-        
+
         if correctable_count > 0
           badges << { "text" => "#{correctable_count} Auto-fixable", "color" => "info" }
         end
       end
-      
+
       # Update the StylePatrol entry
       existing_summary["StylePatrol"] = {
         "icon" => "code",
@@ -199,7 +199,7 @@ module Solidstats
         "url" => "/solidstats/quality/style_patrol",
         "badges" => badges
       }
-      
+
       # Write updated summary
       File.write(summary_file_path, JSON.pretty_generate(existing_summary))
       Rails.logger.info("Updated summary.json with StylePatrol data")
@@ -246,7 +246,7 @@ module Solidstats
     def self.save_to_standard_json(data)
       # Ensure directory exists
       FileUtils.mkdir_p(File.dirname(STANDARD_JSON_FILE))
-      
+
       # Prepare data for standard.json file
       standard_data = {
         last_updated: data[:analyzed_at],
@@ -257,7 +257,7 @@ module Solidstats
         processed_summary: data[:summary] || {},
         issues_count: data[:issues]&.count || 0
       }
-      
+
       # Write to standard.json file
       File.write(STANDARD_JSON_FILE, JSON.pretty_generate(standard_data))
       Rails.logger.info("Saved StandardRB data to #{STANDARD_JSON_FILE}")
@@ -268,47 +268,47 @@ module Solidstats
     def self.extract_json_from_output(output)
       # Look for JSON content - should start with { and end with }
       # Handle cases where debug info or other text appears before/after JSON
-      
+
       return nil if output.nil? || output.strip.empty?
-      
+
       # Split by lines and look for the line that starts with JSON
       lines = output.split("\n")
       json_lines = []
       json_started = false
       brace_count = 0
-      
+
       lines.each do |line|
         # Skip debug lines that mention "Subprocess Debugger", "ruby-debug-ide", etc.
-        next if line.include?("Subprocess Debugger") || 
-                line.include?("ruby-debug-ide") || 
+        next if line.include?("Subprocess Debugger") ||
+                line.include?("ruby-debug-ide") ||
                 line.include?("debase") ||
                 line.include?("listens on")
-        
+
         # Look for the start of JSON (line starting with {)
-        if !json_started && line.strip.start_with?('{')
+        if !json_started && line.strip.start_with?("{")
           json_started = true
         end
-        
+
         if json_started
           json_lines << line
-          
+
           # Count braces to know when JSON ends
-          brace_count += line.count('{') - line.count('}')
-          
+          brace_count += line.count("{") - line.count("}")
+
           # If we've closed all braces, we've reached the end of JSON
           break if brace_count == 0
         end
       end
-      
+
       return nil if json_lines.empty?
-      
+
       json_content = json_lines.join("\n")
-      
+
       # Validate that it looks like StandardRB JSON by checking for expected structure
-      return nil unless json_content.include?('"metadata"') || 
-                        json_content.include?('"files"') || 
+      return nil unless json_content.include?('"metadata"') ||
+                        json_content.include?('"files"') ||
                         json_content.include?('"summary"')
-      
+
       json_content
     rescue => e
       Rails.logger.error("Error extracting JSON from StandardRB output: #{e.message}")
