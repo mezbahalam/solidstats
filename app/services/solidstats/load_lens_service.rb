@@ -105,8 +105,12 @@ module Solidstats
     end
 
     def self.scan_development_log
-      # Load recent performance data for dashboard
+      # First, ensure the log parser runs to create perf files if they don't exist
+      parse_recent_log_entries_if_needed
+
+      # Now, load the performance data from the perf files
       data_files = []
+      found_perf_files = []
       
       # Get last 7 days of data files
       7.times do |i|
@@ -116,17 +120,33 @@ module Solidstats
         if File.exist?(file_path)
           file_data = JSON.parse(File.read(file_path))
           data_files.concat(file_data)
+          found_perf_files << file_path
         end
       end
 
       # Fallback: If no data files exist, parse recent entries from development.log
       if data_files.empty? && File.exist?(LOG_FILE) && Rails.env.development?
-        Rails.logger.info("DevLogParser: No data files found, parsing recent development log entries")
+        Rails.logger.info("LoadLensService: No perf data files found, parsing recent log entries as a fallback.")
         data_files = parse_recent_log_entries
       end
 
       # Calculate metrics
       calculate_performance_metrics(data_files)
+    end
+
+    def self.parse_recent_log_entries_if_needed
+      # Check if any perf files exist from the last 7 days
+      has_recent_perf_files = 7.times.any? do |i|
+        date = i.days.ago.to_date
+        file_path = DATA_DIR.join("perf_#{date.strftime('%Y-%m-%d')}.json")
+        File.exist?(file_path)
+      end
+
+      # If no recent perf files, run the parser
+      unless has_recent_perf_files
+        Rails.logger.info("LoadLensService: No recent perf files found. Parsing development log to generate initial data.")
+        parse_recent_log_entries
+      end
     end
 
     def self.parse_recent_log_entries

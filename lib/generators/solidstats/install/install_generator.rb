@@ -17,13 +17,19 @@ module Solidstats
       desc "Installs Solidstats in your Rails application"
 
       def add_routes
+        route_string = %Q(mount Solidstats::Engine => "/solidstats")
         route_code = %Q(
   # Solidstats Routes (development only)
-  mount Solidstats::Engine => "/solidstats" if Rails.env.development?
+  #{route_string} if Rails.env.development?
         )
 
-        route route_code.strip
-        say_status :routes, "Mounting Solidstats engine at /solidstats (development only)", :green
+        # Check if the route already exists
+        if File.read(File.join(destination_root, "config", "routes.rb")).include?(route_string)
+          say_status :skip, "Solidstats route already exists", :yellow
+        else
+          route route_code.strip
+          say_status :routes, "Mounting Solidstats engine at /solidstats (development only)", :green
+        end
       end
 
       def create_solidstats_directory
