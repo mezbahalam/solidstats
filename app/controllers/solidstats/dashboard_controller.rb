@@ -22,7 +22,10 @@ module Solidstats
       Solidstats::CoverageCompassService.refresh_cache
       Solidstats::LoadLensService.scan_and_cache
 
-      redirect_to solidstats_dashboard_path, notice: 'Dashboard data refreshed successfully!'
+      respond_to do |format|
+        format.html { redirect_to solidstats_dashboard_path, notice: 'Dashboard data refreshed successfully!' }
+        format.json { render json: { status: 'success', message: 'Dashboard data refreshed successfully!' } }
+      end
     end
 
     private
@@ -33,25 +36,25 @@ module Solidstats
           icon: 'refresh-cw',
           label: 'Refresh Data',
           color: 'blue',
-          action: 'refresh_dashboard'
+          action: 'refresh_path'
         },
         {
           icon: 'settings',
           label: 'Configure',
           color: 'purple',
-          action: 'open_settings'
+          action: '#'
         },
         {
           icon: 'download',
           label: 'Export',
           color: 'green',
-          action: 'export_data'
+          action: '#'
         },
         {
           icon: 'bell',
           label: 'Alerts',
           color: 'orange',
-          action: 'view_alerts'
+          action: '#'
         }
       ]
     end
