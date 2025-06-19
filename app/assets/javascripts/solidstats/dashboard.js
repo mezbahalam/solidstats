@@ -162,52 +162,6 @@ window.SolidstatsDashboard.setupSummaryCardNavigation = function() {
   });
 };
 
-// Refresh functionality
-window.SolidstatsDashboard.refreshAudit = function() {
-  // Show loading indicator
-  const refreshButton = document.querySelector('.action-button');
-  const originalText = refreshButton.innerHTML;
-  refreshButton.innerHTML = '<span class="action-icon">⟳</span> Refreshing...';
-  refreshButton.disabled = true;
-  
-  // Make AJAX call to refresh endpoint
-  fetch('/solidstats/refresh', {
-    method: 'GET',
-    headers: {
-      'Accept': 'application/json',
-      'X-Requested-With': 'XMLHttpRequest'
-    },
-    credentials: 'same-origin'
-  })
-  .then(response => {
-    if (!response.ok) {
-      throw new Error('Network response was not ok');
-    }
-    return response.json();
-  })
-  .then(data => {
-    // Update the dashboard with fresh data
-    location.reload();
-    
-    // Show success notification
-    window.SolidstatsDashboard.showNotification('Dashboard data refreshed successfully', 'success');
-    
-    // Reset button state
-    refreshButton.innerHTML = originalText;
-    refreshButton.disabled = false;
-  })
-  .catch(error => {
-    console.error('Error refreshing data:', error);
-    
-    // Show error notification
-    window.SolidstatsDashboard.showNotification('Failed to refresh data. Please try again.', 'error');
-    
-    // Reset button state
-    refreshButton.innerHTML = originalText;
-    refreshButton.disabled = false;
-  });
-};
-
 // Notification system
 window.SolidstatsDashboard.showNotification = function(message, type) {
   // Simple notification system

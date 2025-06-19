@@ -1,6 +1,6 @@
 module Solidstats
   class DashboardController < ApplicationController
-    layout 'solidstats/dashboard'
+    layout "solidstats/dashboard"
 
     TODO_CACHE_FILE = Rails.root.join("tmp", "solidstats_todos.json")
     AUDIT_CACHE_HOURS = 12 # Configure how many hours before refreshing
@@ -10,7 +10,7 @@ module Solidstats
       # Load dashboard cards from JSON file
       @dashboard_cards = load_dashboard_cards
       @quick_actions = quick_actions_data
-      render 'dashboard'
+      render "dashboard"
     end
 
     def refresh
@@ -22,7 +22,10 @@ module Solidstats
       Solidstats::CoverageCompassService.refresh_cache
       Solidstats::LoadLensService.scan_and_cache
 
-      redirect_to solidstats_dashboard_path, notice: 'Dashboard data refreshed successfully!'
+      respond_to do |format|
+        format.html { redirect_to solidstats_dashboard_path, notice: "Dashboard data refreshed successfully!" }
+        format.json { render json: { status: "success", message: "Dashboard data refreshed successfully!" } }
+      end
     end
 
     private
@@ -30,28 +33,28 @@ module Solidstats
     def quick_actions_data
       [
         {
-          icon: 'refresh-cw',
-          label: 'Refresh Data',
-          color: 'blue',
-          action: 'refresh_dashboard'
+          icon: "refresh-cw",
+          label: "Refresh Data",
+          color: "blue",
+          action: "refresh_path"
         },
         {
-          icon: 'settings',
-          label: 'Configure',
-          color: 'purple',
-          action: 'open_settings'
+          icon: "settings",
+          label: "Configure",
+          color: "purple",
+          action: "#"
         },
         {
-          icon: 'download',
-          label: 'Export',
-          color: 'green',
-          action: 'export_data'
+          icon: "download",
+          label: "Export",
+          color: "green",
+          action: "#"
         },
         {
-          icon: 'bell',
-          label: 'Alerts',
-          color: 'orange',
-          action: 'view_alerts'
+          icon: "bell",
+          label: "Alerts",
+          color: "orange",
+          action: "#"
         }
       ]
     end
@@ -77,23 +80,13 @@ module Solidstats
         end
       rescue Errno::ENOENT
         Rails.logger.warn("Summary JSON file not found, generating initial data...")
-        generate_initial_data
-        retry
+        # Fallback to empty array if JSON is invalid
+        []
       rescue JSON::ParserError => e
         Rails.logger.error("Error parsing summary JSON: #{e.message}")
         # Fallback to empty array if JSON is invalid
         []
       end
-    end
-
-    def generate_initial_data
-      # Force a scan to create initial data if missing
-      Solidstats::LogSizeMonitorService.scan_and_cache
-      Solidstats::BundlerAuditService.scan_and_cache
-      Solidstats::MyTodoService.collect_todos
-      Solidstats::StylePatrolService.refresh_cache
-      Solidstats::CoverageCompassService.refresh_cache
-      Solidstats::DevLogParserService.scan_and_cache
     end
   end
 end

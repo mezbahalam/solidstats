@@ -1,14 +1,14 @@
 module Solidstats
   class LogsController < ApplicationController
-    layout 'solidstats/dashboard'
-    
+    layout "solidstats/dashboard"
+
     def logs_size
       @logs_data = Solidstats::LogSizeMonitorService.get_logs_data
     end
 
     def truncate
       filename = params[:filename]
-      
+
       # Validate filename presence
       if filename.blank?
         return render json: {
@@ -16,20 +16,20 @@ module Solidstats
           message: "Filename is required"
         }, status: :bad_request
       end
-      
+
       # Remove any path traversal attempts for security
       filename = File.basename(filename)
-      
+
       # Ensure it's a .log file
-      unless filename.end_with?('.log')
+      unless filename.end_with?(".log")
         filename = "#{filename}.log" if filename.present?
       end
 
       # Additional security check
-      unless filename.end_with?('.log')
-        return render json: { 
-          status: "error", 
-          message: "Invalid file type. Only .log files can be truncated." 
+      unless filename.end_with?(".log")
+        return render json: {
+          status: "error",
+          message: "Invalid file type. Only .log files can be truncated."
         }, status: :bad_request
       end
 
@@ -56,7 +56,7 @@ module Solidstats
     def refresh
       # Force refresh of log monitoring data
       result = Solidstats::LogSizeMonitorService.scan_and_cache
-      
+
       render json: {
         status: "success",
         message: "Log data refreshed",
@@ -64,7 +64,7 @@ module Solidstats
       }
     rescue StandardError => e
       render json: {
-        status: "error", 
+        status: "error",
         message: "Failed to refresh log data: #{e.message}"
       }, status: :internal_server_error
     end

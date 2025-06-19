@@ -1,0 +1,8 @@
+The Solidstats cleanup task has been executed.
+
+All generated data, including JSON files and caches in the 'solidstats' directory, have been removed.
+
+You can run this task again at any time by executing:
+  `rails generate solidstats:clean`
+or
+  `rake solidstats:clean`

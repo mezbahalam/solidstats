@@ -24,10 +24,10 @@ module Solidstats
 
     def quick_actions
       [
-        { icon: 'refresh-ccw', label: 'Refresh All', color: 'blue' },
-        { icon: 'download', label: 'Export Data', color: 'green' },
-        { icon: 'bar-chart-2', label: 'View Reports', color: 'purple' },
-        { icon: 'tool', label: 'Settings', color: 'orange' }
+        { icon: "refresh-ccw", label: "Refresh All", color: "blue" },
+        { icon: "download", label: "Export Data", color: "green" },
+        { icon: "bar-chart-2", label: "View Reports", color: "purple" },
+        { icon: "tool", label: "Settings", color: "orange" }
       ]
     end
 
@@ -80,7 +80,7 @@ module Solidstats
               if (typeof feather !== 'undefined') {
                 feather.replace();
               }
-              
+            #{'  '}
               // Auto-refresh functionality with animations
               setInterval(function() {
                 document.querySelectorAll('.card').forEach(function(card) {
@@ -114,7 +114,7 @@ module Solidstats
               if (typeof feather !== 'undefined') {
                 feather.replace();
               }
-              
+            #{'  '}
               // Auto-refresh functionality with animations
               setInterval(function() {
                 document.querySelectorAll('.card').forEach(function(card) {
